@@ -38,11 +38,11 @@ packages_half="$efl_basic $bin_basic $e_modules_bin $e_modules_extra"
 packages_full="$efl_basic $bin_basic $e_modules_bin $e_modules_extra $efl_extra $bin_extra"
 packages=$packages_basic    # default
 
-cmd_src_test="svn info"
-cmd_src_list="svn list -r"
-cmd_src_checkout="svn checkout -r "
-cmd_src_update_conflicts_solve="svn update --accept theirs-full -r"
-cmd_src_update_conflicts_ask="svn update -r"
+cmd_svn_test="svn info"
+cmd_svn_list="svn list -r"
+cmd_svn_checkout="svn checkout -r "
+cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
+cmd_svn_update_conflicts_ask="svn update -r"
 src_mode="packages"
 ignore_dirs="devs DOCS E16 EXAMPLES TEST THEMES web"
 autogen_args=""        # evas:--enable-gl-x11
@@ -247,25 +247,6 @@ function phase ()
 
 
 # INIT #############################################################################
-function check_commands ()
-{
-    max=15
-    for dep in $1; do
-        cnt=${#dep}
-        echo -n "- '$dep' available "
-        while [ ! $cnt = $max ]; do
-            echo -n "."
-            cnt=$(($cnt+1))
-        done
-        echo -n " "
-        if [ `type $dep &>/dev/null; echo $?` -ne 0 ]; then
-            echo -e "\033[1mNOT INSTALLED!\033[0m"
-            error "Command missing!"
-        else
-            echo "ok"
-        fi
-    done
-}
 
 function define_os_vars ()
 {
@@ -479,6 +460,7 @@ function parse_args ()
 
 
 # SETUP #############################################################################
+
 function check_script_version ()
 {
     echo -e "\033[1m------------------------------\033[7m Check script version \033[0m\033[1m----------------------------\033[0m"
@@ -501,6 +483,26 @@ function check_script_version ()
     echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
     echo
     exit 0
+}
+
+function check_commands ()
+{
+    max=15
+    for dep in $1; do
+        cnt=${#dep}
+        echo -n "- '$dep' available "
+        while [ ! $cnt = $max ]; do
+            echo -n "."
+            cnt=$(($cnt+1))
+        done
+        echo -n " "
+        if [ `type $dep &>/dev/null; echo $?` -ne 0 ]; then
+            echo -e "\033[1mNOT INSTALLED!\033[0m"
+            error "Command missing!"
+        else
+            echo "ok"
+        fi
+    done
 }
 
 function check_build_user ()
