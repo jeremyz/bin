@@ -1,0 +1,34 @@
+#! /usr/bin/perl
+
+# /bin/sh : NEW=`ls | sed s/\ /_/g | sed s/_-_/_/g `
+
+sub proceed{
+	my $dir=shift;
+	my $prefix=shift;
+	opendir(DIRHANDLE,$dir) || die "Cannot open dir $dir";
+	while ($name=readdir(DIRHANDLE)){
+        if($name =~m/^\./){
+            next;
+        }
+        my $ustring = "\x{b4}";
+		my $new = $name;
+        $new =~ s/ /_/g;
+        $new =~ s/'/_/g;
+        $new =~ s/[\[\]]/_/g;
+        $new =~ s/$ustring/_/g;
+        $new =~ s/\._/_/g;
+        $new =~ s/_+\./\./g;
+        $new =~ s/[_-](-*_*)+/_/g;
+        $new =~ s/\\/-/g;
+        $new =~ s/\\/-/g;
+        if(defined($prefix)){
+            $new =~ s/^$prefix//g;
+        }
+        if ($name ne $new) {
+            rename($name, $new) || die "Unable to rename $name in $new.";
+        }
+    }
+	closedir(DIRHANDLE);
+}
+
+proceed(".", shift);
