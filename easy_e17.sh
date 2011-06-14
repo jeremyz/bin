@@ -250,6 +250,26 @@ function phase ()
 
 
 # INIT #############################################################################
+function check_commands ()
+{
+    max=15
+    for dep in $1; do
+	    cnt=${#dep}
+        echo -n "- '$dep' available "
+        while [ ! $cnt = $max ]; do
+            echo -n "."
+            cnt=$(($cnt+1))
+        done
+        echo -n " "
+	    if [ `type $dep &>/dev/null; echo $?` -ne 0 ]; then
+		    echo -e "\033[1mNOT INSTALLED!\033[0m"
+		    error "Command missing!"
+	    else
+		    echo "ok"
+	    fi
+    done
+}
+
 function define_os_vars ()
 {
 	case $os in
@@ -490,6 +510,133 @@ function check_script_version ()
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 	echo
 	exit 0
+}
+
+function check_build_user ()
+{
+	echo -n "- build-user ................. "
+	if [ "$LOGNAME" == "root" ]; then
+		echo "root"
+		mode="root"
+        return
+    fi
+    if [ "$asuser" ]; then
+        echo "$LOGNAME (as user)"
+        mode="user"
+        return
+    fi
+    echo "$LOGNAME (non-root)"
+    echo -n "- sudo available ............. "
+    sudotest=`type sudo &>/dev/null ; echo $?`
+    if [ "$sudotest" == 0 ]; then
+        if [ "$no_sudopwd" == 1 ]; then
+            echo "ok"
+        else
+            sudo -K
+            if [ -e "$tmp_path/sudo.test" ]; then
+                rm -f "$tmp_path/sudo.test"
+            fi
+            while [ -z "$sudopwd" ]; do
+                echo -n "enter sudo-password: "
+                stty -echo
+                read sudopwd
+                stty echo
+                # password check
+                echo "$sudopwd" | sudo -S touch "$tmp_path/sudo.test" &>/dev/null
+                if [ ! -e "$tmp_path/sudo.test" ]; then
+                    sudopwd=""
+                fi
+            done
+            rm -f "$tmp_path/sudo.test"
+        fi
+        echo
+        mode="sudo"
+    else
+        error "You're not root and sudo isn't available. Please run this script as root!"
+    fi
+}
+
+function set_build_env ()
+{
+	echo -n "- setting env variables ...... "
+	export PATH="$install_path/bin:$PATH"
+	export ACLOCAL_FLAGS="-I $install_path/share/aclocal $ACLOCAL_FLAGS"
+	export LD_LIBRARY_PATH="$install_path/lib:$LD_LIBRARY_PATH"
+	export PKG_CONFIG_PATH="$install_path/lib/pkgconfig:$PKG_CONFIG_PATH"
+	export CPPFLAGS="$CPPFLAGS -I$install_path/include"
+	export LDFLAGS="$LDFLAGS -L$install_path/lib"
+	export CFLAGS="$CFLAGS"
+	export PYTHONPATH=`python -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='$install_path')" 2>/dev/null`
+	export PYTHONINCLUDE=`python -c "import distutils.sysconfig; print distutils.sysconfig.get_python_inc(prefix='$install_path')" 2>/dev/null`
+	echo "ok"
+}
+
+function check_ld_path ()
+{
+	echo -n "- checking lib-path in ld .... "
+	case $os in
+		FreeBSD) ;; # TODO: placeholder
+		SunOS)	 ;; # TODO: need more testing of adding libraries on different solaris versions. atm this is not working
+		Linux)
+			libpath="`grep -r -l -i -m 1 $install_path/lib /etc/ld.so.conf*`"
+			if [ -z "$libpath" ]; then
+				case $linux_distri in
+					gentoo)
+						e17ldcfg="/etc/env.d/40e17paths"
+						echo -e "PATH=$install_path/bin\nROOTPATH=$install_path/sbin:$install_path/bin\nLDPATH=$install_path/lib\nPKG_CONFIG_PATH=$install_path/lib/pkgconfig" > $e17ldcfg
+						env-update &> /dev/null
+						echo "ok (path has been added to $e17ldcfg)";
+						;;
+
+					*)
+						if [ "`grep -l 'include /etc/ld.so.conf.d/' /etc/ld.so.conf`" ]; then
+							e17ldcfg="/etc/ld.so.conf.d/e17.conf"
+						else
+							e17ldcfg="/etc/ld.so.conf";
+							cp $e17ldcfg $tmp_path;
+						fi
+
+						case "$mode" in
+							"user") ;;
+							"root")	echo "$install_path/lib" >>$e17ldcfg ;;
+							"sudo")
+								echo "$install_path/lib" >> $tmp_path/`basename $e17ldcfg`
+								echo "$sudopwd" | sudo -S mv -f $tmp_path/`basename $e17ldcfg` $e17ldcfg
+								;;
+						esac
+						if [ "$asuser" ]; then
+								echo "skipped (running as user)";
+						else	echo "ok (path has been added to $e17ldcfg)"; fi
+						;;
+				esac
+			else
+				echo "ok ($libpath)";
+			fi
+			;;
+	esac
+}
+
+function mk_dest_dirs ()
+{
+	echo -n "- creating destination dirs .. "
+	case "$mode" in
+		user|root)	mkdir -p "$install_path/share/aclocal" ;;
+		sudo)		echo "$sudopwd" | sudo -S mkdir -p "$install_path/share/aclocal" ;;
+	esac
+	# PYTHON BINDING FIXES
+	if [ "$PYTHONPATH" ]; then
+		case "$mode" in
+			user|root)	mkdir -p "$PYTHONPATH" ;;
+			sudo)		echo "$sudopwd" | sudo -S mkdir -p "$PYTHONPATH" ;;
+		esac
+	fi
+	if [ "$PYTHONINCLUDE" ]; then
+		case "$mode" in
+			user|root)	mkdir -p "$PYTHONINCLUDE" ;;
+			sudo)		echo "$sudopwd" | sudo -S mkdir -p "$PYTHONINCLUDE" ;;
+		esac
+	fi
+	echo "ok"
 }
 
 #############################################################################
@@ -1026,6 +1173,7 @@ header
 phase 1
 set_title "Basic system checks"
 echo -e "\033[1m-------------------------------\033[7m Basic system checks \033[0m\033[1m----------------------------\033[0m"
+check_commands "automake gcc $make `echo "$cmd_src_checkout" | cut -d' ' -f1`"
 echo -n "- creating temporary dirs .... "
 mkdir -p "$tmp_path"		2>/dev/null
 mkdir -p "$logs_path"		2>/dev/null
@@ -1034,147 +1182,14 @@ mkdir -p "$src_cache_path"	2>/dev/null
 mkdir -p "$src_path"		2>/dev/null
 chmod 700 "$tmp_path"
 echo "ok"
-
-max=15
-for dep in automake gcc $make `echo "$cmd_src_checkout" | cut -d' ' -f1`; do
-	cnt=${#dep}
-
-    echo -n "- '$dep' available "
-    while [ ! $cnt = $max ]; do
-        echo -n "."
-        cnt=$(($cnt+1))
-    done
-    echo -n " "
-
-	if [ `type $dep &>/dev/null; echo $?` -ne 0 ]; then
-		echo -e "\033[1mNOT INSTALLED!\033[0m"
-		error "Command missing!"
-	else
-		echo "ok"
-	fi
-done
-
-
 if [ ! "$action"  == "srcupdate" ]; then
-	echo -n "- build-user ................. "
-	if [ ! "$LOGNAME" == "root" ]; then
-		if [ "$asuser" ]; then
-			echo "$LOGNAME (as user)"
-			mode="user"
-		else
-			echo "$LOGNAME (non-root)"
-			echo -n "- sudo available ............. "
-			sudotest=`type sudo &>/dev/null ; echo $?`
-			if [ "$sudotest" == 0 ]; then
-				if [ "$no_sudopwd" == 1 ]; then
-					echo "ok"
-				else
-					sudo -K
-					if [ -e "$tmp_path/sudo.test" ]; then
-						rm -f "$tmp_path/sudo.test"
-					fi
-					while [ -z "$sudopwd" ]; do
-						echo -n "enter sudo-password: "
-						stty -echo
-						read sudopwd
-						stty echo
-						# password check
-						echo "$sudopwd" | sudo -S touch "$tmp_path/sudo.test" &>/dev/null
-						if [ ! -e "$tmp_path/sudo.test" ]; then
-							sudopwd=""
-						fi
-					done
-					rm -f "$tmp_path/sudo.test"
-				fi
-				echo
-				mode="sudo"
-			else
-				error "You're not root and sudo isn't available. Please run this script as root!"
-			fi
-		fi
-	else
-		echo "root"
-		mode="root"
-	fi
-
-	echo -n "- setting env variables ...... "
-	export PATH="$install_path/bin:$PATH"
-	export ACLOCAL_FLAGS="-I $install_path/share/aclocal $ACLOCAL_FLAGS"
-	export LD_LIBRARY_PATH="$install_path/lib:$LD_LIBRARY_PATH"
-	export PKG_CONFIG_PATH="$install_path/lib/pkgconfig:$PKG_CONFIG_PATH"
-	export CPPFLAGS="$CPPFLAGS -I$install_path/include"
-	export LDFLAGS="$LDFLAGS -L$install_path/lib"
-	export CFLAGS="$CFLAGS"
-	export PYTHONPATH=`python -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='$install_path')" 2>/dev/null`
-	export PYTHONINCLUDE=`python -c "import distutils.sysconfig; print distutils.sysconfig.get_python_inc(prefix='$install_path')" 2>/dev/null`
-	echo "ok"
-
-	echo -n "- creating destination dirs .. "
-	case "$mode" in
-		user|root)	mkdir -p "$install_path/share/aclocal" ;;
-		sudo)		echo "$sudopwd" | sudo -S mkdir -p "$install_path/share/aclocal" ;;
-	esac
-	# PYTHON BINDING FIXES
-	if [ "$PYTHONPATH" ]; then
-		case "$mode" in
-			user|root)	mkdir -p "$PYTHONPATH" ;;
-			sudo)		echo "$sudopwd" | sudo -S mkdir -p "$PYTHONPATH" ;;
-		esac
-	fi
-	if [ "$PYTHONINCLUDE" ]; then
-		case "$mode" in
-			user|root)	mkdir -p "$PYTHONINCLUDE" ;;
-			sudo)		echo "$sudopwd" | sudo -S mkdir -p "$PYTHONINCLUDE" ;;
-		esac
-	fi
-	echo "ok"
-
-	echo -n "- checking lib-path in ld .... "
-	case $os in
-		FreeBSD) ;; # TODO: placeholder
-		SunOS)	 ;; # TODO: need more testing of adding libraries on different solaris versions. atm this is not working
-		Linux)
-			libpath="`grep -r -l -i -m 1 $install_path/lib /etc/ld.so.conf*`"
-			if [ -z "$libpath" ]; then
-				case $linux_distri in
-					gentoo)
-						e17ldcfg="/etc/env.d/40e17paths"
-						echo -e "PATH=$install_path/bin\nROOTPATH=$install_path/sbin:$install_path/bin\nLDPATH=$install_path/lib\nPKG_CONFIG_PATH=$install_path/lib/pkgconfig" > $e17ldcfg
-						env-update &> /dev/null
-						echo "ok (path has been added to $e17ldcfg)";
-						;;
-
-					*)
-						if [ "`grep -l 'include /etc/ld.so.conf.d/' /etc/ld.so.conf`" ]; then
-							e17ldcfg="/etc/ld.so.conf.d/e17.conf"
-						else
-							e17ldcfg="/etc/ld.so.conf";
-							cp $e17ldcfg $tmp_path;
-						fi
-
-						case "$mode" in
-							"user") ;;
-							"root")	echo "$install_path/lib" >>$e17ldcfg ;;
-							"sudo")
-								echo "$install_path/lib" >> $tmp_path/`basename $e17ldcfg`
-								echo "$sudopwd" | sudo -S mv -f $tmp_path/`basename $e17ldcfg` $e17ldcfg
-								;;
-						esac
-						if [ "$asuser" ]; then
-								echo "skipped (running as user)";
-						else	echo "ok (path has been added to $e17ldcfg)"; fi
-						;;
-				esac
-			else
-				echo "ok ($libpath)";
-			fi
-			;;
-	esac
+    check_build_user
+    set_build_env
+    mk_dest_dirs
+    check_ld_path
 fi
-
 echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 echo
-
 
 # sources
 echo -e "\033[1m-----------------------------\033[7m Source checkout/update \033[0m\033[1m---------------------------\033[0m"
