@@ -1,0 +1,15 @@
+#! /bin/sh
+
+if [ $# -eq 0 ]; then
+    echo "usage $0 : pdffile"
+fi
+
+TIFF=$(basename $1 .pdf).tif
+OUTF=$(basename $1 .pdf)
+
+FMT=${TIFF_FMT:-"tiffgray"} #tiff24nc
+
+gs -r300x300 -sDEVICE=${FMT} -sOutputFile=$TIFF -dBATCH -dNOPAUSE $1
+tesseract $TIFF $OUTF
+rm $TIFF
+echo "output : ${OUTF}"

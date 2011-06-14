@@ -1,0 +1,3 @@
+#! /usr/bin/env ruby
+require 'rdoc/markup/to_html'
+puts RDoc::Markup::ToHtml.new.convert(ARGF.read)

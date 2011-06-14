@@ -1,0 +1,415 @@
+#!/bin/sh
+#< Convert a shell script into HTML, with syntax highlighting
+#
+# (C) 2004 Kevin Waldron
+# Released under the terms of the GNU General Public Licence
+#
+# Most modern Bourne Shell features are implemented here. Other
+# common external commands are also implemented. We can't implement
+# everything that may exist in everyones PATH's however!!
+
+if [ "$#" -ne "2" ]; then
+   echo "Usage: $(basename $0) filename outputfile" && exit 1
+fi
+
+O_FILE=$2
+
+if [ -e "${O_FILE}" ]; then
+   echo "$(basename $0): Error: ${O_FILE} already exists" && exit 1
+fi
+
+I_FILE=$1
+
+if [ ! -e "${I_FILE}" ]; then
+   echo "$(basename $0): Error: ${I_FILE} does not exist" && exit 1
+fi
+
+# Print standard header stuff to file
+
+#echo "<html>" >> ${O_FILE}
+#echo "<head>" >> ${O_FILE}
+#echo "<!-- Generated with sh2html - http://www.zazzybob.com -->" >> ${O_FILE}
+#echo "<title>$(basename ${I_FILE})</title>" >> ${O_FILE}
+#echo "</head>" >> ${O_FILE}
+#echo "<body>" >> ${O_FILE}
+echo "<pre>" >> ${O_FILE}
+
+# main awk routine - syntax highlighting done here!
+awk '{
+    # these gsubs globally replace special chars
+    gsub( "&", "\\&amp;", $0 );
+    gsub( "<", "\\&lt;", $0 );
+    gsub( ">", "\\&gt;", $0 );
+
+
+          commandArray[0] = "awk";
+	  commandArray[1] = "read";
+	  commandArray[2] = "exit";
+	  commandArray[3] = "ls";
+	  commandArray[4] = "rm";
+	  commandArray[5] = "sort";
+	  commandArray[6] = "uniq";
+	  commandArray[7] = "sed";
+	  commandArray[8] = "mv";
+	  commandArray[9] = "cp";
+	  commandArray[10] = "join";
+	  commandArray[11] = "grep";
+	  commandArray[12] = "cat";
+	  commandArray[13] = "df";
+	  commandArray[14] = "cd";
+	  commandArray[15] = "basename";
+	  commandArray[16] = "id";
+	  commandArray[17] = "tr";
+	  commandArray[18] = "ls";
+	  commandArray[19] = "true";
+	  commandArray[20] = "false";
+	  commandArray[21] = "seq";
+	  commandArray[22] = "cut";
+	  commandArray[23] = "getopt";
+	  commandArray[24] = "getopts";
+	  commandArray[25] = "gunzip";
+	  commandArray[26] = "gzip";
+	  commandArray[27] = "tar";
+	  commandArray[28] = "date";
+	  commandArray[29] = "clear";
+	  commandArray[30] = "ps";
+	  commandArray[31] = "ifconfig";
+	  commandArray[32] = "ping";
+	  commandArray[33] = "tput";
+	  commandArray[34] = "useradd";
+	  commandArray[35] = "passwd";
+	  commandArray[36] = "stty";
+	  commandArray[37] = "chown";
+	  commandArray[38] = "chmod";
+	  commandArray[39] = "trap";
+	  commandArray[40] = "sleep";
+	  commandArray[41] = "wait";
+	  commandArray[42] = "last";
+	  commandArray[43] = "head";
+	  commandArray[44] = "let";
+	  commandArray[45] = "shift";
+	  commandArray[46] = "unalias";
+	  commandArray[47] = "read";
+	  commandArray[48] = "unset";
+	  commandArray[49] = "alias";
+	  commandArray[50] = "expr";
+	  commandArray[51] = "printf";
+	  commandArray[52] = "mkdir";
+	  commandArray[53] = "declare";
+	  commandArray[54] = "local";
+	  commandArray[55] = "tail";
+      commandArray[56] = "hostname";
+	  commandArray[57] = "xterm";
+	  commandArray[58] = "bc";
+	  commandArray[59] = "wc";
+	  commandArray[60] = "more";
+	  commandArray[61] = "find";
+	  commandArray[62] = "mount";
+	  commandArray[63] = "who";
+	  commandArray[64] = "suspend";
+	  commandArray[65] = "ulimit";
+	  commandArray[66] = "umask";
+	  commandArray[67] = "source";
+	  commandArray[68] = "bind";
+	  commandArray[69] = "builtin";
+	  commandArray[70] = "typeset";
+	  commandArray[71] = "export";
+	  commandArray[72] = "fc";
+	  commandArray[73] = "history";
+	  commandArray[74] = "hash";
+	  commandArray[75] = "jobs";
+	  commandArray[76] = "kill";
+	  commandArray[77] = "fg";
+	  commandArray[78] = "bg";
+	  commandArray[79] = "logout";
+	  commandArray[80] = "popd";
+	  commandArray[81] = "pushd";
+	  commandArray[82] = "pwd";
+	  commandArray[83] = "shopt";
+	  commandArray[84] = "test";
+	  commandArray[85] = "touch";
+
+      # update array_length manually below!
+	  array_length = 85;
+
+    # deal with comments first - ignore entire line if one is found
+    if ( $0 ~ /^[ 	]*#/ ) {
+         print "<font color=\"green\"><i>"$0"</i></font>";
+    }
+    else {
+       # syntax highlight on a line-by-line, element-by-element basis
+       # dealing with echo firstly, so we can say echo "echo if else"
+       # and only have the "echo" highlighted
+       if ( $0 ~ /^[ 	]*echo/ ) {
+          gsub( /^[ 	]*echo/, "<b>&</b>", $0 );
+          gsub( /;[ 	]*echo/, "; <b>echo</b>", $0 );
+
+          # check for commands within ` and ( in echo
+          for ( i = 0; i <= array_length; i++ ) {
+	     x=commandArray[i];
+
+	     if ( $0 ~ x ) {
+	         reg = "[(]"x"[ 	]*";
+		 gsub( reg, "(<b>"x"</b> ", $0 );
+		 reg = "[(][ ]+"x"[ 	]+";
+		 gsub( reg, "( <b>"x"</b> ", $0 );
+		 reg = "[`]"x"[ 	]*";
+		 gsub( reg, "`<b>"x"</b> ", $0 );
+		 reg = "[`][ ]+"x"[ 	]+";
+		 gsub( reg, "` <b>"x"</b> ", $0 );
+		 reg = "^[ 	]*"x"[ 	]*$";
+		 gsub( reg, "<b>&</b>", $0 );
+		 reg = "[ ]+"x"[ 	]+";
+		 gsub( reg, "<b>&</b>", $0 );
+	     }
+	  }
+       }
+       else {
+          # catch other echos - i.e. with case
+          gsub( /[ 	]*echo[ 	]+/, "<b>&</b>", $0 );
+
+          # if - will be at start of line (usually)
+          gsub( /if test/,
+                "<font color=\"blue\"><b>if</b></font> <b>test</b>", $0 );
+	      gsub( /^[ 	]*if[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+	      gsub( /^[ 	]*if[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # else - will be at start of line (usually)
+          gsub( /^[ 	]*else[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # elif - will be at start of line (usually)
+          gsub( /^[ 	]*elif[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # fi - will also usually be at the start of a line
+          gsub( /^[ 	]*fi[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # for - will be at start of line (usually)
+          gsub( /^[ 	]*for[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # select - will be at start of line (usually)
+          gsub( /^[ 	]*select[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # while - will be at start of line (usually)
+          gsub( /while read/,
+	        "<font color=\"blue\"><b>while</b></font> <b>read</b>", $0 );
+	      gsub( /^[ 	]*while[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # until - will be at start of line (usually)
+          gsub( /^[ 	]*until[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # case - will be at start of line (usually)
+          gsub( /^[ 	]*case[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # esac - will be at start of line (usually)
+          gsub( /^[ 	]*esac[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # function - will be at start of line (usually)
+          gsub( /^[ 	]*function[ 	]+/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # done - will be at start of line (usually)
+          gsub( /^[ 	]*done[ 	]*/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+
+          # then - can be at start of line, or after a ;
+          gsub( /^[ 	]*then[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+          gsub( /;[ 	]*then[ 	]*$/,
+                "; <font color=\"blue\"><b>then</b></font>", $0 );
+
+          # special case - then followed by comment
+          if ( /[ 	]*then[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /then/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+          # special case - do followed by comment
+          if ( /[ 	]*do[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /do/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+	      # special case - else followed by comment
+          if ( /[ 	]*else[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /else/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+	      # special case - break followed by comment
+          if ( /[ 	]*break[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /break/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+	      # special case - continue followed by comment
+          if ( /[ 	]*continue[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /continue/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+	      # special case - done followed by comment
+          if ( /[ 	]*done[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /done/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+	      # special case - fi followed by comment
+          if ( /[ 	]*fi[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /fi/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+	      # special case - esac followed by comment
+          if ( /[ 	]*esac[ 	]*#/ ) {
+               gsub( /[^$]#.*$/,
+                   "<font color=\"green\"><i>&</i></font>", $0 );
+               gsub( /esac/,
+                   "<font color=\"blue\"><b>&</b></font>", $0 );
+          }
+
+          # do - can be at start of line, or after a ;
+          gsub( /^[ 	]*do[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+          gsub( /;[ 	]*do[ 	]*$/,
+                "; <font color=\"blue\"><b>do</b></font>", $0 );
+
+	      # continue - can be at start of line, or after a ;
+          gsub( /^[ 	]*continue[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+          gsub( /;[ 	]*continue[ 	]*$/,
+                "; <font color=\"blue\"><b>continue</b></font>", $0 );
+	      gsub( /continue;/,
+                "<font color=\"blue\"><b>continue</b></font>;", $0 );
+
+	      # break - can be at start of line, or after a ; or ending in ;
+          gsub( /^[ 	]*break[ 	]*$/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+          gsub( /;[ 	]*break[ 	]*$/,
+                "; <font color=\"blue\"><b>break</b></font>", $0 );
+	      gsub( /break[ ]*;/,
+                "<font color=\"blue\"><b>break</b></font> ;", $0 );
+
+	      # return - can be at start of line, or after a ;
+          gsub( /^[ 	]*return[ 	]*/,
+                "<font color=\"blue\"><b>&</b></font>", $0 );
+          gsub( /;[ 	]*return[ 	]*/,
+                "; <font color=\"blue\"><b>return</b></font>", $0 );
+
+	      # scan for more comments - probably makes some of the code
+          # above redundant! A bit of a "catch all" for comments that
+          # slip through the net.
+          if ( /[^${#]#[^#]/ ) {
+             gsub( /[^$^]#.*$/,
+                 "<font color=\"green\"><i>&</i></font>", $0 );
+          }
+
+	      # exec - special case as more commands may follow it
+	      if ( /[^#][	]*exec[		]*/ ) {
+	         gsub( /exec/, "<b>&</b>", $0 );
+	      }
+          if ( /^exec/ ) { gsub ( /exec/, "<b>exec</b>", $0 ); }
+
+
+	      # eval - special case as more commands may follow it
+	      if ( /[^#][	]*eval[		]*/ ) {
+	         gsub( /eval/, "<b>&</b>", $0 );
+	      }
+
+	      # set - to allow tput reset
+	      if ( /set/ ) {
+	         gsub( /^[	]*set/, "<b>&</b>", $0 );
+	      }
+
+	  for ( i = 0; i <= array_length; i++ ) {
+	     x=commandArray[i];
+
+	     if ( $0 ~ x ) {
+	         reg = "[(]"x"[ 	]*";
+		 gsub( reg, "(<b>"x"</b> ", $0 );
+		 reg = "[(][ ]+"x"[ 	]+";
+		 gsub( reg, "( <b>"x"</b> ", $0 );
+		 reg = "[`]"x"[ 	]*";
+		 gsub( reg, "`<b>"x"</b> ", $0 );
+		 reg = "[\047]"x"[ 	]*";
+		 gsub( reg, "\047<b>"x"</b> ", $0 );
+		 reg = "[\042]"x"[ 	]*";
+		 gsub( reg, "\042<b>"x"</b> ", $0 );
+		 reg = "[`][ ]+"x"[ 	]+";
+		 gsub( reg, "` <b>"x"</b> ", $0 );
+		 reg = "[ 	]+"x"[ 	]+";
+		 gsub( reg, "<b>&</b>", $0 );
+		 reg = x";";
+		 gsub( reg, "<b>"x"</b>;", $0 );
+		 reg = "^[ 	]*"x"[ 	]+";
+		 gsub( reg, "<b>&</b>", $0 );
+		 reg = "[ ]*"x"[`]";
+		 gsub( reg, " <b>"x"</b>`", $0 );
+		 reg = "[ ]*"x"[)]";
+		 gsub( reg, " <b>"x"</b>)", $0 );
+		 reg = "[ ]*"x"[ ]+[`]";
+		 gsub( reg, " <b>"x"</b> `", $0 );
+		 reg = "[ ]*"x"[ ]+[)]";
+		 gsub( reg, " <b>"x"</b> )", $0 );
+		 reg = "^[ 	]*"x"[ 	]*$";
+		 gsub( reg, "<b>&</b>", $0 );
+		 reg = "[|][ ]+"x;
+		 gsub( reg, "| <b>"x"</b>", $0 );
+	     }
+	  }
+
+          # some comparison ops
+          gsub( /[ 	]+\-gt[ 	]+/, " <b>-gt</b> ", $0 );
+          gsub( /[ 	]+\-lt[ 	]+/, " <b>-lt</b> ", $0 );
+          gsub( /[ 	]+\-eq[ 	]+/, " <b>-eq</b> ", $0 );
+          gsub( /[ 	]+\-ne[ 	]+/, " <b>-ne</b> ", $0 );
+          gsub( /[ 	]+\-ge[ 	]+/, " <b>-ge</b> ", $0 );
+          gsub( /[ 	]+\-le[ 	]+/, " <b>-le</b> ", $0 );
+          gsub( /[ 	]+\-a[ 	]+/, " <b>-a</b> ", $0 );
+          gsub( /[ 	]+\-o[ 	]+/, " <b>-o</b> ", $0 );
+	      gsub( /[ 	]+\-n[ 	]+/, " <b>-n</b> ", $0 );
+          gsub( /[ 	]+\![ 	]+/, "<b> !</b> ", $0 );
+          gsub( /[ 	]+\-e[ 	]+/, " <b>-e</b> ", $0 );
+          gsub( /[ 	]+\-z[ 	]+/, " <b>-z</b> ", $0 );
+          gsub( /[ 	]+\-f[ 	]+/, " <b>-f</b> ", $0 );
+       }
+       # print out the line now we are all gsubbed
+       print $0
+    }
+}' ${I_FILE} >> ${O_FILE}
+
+# print website plug - please leave in to "spread the word"
+echo "<br><br>" >> ${O_FILE}
+echo "<font color=\"green\"><i># Generated with sh2html - freely available from http://www.zazzybob.com/sh2html.html</i></font>" >> ${O_FILE}
+
+# print standard footer stuff to file
+
+echo "</pre>" >> ${O_FILE}
+#echo "</body>" >> ${O_FILE}
+#echo "</html>" >> ${O_FILE}
+
+exit 0
