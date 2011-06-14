@@ -56,6 +56,31 @@ online_source="http://omicron.homeip.net/projects/easy_e17/easy_e17.sh"	# URL of
 
 
 # VISUAL #############################################################################
+
+function set_title ()
+{
+	if [ "$1" ]; then message="- $1"; fi
+	if [ "$DISPLAY" ]; then
+	    case "$TERM" in
+			xterm*|rxvt*|Eterm|eterm|Aterm|aterm)
+                echo -ne "\033]0;Easy_e17.sh $message\007"
+				;;
+	    esac
+	fi
+}
+
+function set_notification ()
+{
+	if [ -z "$DISPLAY" ] || [ "$notification_disabled" ]; then return; fi
+	notifier="$install_path/bin/e-notify-send"
+	urgency=$1
+	text=$2
+	if [ -x "$notifier" ]; then
+		$notifier -u "$urgency" -t 5000 -i "$install_path/share/enlightenment/data/images/enlightenment.png" \
+				  -n "easy_e17.sh" "easy_e17.sh" "$text" &>/dev/null
+	fi
+}
+
 function header ()
 {
 	clear
@@ -921,32 +946,6 @@ function error ()
     set_title "ERROR: $1"
 	set_notification "critical" "Error: $1"
 	exit 2
-}
-
-function set_title ()
-{
-	if [ "$1" ]; then message="- $1"; fi
-
-	if [ "$DISPLAY" ]; then
-	    case "$TERM" in
-			xterm*|rxvt*|Eterm|eterm|Aterm|aterm)
-	        	echo -ne "\033]0;Easy_e17.sh $message\007"
-				;;
-	    esac
-	fi
-}
-
-function set_notification ()
-{
-	if [ -z "$DISPLAY" ] || [ "$notification_disabled" ]; then return; fi
-	notifier="$install_path/bin/e-notify-send"
-	urgency=$1
-	text=$2
-
-	if [ -e "$notifier" ]; then
-		$notifier -u "$urgency" -t 5000 -i "$install_path/share/enlightenment/data/images/enlightenment.png" \
-				  -n "easy_e17.sh" "easy_e17.sh" "$text" &>/dev/null
-	fi
 }
 
 function logfile_banner ()
