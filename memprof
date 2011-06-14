@@ -1,0 +1,47 @@
+#! /bin/sh
+if [ $# -lt 1 ];  then
+    echo "usage $0 cmd or $0 -p PID";
+    exit  1;
+fi
+
+if [ "$1X" = "-pX" ]; then
+    PID=$2
+else
+    $1 & PID=$!
+fi
+
+STATUS_FILE="/proc/$PID/status"
+LOG_FILE="${PID}.dat"
+PLOT_FILE="${PID}.plt"
+
+draw() {
+    cat << EOF >$PLOT_FILE
+set term postscript
+set output "$PID.ps"
+plot '${LOG_FILE}' using 1:2 with lines title 'VmSize', \
+'${LOG_FILE}' using 1:3 with lines title 'VmRss', \
+'${LOG_FILE}' using 1:4 with lines title 'VmLib'
+set term x11
+replot
+EOF
+
+    gnuplot -persist $PLOT_FILE
+    exit 0
+}
+
+trap draw SIGINT
+
+CPT=0
+while [ 1 ]; do
+    if [ ! -e $STATUS_FILE ]; then break; fi
+    awk "BEGIN{ vmSize=0; vmRss=0; vmLib=0; }
+    /VmSize/ {vmSize = \$2 }
+    /VmRSS/ { vmRss = \$2 }
+    /VmLib/ { vmLib = \$2 }
+    END { print $CPT\" \"vmSize\" \"vmRss\" \"vmLib }
+    " $STATUS_FILE >> $LOG_FILE
+    sleep 1
+    ((CPT=CPT+1));
+done
+
+draw
