@@ -180,9 +180,6 @@ function help ()
         echo "  -w, --wait                          = don't exit the script after finishing,"
         echo "                                        this allows 'xterm -e ./easy_e17.sh -i'"
         echo "                                        without closing the xterm"
-        echo "      --anim=<animation>              = build animation:"
-        echo "                                        - star: rotating star (default)"
-        echo "                                        - weeh: waving man"
         echo "  -n  --disable-notification          = disable the osd notification"
         echo "  -k, --keep                          = don't delete the temporary dir"
         echo
@@ -432,12 +429,6 @@ function parse_args ()
                 ;;
             -e|--skip-errors)			skip_errors=1 ;;
             -w|--wait)					wait=1 ;;
-            --anim)
-                case $value in
-                    "weeh")	animation="weeh" ;;
-                    *)		animation="star" ;;
-                esac
-                ;;
             -n|--disable-notification)	notification_disabled=1 ;;
             -k|--keep)					keep=1 ;;
 
@@ -977,114 +968,41 @@ function rotate ()
 	name=$2
 	animation_state=1
 	log_line=""
-
-	case $animation in
-		"weeh") echo -n "     " ;;
-		*)		echo -n "   " ;;
-	esac
+    echo -n "   "
 	while [ "`ps -p $pid -o comm=`" ]; do
 		last_line=`tail -1 "$logs_path/$name.log"`
 		if [ ! "$log_line" = "$last_line" ]; then
-			case $animation in
-				"weeh")
-					# waving man
-					echo -e -n "\b\b\b\b\b"
-					case $animation_state in
-						1)
-							echo -n "["
-							echo -n -e "\033[1m"
-							echo -n "\\o\\"
-							echo -n -e "\033[0m"
-							echo -n "]"
-							animation_state=2
-							;;
-						2)
-							echo -n "["
-							echo -n -e "\033[1m|o|\033[0m"
-							echo -n "]"
-							animation_state=3
-							;;
-						3)
-							echo -n "["
-							echo -n -e "\033[1m/o/\033[0m"
-							echo -n "]"
-							animation_state=4
-							;;
-						4)
-							echo -n "["
-							echo -n -e "\033[1m|o|\033[0m"
-							echo -n "]"
-							animation_state=5
-							;;
-						5)
-							echo -n "["
-							echo -n -e "\033[1m"
-							echo -n "\\o/"
-							echo -n -e "\033[0m"
-							echo -n "]"
-							animation_state=6
-							;;
-						6)
-							echo -n "["
-							echo -n -e "\033[1m|o|\033[0m"
-							echo -n "]"
-							animation_state=1
-							;;
-
-					esac
-					;;
-				*)
-					# rotating star
-					echo -e -n "\b\b\b"
-					case $animation_state in
-						1)
-							echo -n "["
-							echo -n -e "\033[1m|\033[0m"
-							echo -n "]"
-							animation_state=2
-							;;
-						2)
-							echo -n "["
-							echo -n -e "\033[1m/\033[0m"
-							echo -n "]"
-							animation_state=3
-							;;
-						3)
-							echo -n "["
-							echo -n -e "\033[1m-\033[0m"
-							echo -n "]"
-							animation_state=4
-							;;
-						4)
-							echo -n "["
-							echo -n -e "\033[1m"
-							echo -n "\\"
-							echo -n -e "\033[0m"
-							echo -n "]"
-							animation_state=1
-							;;
-					esac
-					;;
-				esac
+            echo -e -n "\b\b\b[\033[1m"
+            case $animation_state in
+                1)
+                    echo -n "|"
+                    animation_state=2
+                    ;;
+                2)
+                    echo -n "/"
+                    animation_state=3
+                    ;;
+                3)
+                    echo -n "-"
+                    animation_state=4
+                    ;;
+                4)
+                    echo -n "\\"
+                    animation_state=1
+                    ;;
+            esac
+            echo -n -e "\033[0m"
+            echo -n "]"
 			log_line=$last_line
 		fi
 		sleep 1
 	done
-
 	if [ -e "$status_path/$name.noerrors" ]; then
-		case $animation in
-			"weeh")	del_lines 14 ;;
-			*)		del_lines 12 ;;
-		esac
+		del_lines 12
 	else
-		case $animation in
-			"weeh")	del_lines 5 ;;
-			*)		del_lines 3 ;;
-		esac
-
+		del_lines 3
 		echo -e "\033[1mERROR!\033[0m"
 		set_notification "critical" "Package '$name': build failed"
-
 		if [ ! "$skip_errors" ]; then
         	set_title "$name: ERROR"
 			echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
