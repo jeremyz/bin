@@ -1,0 +1,11 @@
+#! /bin/sh
+[ $# -lt 1 ] && echo "missing hostname" && exit 1
+if [ $# -eq 2 ]; then
+    host=$2
+    user=$1
+else
+    host=$1
+    user="Administrator"
+fi
+echo rdesktop -0 -g 1280x1024  -u  $user $host
+
