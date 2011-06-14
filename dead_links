@@ -1,0 +1,4 @@
+#! /bin/sh
+DIR=${1:-$HOME}
+echo "find $DIR -maxdepth 1 -type l -a ! -readable -exec ls -l '{}' \;"
+find $DIR -maxdepth 1 -type l -a ! -readable -exec ls -l '{}' \;
