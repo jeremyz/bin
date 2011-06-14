@@ -1,0 +1,45 @@
+#! /usr/bin/python
+# Wake-On-LAN
+#
+# Copyright (C) 2002 by Micro Systems Marc Balmer
+# Written by Marc Balmer, marc@msys.ch, http://www.msys.ch/
+# This code is free software under the GPL
+
+# /usr/sbin/ethtool -s eth0 wol g
+
+import struct, socket
+from sys import argv, exit
+from os.path import basename
+
+def WakeOnLan(ethernet_address, ip=0):
+    # Construct a six-byte hardware address
+    addr_byte = ethernet_address.split(':')
+    hw_addr = struct.pack('BBBBBB', int(addr_byte[0], 16),
+            int(addr_byte[1], 16),
+            int(addr_byte[2], 16),
+            int(addr_byte[3], 16),
+            int(addr_byte[4], 16),
+            int(addr_byte[5], 16))
+    # Build the Wake-On-LAN "Magic Packet"...
+    msg = '\xff' * 6 + hw_addr * 16
+    # send it
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    try :
+        if ip==0:
+            s.sendto(msg, ('<broadcast>', 666))
+        else :
+            s.sendto(msg, ( ip, 666))
+    except:
+        s.close()
+        print("send error")
+        exit(1)
+    s.close()
+
+if( len( argv )==1):
+    print("usage : "+basename( argv[0] )+" mac_address [distant ip]")
+    exit(1)
+if( len( argv )>2):
+    WakeOnLan(argv[1],argv[2])
+else :
+    WakeOnLan(argv[1])
