@@ -1,0 +1,41 @@
+#! /bin/sh
+
+usage() {
+    echo "usage  : `basename $0` [-rvx] name..."
+    echo "   -r  :  recursive mode"
+    echo "   -v  :  verbose mode"
+    echo "   -x  :  force on executable"
+    echo "       :  files | directories list"
+}
+
+if test $# -lt 1 ; then
+    usage && exit 1;
+fi
+
+SED=`which sed 2>/dev/null`
+if test -z $SED; then echo "sed isn't available on this system."; exit 1; fi
+
+CMD="$SED -i -e s/\\r//g"
+R=0
+V=0
+X=0
+ARGS=""
+while test $# -gt 0; do
+    if test $1 == "-r"; then
+        R=1
+    elif test $1 == "-v"; then
+        V=1
+    elif test $1 == "-x"; then
+        X=1
+        echo "WARNING : force on executable is set."
+        echo " running this on a binary file will break it.";
+        echo " Hit ENTER to continue or Ctrl-C to Abort."; read OK
+    else
+        ARGS=$ARGS" "$1;
+    fi
+    shift;
+done
+
+. ~/bin/recurse_apply
+
+recurse_apply $ARGS
