@@ -1,0 +1,447 @@
+#! /bin/bash
+
+CYAN="\033[3;36m"
+RED="\033[3;31m"
+RESET="\033[0m"
+
+READ_SPEED=52
+WRITE_SPEED=40
+MOUNT='/media/cd'
+# DEVICES=`ls -1l /dev/cdr* | gawk '{ print $8; }'`
+DEVICE='/dev/cdrom'
+WAV_TMP='WAV_tmp'
+ISO_TMP='ISO_tmp'
+NBR=1
+DVD=0
+VERIFY=0
+VERSION="1.1"
+
+# set files and directory mode to usuall values
+# allow full 31 characters filename
+# Generate Joliet directory records
+ISO_OPTS='-input-charset iso8859-15 -r -l -J'
+
+# Disk At Once == Session At Once
+BURN_WAV_OPTS='-v -eject -pad -dao -audio *.wav'
+BURN_ISO_OPTS='-v -eject -dao -data '
+
+
+# TODO	MOUNT && DEVICE
+#
+#	cdrecord -scanbus
+#
+#	doesn't work => multi lines ...
+#	`cat /etc/fstab | grep cdrom | awk '{ if ($1 != "") print $2; else print "N" }'`
+#
+#	catch trap SIGINT => clean
+#
+
+BIN=`basename $0`
+
+REC=0
+REC_2=1
+MP3=2
+MP3_2=3
+MPC=4
+MPC_2=5
+OGG=6
+CD2W=7
+MKISO=8
+SOX=9
+CMP=10
+MY_BIN=(
+    `which cdrecord 2>/dev/null || echo 'N'`
+    `which dvdrecord 2>/dev/null || echo 'N'`
+    `which mpg321 2>/dev/null || echo 'N'`
+    `which mpg123 2>/dev/null || echo 'N'`
+    `which mppdec 2>/dev/null || echo 'N'`
+    `which mppdec-static 2>/dev/null || echo 'N'`
+    `which oggdec 2>/dev/null || echo 'N'`
+    `which cdda2wav 2>/dev/null || echo 'N'`
+    `which mkisofs 2>/dev/null || echo 'N'`
+    `which sox 2>/dev/null || echo 'N'`
+    `which cmp 2>/dev/null || echo 'N'`
+)
+
+verify() {
+    if [ "${MY_BIN[$1]}" = "N" ]; then return 1; fi
+}
+
+error() {
+    echo -e "${RED}$@ => exit 1${RESET} (temporary files may still exists)." && exit 1;
+}
+
+
+mktmp() {
+    if test -d $1; then error "$1 already exists"; fi
+    echo "mkdir $1" && mkdir $1 2>/dev/null || error "unable to mkdir $1"
+}
+
+need_one() {
+    GET=""
+    if verify $1 ; then
+        GET=$1
+    else
+        if ! verify $2 ; then error $3; fi
+        GET=$2
+    fi
+    GET=${MY_BIN[$GET]}
+}
+
+mp3_to_wav() {
+    need_one $MP3 $MP3_2 "neither mpg321 nore mpg123 are available"
+    for i in *.MP3; do mv $i `basename $i .MP3`.mp3 2>/dev/null; done
+    for i in *.mp3; do mv $i `echo $i | tr ' ' '_'` 2>/dev/null; done
+    if verify $SOX; then # convert to 44100 signed linear 16-bit double channel wav file
+	#for i in *.mp3; do ${GET} -s $i | ${MY_BIN[$SOX]} -t raw -r 44100 -u -c 2 - -t wav ${WAV_TMP}/`basename $i .mp3`.wav  || error; done
+	for i in *.mp3; do ${MY_BIN[$SOX]} ${i} ${WAV_TMP}/`basename $i .mp3`.wav  || error; done
+    else
+	for i in *.mp3; do ${GET} -w ${WAV_TMP}/`basename $i .mp3`.wav $i || error; done
+    fi
+    #for i in *.mp3; do mplayer -vo null -ao pcm:file=${WAV_TMP}/`basename $i .mp3`.wav $i || error; done
+}
+
+mpc_to_wav() {
+    need_one $MPC $MPC_2 "neither mppcdec nore mppcdec-static are available"
+    for i in *.MPC; do mv $i `basename $i .MPC`.mpc 2>/dev/null; done
+    for i in *.mpc; do mv $i `echo $i | tr ' ' '_'` 2>/dev/null; done
+    for i in *.mpc; do ${GET} $i ${WAV_TMP}/`basename $i .mpc`.wav || error; done
+}
+
+ogg_to_wav() {
+    if ! verify $OGG ; then error "oggdec unavailable"; fi
+    for i in *.OGG; do mv $i `basename $i .OGG`.ogg 2>/dev/null; done
+    for i in *.ogg; do mv $i `echo $i | tr ' ' '_'` 2>/dev/null; done
+    for i in *.ogg; do ${MY_BIN[${OGG}]} $i -o ${WAV_TMP}/`basename $i .ogg`.wav || error; done
+}
+
+
+cd_to_wav() {
+    if ! verify $CD2W ; then error "cdda2wav unavailable"; fi
+    # -P 0 : initial number of overlap sectors for jitter correction
+    # -n 75 : read 75 sectors per request
+    # -B copy each track info in a separate file
+    ${MY_BIN[$CD2W]} dev=${DEVICE} speed=${READ_SPEED} -v all cddb=0  -P 0 -n 75 -B -O wav || error "cdda2wav failure"
+}
+
+iso_from_cd() {
+    if ! verify $MKISO ; then error "mkisofs unavailable"; fi
+    mount -t iso9660 -o ro ${DEVICE} ${MOUNT} || error "unable to mount ${DEVICE} on ${MOUNT}"
+    ${MY_BIN[$MKISO]} ${ISO_OPTS} -o ${ISO_TMP} ${MOUNT} || error "mkisofs failure"
+    umount ${MOUNT}
+}
+
+iso_from_files() {
+    echo "${MY_BIN[$MKISO]} ${ISO_OPTS} -o ${ISO_TMP} $@"
+    ${MY_BIN[$MKISO]} ${ISO_OPTS} -o ${ISO_TMP} $@ || error "mkisofs failure"
+}
+
+burn_wav() {
+    if [ $DVD -eq 1 ]; then
+        need_one $REC_2 $REC_2 "dvdrecord is not available"
+    else
+        need_one $REC $REC_2 "neighter cdrecord or dvdrecord is available"
+    fi
+    while [ $NBR -gt 0 ]; do
+        need_cd
+        echo "$GET dev=${DEVICE} speed=${WRITE_SPEED} ${OVERBURN} ${BURN_WAV_OPTS} ${INFO}"
+        $GET dev=${DEVICE} speed=${WRITE_SPEED} ${OVERBURN} ${BURN_WAV_OPTS} ${INFO} || error "cdrecord failure"
+        let NBR--
+    done
+}
+
+burn_iso() {
+    if [ $DVD -eq 1 ]; then
+        need_one $REC_2 $REC_2 "dvdrecord is not available"
+    else
+        need_one $REC $REC_2 "neighter cdrecord or dvdrecord is available"
+    fi
+    while [ $NBR -gt 0 ]; do
+        need_cd
+        echo "$GET dev=${DEVICE} speed=${WRITE_SPEED} ${OVERBURN} ${BURN_ISO_OPTS} ${ISO_TMP}"
+        $GET dev=${DEVICE} speed=${WRITE_SPEED} ${OVERBURN} ${BURN_ISO_OPTS} ${ISO_TMP} || error "cdrecord failure"
+        let NBR--
+    done
+}
+
+eject() {
+    need_one $REC $REC_2 "neighter cdrecord or dvdrecord is available"
+    $GET dev=${DEVICE} -eject
+}
+
+clean() {
+    echo "cleanning" && rm -fr ${ISO_TMP} ${WAV_TMP} 2>/dev/null
+}
+
+need_cd() {
+    echo ""
+    echo "would you please insert one of those marvelous recordable compat discs and hit ENTER, thanks a lot !"
+    echo  ""
+    read NOPE
+}
+
+usage (){
+    echo "usage : $BIN  (3|w|m|o|a|c|f|i|I|V) [-Od:D:r:w:t:i:n:]"
+    echo " burn from :"
+    echo "              3 => mp3 files"
+    echo "              w => wav files"
+    echo "              m => mpc files"
+    echo "              o => ogg files"
+    echo "              a => audio cd"
+    echo "              c => data cd"
+    echo "              f => files"
+    echo "              i => iso file"
+    echo "              I => create iso from CD/DVD"
+    echo "              V => print version and exit"
+    echo ""
+    echo " options  :"
+    echo "              d => burn a dvd"
+    echo "              o => overburn"
+    echo "              m => cdrom mounting moint   - default : ${MOUNT}"
+    echo "              e => cdrom device           - default : ${DEVICE}"
+    echo "              r => reading speed          - default : ${READ_SPEED}"
+    echo "              w => writing speed          - default : ${WRITE_SPEED}"
+    echo "              t => temporary directory    - default : ${WAV_TMP}"
+    echo "              i => temporary iso file     - default : ${ISO_TMP}"
+    echo "              n => n copies               - default : 1"
+    echo "              v => verify burned files    - default : 0"
+    exit 1
+}
+version () {
+    echo " $BIN $VERSION"
+    echo ""
+    echo " Copyright (C) Jeremy Zurcher 2004-2007"
+    echo " This is free software; There is NO warranty; "
+    echo " not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    exit 0
+}
+
+with_options() {
+    OPTERR=1
+    while [ 1 ]; do
+        getopts "dom:e:r:w:t:i:n:v" OPT
+        if test $? -eq 1; then break; fi
+        case $OPT in
+            d)
+            DVD=1
+            ;;
+            o)
+            OVERBURN="-overburn"
+            ;;
+            m)
+            MOUNT=$OPTARG
+            ;;
+            e)
+            DEVICE=$OPTARG
+            ;;
+            r)
+            READ_SPEED=$OPTARG
+            ;;
+            w)
+            WRITE_SPEED=$OPTARG
+            ;;
+            t)
+            WAV_TMP=$OPTARG
+            ;;
+            i)
+            ISO_TMP=$OPTARG
+            ;;
+            n)
+            NBR=$OPTARG
+            ;;
+            v)
+            VERIFY=1
+            ;;
+            *)
+            exit 1
+            ;;
+        esac
+    done
+}
+
+change_option() {
+    echo -n "new value for $1 : "
+    read RET
+}
+
+interactive() {
+    OPTIONS="mp3 mpc ogg wav files audio_cd data_cd iso ISO quit"
+    select opt in $OPTIONS; do
+	if [ "$opt" = mp3 ]; then choice="3" && break; fi
+	if [ "$opt" = mpc ]; then choice="m" && break; fi
+	if [ "$opt" = ogg ]; then choice="o" && break; fi
+	if [ "$opt" = wav ]; then choice="w" && break; fi
+	if [ "$opt" = files ]; then choice="f" && break; fi
+	if [ "$opt" = audio_cd ]; then choice="a" && break; fi
+	if [ "$opt" = data_cd ]; then choice="c" && break; fi
+	if [ "$opt" = iso ]; then choice="i" && break; fi
+	if [ "$opt" = ISO ]; then choice="I" && break; fi
+	if [ "$opt" = quit ]; then exit 0; fi
+    done
+    OPTIONS="dvd overburn mount_point device read_speed write_speed wav_tmp iso_tmp copies verify done quit"
+    while [ 1 ]; do
+        echo
+        echo -e "${RED}OPTIONS :  ${RESET}"
+        echo "   burnd a  dvd  :  $DVD"
+        echo "   overburn      :  $OVERBURN"
+        echo "   mount_point   :  $MOUNT"
+        echo "   device        :  $DEVICE"
+        echo "   read_speed    :  $READ_SPEED"
+        echo "   write_speed   :  $WRITE_SPEED"
+        echo "   wav_tmp       :  $WAV_TMP"
+        echo "   iso_tmp       :  $ISO_TMP"
+        echo "   copies        :  $NBR"
+        echo "   verify        :  $VERIFY"
+        echo
+        echo -e "${CYAN}which options do you want to change ?${RESET}"
+        select opt in $OPTIONS; do
+            if [ "$opt" = overburn ]; then
+                if [ "$OVERBURN" = " -overburn" ]; then
+                    OVERBURN="";
+                else
+                    OVERBURN=" -overburn";
+                fi
+                break;
+	    fi
+	    if [ "$opt" = dvd ]; then DVD=1 && break; fi
+            if [ "$opt" = mount_point ]; then change_option "mount_point" && MOUNT=$RET && break; fi
+            if [ "$opt" = device ]; then change_option "device" && DEVICE=$RET && break; fi
+            if [ "$opt" = read_speed ]; then change_option "read_speed" && READ_SPEED=$RET && break; fi
+            if [ "$opt" = write_speed ]; then change_option "write_speed" && WRITE_SPEED=$RET && break; fi
+            if [ "$opt" = wav_tmp ]; then change_option "wav_tmp" && WAV_TMP=$RET && break; fi
+            if [ "$opt" = iso_tmp ]; then change_option "iso_tmp" && ISO_TMP=$RET && break; fi
+            if [ "$opt" = copies ]; then change_option "copies" && NBR=$RET && break; fi
+            if [ "$opt" = verify ]; then
+                if test "$VERIFY" == "1" ; then
+                    VERIFY=0
+                else
+                    VERIFY=1
+                fi
+                break
+            fi
+            if [ "$opt" = done ]; then break; fi
+            if [ "$opt" = quit ]; then exit 0; fi
+        done
+        if [ "$opt" = done ]; then break; fi
+    done
+}
+
+int_handler () {
+    echo "SIGINT caught !!"
+    echo "cleaning..."
+    clean
+    exit 1
+}
+
+if [ ${UID} -ne 0 ]; then
+    if [ "$1" = "V" ]; then
+        version
+    fi
+    echo "$BIN says : you must be root" && exit 1;
+fi
+
+trap int_handler SIGINT
+
+need_one $REC $REC_2 "neighter cdrecord or dvdrecord is available"
+
+if [ "${0##*/}" = "burncdi" ]; then
+    interactive
+else
+    if [ $# -lt 1 ]; then usage; fi
+    choice=$1; shift;
+    with_options $@
+    let OPTIND--		# eat choice
+    # eat options
+    while [ $OPTIND -gt 0 ]; do
+        let OPTIND--
+        shift;
+    done
+fi
+
+case $choice in
+
+    3)
+    #echo "burn mp3 files"
+    mktmp $WAV_TMP
+    mp3_to_wav
+    cd $WAV_TMP
+    burn_wav
+    cd ..
+    ;;
+
+    m)
+    #echo "burn mpc files"
+    mktmp $WAV_TMP
+    mpc_to_wav
+    cd $WAV_TMP
+    burn_wav
+    cd ..
+    ;;
+
+    o)
+    #echo "burn ogg files"
+    mktmp $WAV_TMP
+    ogg_to_wav
+    cd $WAV_TMP
+    burn_wav
+    cd ..
+    ;;
+
+    w)
+    #echo "burn wav files"
+    burn_wav
+    ;;
+
+    f)
+    #echo "burn data files"
+    if [ $# -lt 1 ]; then error "file missing"; fi
+    iso_from_files $@
+    burn_iso
+    # TODO VERIFY files
+    ;;
+
+    a)
+    #echo "copy audio cd"
+    mktmp $WAV_TMP
+    cd $WAV_TMP
+    cd_to_wav
+    eject
+    INFO=" -useinfo -text *.inf"
+    burn_wav
+    cd ..
+    ;;
+
+    c)
+    #echo "copy data cd"
+    iso_from_cd
+    eject
+    burn_iso
+    # TODO VERIFY files
+    ;;
+
+    i)
+    #echo "burn an iso"
+    if [ $# -lt 1 ]; then error "file missing"; fi
+    ISO_TMP=$1
+    burn_iso
+    # TODO VERIFY files
+    exit 0     # don't remove ISO file
+    ;;
+
+    I)
+    #echo "copy data cd"
+    iso_from_cd
+    eject
+    exit 0     # don't remove ISO file
+    ;;
+
+    V)
+    version
+    ;;
+
+    *)
+    usage
+    ;;
+esac
+
+clean
