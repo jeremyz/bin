@@ -1,0 +1,2 @@
+#! /bin/sh
+git status -s | grep -e '^ D' | gawk '{print $2 }' | xargs -r git checkout
