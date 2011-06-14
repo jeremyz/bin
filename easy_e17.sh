@@ -73,7 +73,7 @@ function logo ()
 	echo -e "                   morlenxus@gmx.net"
 	echo -e "\033[1m  Patches:\033[0m         Generally accepted, please contact me!"
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-	echo 
+	echo
 	echo
 	echo -e "\033[1m-----------------------------\033[7m Current Configuration \033[0m\033[1m----------------------------\033[0m"
 	echo "  Install path:    $install_path"
@@ -95,8 +95,8 @@ function logo ()
 	echo "  Script action:   $action"
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 	echo
-	
-	if [ "$action" == "script" ]; then return; fi	
+
+	if [ "$action" == "script" ]; then return; fi
 
 	if [ $1 == 0 ]; then
 		if [ "$2" ]; then
@@ -432,7 +432,7 @@ function run_command ()
 		*)
 			nice -n $nice_level $cmd >> "$logs_path/$name.log" 2>&1 && touch $status_path/$name.noerrors &
 			;;
-	esac	
+	esac
 
 	pid="$!"
 	rotate "$pid" "$name"
@@ -467,7 +467,7 @@ function compile ()
 	name=$1
 
 	write_appname "$name"
-	
+
 	for one in $skip; do
 		if [ "$name" == "$one" ]; then
 			echo "SKIPPED"
@@ -545,7 +545,7 @@ function compile ()
 			args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
 		fi
 	done
-	
+
 	if [ -e "autogen.sh" ]; then
 		run_command "$name" "$path" "autogen" "autogen: " "$mode"    "./autogen.sh --prefix=$install_path $accache $args"
 		if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
@@ -586,7 +586,7 @@ function compile ()
 		touch $status_path/$name.nobuild
 		return
 	fi
-	
+
 	if [ "$gen_docs" ]; then
 		if [ -e "gendoc" ]; then
 			run_command "$name" "$path" "docs" "docs   : " "$mode" "sh gendoc"
@@ -607,7 +607,7 @@ function rotate ()
 	name=$2
 	animation_state=1
 	log_line=""
-	
+
 	case $animation in
 		"weeh") echo -n "     " ;;
 		*)		echo -n "   " ;;
@@ -761,7 +761,7 @@ function set_title ()
 	        	echo -ne "\033]0;Easy_e17.sh $message\007"
 				;;
 	    esac
-	fi	
+	fi
 }
 
 function set_notification ()
@@ -789,22 +789,22 @@ function logfile_banner ()
 function cnt_pkgs () {
     pkg_total=0
     pkg_pos=0
-    
+
     if [ -n "$only" ]; then
 		pkg_total=`echo "$only" | wc -w`
     else
 		pkg_total=`echo "$packages" | wc -w`
     fi
-} 
+}
 
 function check_script_version ()
 {
 	echo "- local version .............. $version"
-	echo -n "- downloading script ......... " 
+	echo -n "- downloading script ......... "
 	remote_version=`wget $online_source -q -U "easy_e17.sh/$version" -O - | grep -m 2 -o [0-9]\.[0-9]\.[0-9] | sort -n | head -n 1`
 	if [ "$remote_version" ]; then
 		echo "ok"
-		echo "- remote version ............. $remote_version"	
+		echo "- remote version ............. $remote_version"
 		remote_ver=`echo "$remote_version" | tr -d '.'`
 		local_ver=`echo "$version" | tr -d '.'`
 		echo
@@ -818,9 +818,9 @@ function check_script_version ()
 }
 
 
-# SCRIPT: 
+# SCRIPT:
 EASY_PWD=`pwd`
-set_title 
+set_title
 define_os_vars
 accache=""
 easy_options=""
@@ -833,7 +833,7 @@ for arg in $test_options; do
 	option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
 	value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
 	if [ "$value" == "$option" ]; then value=""; fi
-	if [ "$option" == "--conf" ]; then conf_files="$conf_files $value"; fi 
+	if [ "$option" == "--conf" ]; then conf_files="$conf_files $value"; fi
 done
 
 # remove duplicated configfile entries
@@ -852,7 +852,7 @@ conf_files=$tmp_conf_files
 
 for file in $conf_files; do
 	if [ -e "$file" ]; then
-		# load configfile 
+		# load configfile
 		for option in `cat "$file"`; do
 			easy_options="$easy_options $option"
 		done
@@ -860,7 +860,7 @@ for file in $conf_files; do
 done
 
 # append arguments
-easy_options="$easy_options $command_options" 
+easy_options="$easy_options $command_options"
 
 # check options
 for arg in $easy_options
@@ -870,7 +870,7 @@ do
 	if [ "$value" == "$option" ]; then value=""; fi
 
 	# $action can't be set twice
-	if [ "$action" ]; then 
+	if [ "$action" ]; then
 		if [ "$option" == "-i" ] ||
 		   [ "$option" == "--install" ] ||
 		   [ "$option" == "-u" ] ||
@@ -883,7 +883,7 @@ do
 			exit 1
 		fi
 	fi
-	
+
 	case "$option" in
 		-i|--install)				action="install" ;;
 		-u|--update)				action="update" ;;
@@ -939,7 +939,7 @@ do
 			fi
 			skip="`echo "$value" | tr -s '\,' '\ '` $skip"
 			;;
-		-e|--skip-errors)			skip_errors=1 ;;		
+		-e|--skip-errors)			skip_errors=1 ;;
 		-w|--wait)					wait=1 ;;
 		--anim)
 			case $value in
@@ -967,7 +967,7 @@ do
 			fi
 			threads=$value
 			;;
-		--autogen_args)	
+		--autogen_args)
 			if [ -z "$value" ]; then
 				logo 0 "Missing value for argument '$option'!"
 				exit 1
@@ -1084,7 +1084,6 @@ if [ ! "$action"  == "srcupdate" ]; then
 						stty -echo
 						read sudopwd
 						stty echo
-			
 						# password check
 						echo "$sudopwd" | sudo -S touch "$tmp_path/sudo.test" &>/dev/null
 						if [ ! -e "$tmp_path/sudo.test" ]; then
@@ -1093,7 +1092,7 @@ if [ ! "$action"  == "srcupdate" ]; then
 					done
 					rm -f "$tmp_path/sudo.test"
 				fi
-				echo 
+				echo
 				mode="sudo"
 			else
 				error "You're not root and sudo isn't available. Please run this script as root!"
@@ -1104,7 +1103,7 @@ if [ ! "$action"  == "srcupdate" ]; then
 		mode="root"
 	fi
 
-	echo -n "- setting env variables ...... " 
+	echo -n "- setting env variables ...... "
 	export PATH="$install_path/bin:$PATH"
 	export ACLOCAL_FLAGS="-I $install_path/share/aclocal $ACLOCAL_FLAGS"
 	export LD_LIBRARY_PATH="$install_path/lib:$LD_LIBRARY_PATH"
@@ -1116,7 +1115,7 @@ if [ ! "$action"  == "srcupdate" ]; then
 	export PYTHONINCLUDE=`python -c "import distutils.sysconfig; print distutils.sysconfig.get_python_inc(prefix='$install_path')" 2>/dev/null`
 	echo "ok"
 
-	echo -n "- creating destination dirs .. " 
+	echo -n "- creating destination dirs .. "
 	case "$mode" in
 		user|root)	mkdir -p "$install_path/share/aclocal" ;;
 		sudo)		echo "$sudopwd" | sudo -S mkdir -p "$install_path/share/aclocal" ;;
@@ -1135,7 +1134,7 @@ if [ ! "$action"  == "srcupdate" ]; then
 		esac
 	fi
 	echo "ok"
-	
+
 	echo -n "- checking lib-path in ld .... "
 	case $os in
 		FreeBSD) ;; # TODO: placeholder
@@ -1146,7 +1145,7 @@ if [ ! "$action"  == "srcupdate" ]; then
 				case $linux_distri in
 					gentoo)
 						e17ldcfg="/etc/env.d/40e17paths"
-						echo -e "PATH=$install_path/bin\nROOTPATH=$install_path/sbin:$install_path/bin\nLDPATH=$install_path/lib\nPKG_CONFIG_PATH=$install_path/lib/pkgconfig" > $e17ldcfg 
+						echo -e "PATH=$install_path/bin\nROOTPATH=$install_path/sbin:$install_path/bin\nLDPATH=$install_path/lib\nPKG_CONFIG_PATH=$install_path/lib/pkgconfig" > $e17ldcfg
 						env-update &> /dev/null
 						echo "ok (path has been added to $e17ldcfg)";
 						;;
@@ -1226,7 +1225,7 @@ if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
 	for dir in `egrep "^[A|D|G|U] " "$tmp_path/source_update.log" | \
 				awk '{print $2}' | sed 's,[^/]*$,,g' | sort -u`; do
 		add_pkg=""
-        found=0 
+        found=0
 		for idir in $ignore_dirs; do
 			topdir=`echo "$dir" | cut -d'/' -f1`
 			if [ "$topdir" == "$idir" ]; then found=1; fi
@@ -1243,7 +1242,7 @@ if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
 			fi
 		done
 	done
-	
+
 	if [ -z "$only" ]; then
 		echo -e "\n                         - - - NO UPDATES AVAILABLE - - -\n"
 	fi
@@ -1297,7 +1296,7 @@ if [ "$easy_e17_post_script" ]; then
 		*) nice -n $nice_level $easy_e17_post_script ;;
 	esac
 	echo "ok"
-else	
+else
 	echo "skipped"
 fi
 echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
@@ -1331,7 +1330,7 @@ done
 echo -e "\033[1m--------------------------------\033[7m Cleaning temp dir \033[0m\033[1m-----------------------------\033[0m"
 if [ -z "$keep" ]; then
 	if [ "$packages_failed" ]; then
-		echo -n "- saving logs ................ "	
+		echo -n "- saving logs ................ "
 		for pkg in $packages_installed; do
 			rm "$status_path/$pkg.installed" 2>/dev/null
 			rm "$logs_path/$pkg.log" 2>/dev/null
@@ -1339,9 +1338,9 @@ if [ -z "$keep" ]; then
 	else
 		echo -n "- deleting temp dir .......... "
 		rm -rf $tmp_path 2>/dev/null
-	fi	
+	fi
 	echo "ok"
-else	
+else
 	echo "- saving temp dir ............ ok"
 fi
 echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
@@ -1353,7 +1352,7 @@ if [ "$packages_failed" ]; then
 		echo "- $pkg (error log: $logs_path/$pkg.log)"
 	done
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-	echo 
+	echo
 	set_notification "critical" "Script finished with build errors"
 else
 	set_notification "normal" "Script finished successful"
@@ -1365,7 +1364,7 @@ if [ "$action" == "install" ]; then
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 	echo "The most incredible and really unbelievable dream has become true:"
 	echo "You compiled e17 successfully!"
-	echo 
+	echo
 	echo "Starting e17:"
 	echo "Create a file ~/.xsession with the line 'exec $install_path/bin/enlightenment_start'."
 	echo "Add a link to this file using 'ln -s ~/.xsession ~/.xinitrc'."
@@ -1376,7 +1375,7 @@ if [ "$action" == "install" ]; then
 	echo "Note: e17 is still not released and it won't be in the near future. So don't"
 	echo "ask for a stable release. e17 is still very buggy and only for experienced users"
 	echo "who know what they do..."
-	echo 
+	echo
 	echo "Rasterman didn't write this script so don't ask him for help with it."
 	echo
 	echo "Hint: From now on you can easily keep your installation up to date."
@@ -1403,7 +1402,7 @@ if [ "$wait" ]; then
 	echo
 	echo -e -n "\033[1mThe script is waiting here - simply press [enter] to exit.\033[0m"
 	read
-fi	
+fi
 
 set_title
 if [ "$packages_failed" ]; then
