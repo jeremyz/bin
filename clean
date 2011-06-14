@@ -1,0 +1,4 @@
+#! /bin/sh
+DIR=${1:-$HOME}
+echo "find $DIR -name '*~' -exec rm '{}' \;"
+find $DIR -name '*~' -exec rm '{}' \;
