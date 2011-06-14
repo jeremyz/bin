@@ -1,0 +1,5 @@
+#! /bin/sh
+DIR=${1:-$HOME}
+TMP=/tmp/_date
+touch $TMP
+find $DIR -newer $TMP -exec touch '{}' \;
