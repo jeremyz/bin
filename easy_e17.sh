@@ -212,6 +212,7 @@ function help ()
 }
 
 function wrong () {
+    header
 	if [ "$1" ]; then
         echo -e "\033[1m-------------------------------\033[7m Bad script argument \033[0m\033[1m----------------------------\033[0m"
         echo -e "  \033[1m$1\033[0m"
@@ -465,6 +466,31 @@ function parse_args ()
     done
 }
 
+
+# SETUP #############################################################################
+function check_script_version ()
+{
+	echo -e "\033[1m------------------------------\033[7m Check script version \033[0m\033[1m----------------------------\033[0m"
+	echo "- local version .............. $version"
+	echo -n "- downloading script ......... "
+	remote_version=`wget $online_source -q -U "easy_e17.sh/$version" -O - | grep -m 2 -o [0-9]\.[0-9]\.[0-9] | sort -n | head -n 1`
+	if [ "$remote_version" ]; then
+		echo "ok"
+		echo "- remote version ............. $remote_version"
+		remote_ver=`echo "$remote_version" | tr -d '.'`
+		local_ver=`echo "$version" | tr -d '.'`
+		echo
+		echo -n "- update available ........... "
+		if [ $remote_ver -gt $local_ver ]; then
+				echo -e "\033[1mYES!\033[0m"
+		else	echo "no"; fi
+	else
+		echo -e "\033[1mERROR!\033[0m"
+	fi
+	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
+	echo
+	exit 0
+}
 
 #############################################################################
 function find_src_path ()
@@ -968,26 +994,6 @@ function cnt_pkgs () {
     fi
 }
 
-function check_script_version ()
-{
-	echo "- local version .............. $version"
-	echo -n "- downloading script ......... "
-	remote_version=`wget $online_source -q -U "easy_e17.sh/$version" -O - | grep -m 2 -o [0-9]\.[0-9]\.[0-9] | sort -n | head -n 1`
-	if [ "$remote_version" ]; then
-		echo "ok"
-		echo "- remote version ............. $remote_version"
-		remote_ver=`echo "$remote_version" | tr -d '.'`
-		local_ver=`echo "$version" | tr -d '.'`
-		echo
-		echo -n "- update available ........... "
-		if [ $remote_ver -gt $local_ver ]; then
-				echo -e "\033[1mYES!\033[0m"
-		else	echo "no"; fi
-	else
-		echo -e "\033[1mERROR!\033[0m"
-	fi
-}
-
 
 # SCRIPT: #############################################################################
 EASY_PWD=`pwd`
@@ -997,34 +1003,25 @@ accache=""
 set_title
 define_os_vars
 read_config_files
-header
 parse_args
-
+# check for script updates
+if [ "$action" == "script" ]; then
+    header
+    check_script_version
+fi
 # Sanity check stuff if doing everything as user.
 if [ "$asuser" ] && [ $nice_level -lt 0 ]; then
 	nice_level=0
 fi
-
 # Fix issues with a slash at the end
 if [ ! "${src_path:$((${#src_path}-1)):1}" == "/" ]; then
 	src_path="$src_path/"
 fi
-
 # quit if some basic option is missing
 if [ -z "$action" ] || [ -z "$install_path" ] || [ -z "$src_path" ]; then
 	wrong
 fi
-
-# check for script updates
-if [ "$action" == "script" ]; then
-	echo -e "\033[1m------------------------------\033[7m Check script version \033[0m\033[1m----------------------------\033[0m"
-	check_script_version
-	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-	echo
-	exit 0
-fi
-
-
+header
 # run script normally
 phase 1
 set_title "Basic system checks"
