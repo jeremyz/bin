@@ -1,0 +1,9 @@
+#! /bin/bash
+#
+opts=${1:-"--all"}
+echo -e "\033[0;31mgit repack\033[0m"
+git fsck --unreachable && git prune && git gc --aggressive
+git repack -ad --depth=250 --window=250
+for host in $(git remote); do
+    echo -e "\033[0;35mpush to \033[0;31m$host \033[0;36m$opts\033[0m" && git push $opts $host
+done
