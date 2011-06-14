@@ -116,6 +116,7 @@ function header ()
     echo "  Packages:        $packages"
     if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
     if [ "$only" ]; then echo "  Only:            $only"; fi
+    echo "  Effective:      $real_packages"
     echo
     if [ -z "$action" ]; then action="MISSING!"; fi
     echo "  Script action:   $action"
@@ -458,6 +459,26 @@ function parse_args ()
     done
 }
 
+
+function build_package_list ()
+{
+    real_packages=""
+    if [ "$only" ]; then
+        pkgs=$only
+    else
+        pkgs=$packages
+    fi
+    for pkg in $pkgs; do
+        found=0
+        for not in $skip; do
+            if [ "$not" == "$pkg" ]; then
+                found=1
+                break
+            fi
+        done
+        [ $found -eq 0 ] && real_packages="$real_packages $pkg"
+    done
+}
 
 # SETUP #############################################################################
 
@@ -1071,6 +1092,7 @@ set_title
 define_os_vars
 read_config_files
 parse_args
+build_package_list
 # check for script updates
 if [ "$action" == "script" ]; then
     header
