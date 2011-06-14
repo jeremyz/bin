@@ -55,8 +55,8 @@ animation="star"
 online_source="http://omicron.homeip.net/projects/easy_e17/easy_e17.sh"	# URL of latest stable release
 
 
-#############################################################################
-function logo ()
+# VISUAL #############################################################################
+function header ()
 {
 	clear
 	echo -e "\033[1m-------------------------------\033[7m Easy_e17.sh $version \033[0m\033[1m------------------------------\033[0m"
@@ -96,125 +96,134 @@ function logo ()
 	echo "  Script action:   $action"
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 	echo
+}
 
-	if [ "$action" == "script" ]; then return; fi
+function help ()
+{
+    if [ "$os" == "not supported" ]; then
+        echo -e "\033[1m-------------------------------\033[7m Not supported OS \033[0m\033[1m------------------------------\033[0m"
+        echo "  Your operating system '$(uname)' is not supported by this script."
+        echo "  If possible please provide a patch."
+    elif [ -z "$fullhelp" ]; then
+        echo -e "\033[1m-----------------\033[7m Short help 'easy_e17.sh <ACTION> <OPTIONS...>' \033[0m\033[1m---------------\033[0m"
+        echo "  -i, --install            = ACTION: install efl+e17"
+        echo "  -u, --update             = ACTION: update your installed software"
+        echo "      --packagelist=<list> = software package list:"
+        echo "                             - basic: only e17 (default)"
+        echo "                             - half:  only e17 and extra modules"
+        echo "                             - full:  simply everything"
+        echo "      --help               = full help"
+    else
+        echo -e "\033[1m-----------------\033[7m Full help 'easy_e17.sh <ACTION> <OPTIONS...>' \033[0m\033[1m----------------\033[0m"
+        echo -e "  \033[1mACTION:\033[0m"
+        echo "  -i, --install                       = ACTION: install efl+e17"
+        echo "  -u, --update                        = ACTION: update installed software"
+        echo "      --only=<name1>,<name2>,...      = ACTION: install ONLY named libs/apps"
+        echo "      --packagelist=<list>            = software package list:"
+        echo "                                        - basic: only e17 (default)"
+        echo "                                        - half:  only e17 and extra modules"
+        echo "                                        - full:  simply everything"
+        echo
+        echo "      --srcupdate                     = update only the sources"
+        echo "  -v, --check-script-version          = check for a newer release of easy_e17"
+        echo "      --help                          = this help"
+        echo
+        echo -e "  \033[1mOPTIONS:\033[0m"
+        echo "      --conf=<file>                   = use an alternate configuration file"
+        echo "      --instpath=<path>               = change the default install path"
+        echo "      --srcpath=<path>                = change the default source path"
+        echo "      --srcurl=<url>                  = change the default source url"
+        echo "      --srcmode=<packages/full>       = checkout only required package source"
+        echo "                                        or simply everthing (huge)"
+        echo "      --srcrev=<revision>             = set the default source revision"
+        echo "      --asuser                        = do everything as the user, not as root"
+        echo "      --no-sudopwd                    = sudo don't need a password..."
+        echo "  -c, --clean                         = clean the sources before building"
+        echo "                                        (more --cleans means more cleaning, up"
+        echo "                                        to a maximum of three, which will"
+        echo "                                        uninstall e17)"
+        echo "  -s, --skip-srcupdate                = don't update sources"
+        echo "  -a, --ask-on-src-conflicts          = ask what to do with a conflicting"
+        echo "                                        source file"
+        echo "      --skip=<name1>,<name2>,...      = this will skip installing the named"
+        echo "                                        libs/apps"
+        echo "  -d, --docs                          = generate programmers documentation"
+        echo "      --postscript=<name>             = full path to a script to run as root"
+        echo "                                        after installation"
+        echo "  -e, --skip-errors                   = continue compiling even if there is"
+        echo "                                        an error"
+        echo "  -w, --wait                          = don't exit the script after finishing,"
+        echo "                                        this allows 'xterm -e ./easy_e17.sh -i'"
+        echo "                                        without closing the xterm"
+        echo "      --anim=<animation>              = build animation:"
+        echo "                                        - star: rotating star (default)"
+        echo "                                        - weeh: waving man"
+        echo "  -n  --disable-notification          = disable the osd notification"
+        echo "  -k, --keep                          = don't delete the temporary dir"
+        echo
+        echo "  -l, --low                           = use lowest nice level (19, slowest,"
+        echo "                                        takes more time to compile, select"
+        echo "                                        this if you need to work on the pc"
+        echo "                                        while compiling)"
+        echo "      --normal                        = default nice level ($nice_level),"
+        echo "                                        will be automatically used"
+        echo "  -h, --high                          = use highest nice level (-20, fastest,"
+        echo "                                        slows down the pc)"
+        echo "      --cache                         = Use a common configure cache and"
+        echo "                                        ccache if available"
+        echo "      --threads=<int>                 = 'make' can use threads, recommended on"
+        echo "                                        smp systems (default: 2 threads)"
+        echo "      --autogen_args=<n1>:<o1>+<o2>,. = pass some options to autogen:"
+        echo "                                        <name1>:<opt1>+<opt2>,<name2>:<opt1>+..."
+        echo "      --cflags=<flag1>,<flag2>,...    = pass cflags to the gcc"
+        echo "      --ldflags=<flag1>,<flag2>,...   = pass ldflags to the gcc"
+        echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
+        echo
+        echo -e "\033[1m----------------------\033[7m Configurationfile '~/.easy_e17.conf' \033[0m\033[1m--------------------\033[0m"
+        echo "  Just create this file and save your favourite arguments."
+        echo "  Example: If you use a diffent source path, add this line:"
+        echo "           --srcpath=$HOME/enlightenment/e17_src"
+    fi
+}
 
-	if [ $1 == 0 ]; then
-		if [ "$2" ]; then
-			echo -e "\033[1m-------------------------------\033[7m Bad script argument \033[0m\033[1m----------------------------\033[0m"
-			echo -e "  \033[1m$2\033[0m"
-		fi
-	else
-		echo -e "\033[1m--------------------------------\033[7m Build phase $1/3 \033[0m\033[1m-------------------------------\033[0m"
-	fi
+function wrong () {
+	if [ "$1" ]; then
+        echo -e "\033[1m-------------------------------\033[7m Bad script argument \033[0m\033[1m----------------------------\033[0m"
+        echo -e "  \033[1m$1\033[0m"
+    else
+        help
+        exit 0
+    fi
+	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
+	echo
+	echo
+    exit 1
+}
 
-	if [ -z "$2" ]; then
-		case $1 in
-			0)
-				if [ "$os" == "not supported" ]; then
-					echo -e "\033[1m-------------------------------\033[7m Not supported OS \033[0m\033[1m------------------------------\033[0m"
-				  	echo "  Your operating system '$(uname)' is not supported by this script."
-					echo "  If possible please provide a patch."
-				else if [ -z "$fullhelp" ]; then
-					echo -e "\033[1m-----------------\033[7m Short help 'easy_e17.sh <ACTION> <OPTIONS...>' \033[0m\033[1m---------------\033[0m"
-					echo "  -i, --install            = ACTION: install efl+e17"
-					echo "  -u, --update             = ACTION: update your installed software"
-					echo "      --packagelist=<list> = software package list:"
-					echo "                             - basic: only e17 (default)"
-					echo "                             - half:  only e17 and extra modules"
-					echo "                             - full:  simply everything"
-					echo "      --help               = full help"
-				else
-					echo -e "\033[1m-----------------\033[7m Full help 'easy_e17.sh <ACTION> <OPTIONS...>' \033[0m\033[1m----------------\033[0m"
-					echo -e "  \033[1mACTION:\033[0m"
-					echo "  -i, --install                       = ACTION: install efl+e17"
-					echo "  -u, --update                        = ACTION: update installed software"
-					echo "      --only=<name1>,<name2>,...      = ACTION: install ONLY named libs/apps"
-					echo "      --packagelist=<list>            = software package list:"
-					echo "                                        - basic: only e17 (default)"
-					echo "                                        - half:  only e17 and extra modules"
-					echo "                                        - full:  simply everything"
-					echo
-					echo "      --srcupdate                     = update only the sources"
-					echo "  -v, --check-script-version          = check for a newer release of easy_e17"
-					echo "      --help                          = this help"
-					echo
-					echo -e "  \033[1mOPTIONS:\033[0m"
-					echo "      --conf=<file>                   = use an alternate configuration file"
-					echo "      --instpath=<path>               = change the default install path"
-					echo "      --srcpath=<path>                = change the default source path"
-					echo "      --srcurl=<url>                  = change the default source url"
-					echo "      --srcmode=<packages/full>       = checkout only required package source"
-					echo "                                        or simply everthing (huge)"
-					echo "      --srcrev=<revision>             = set the default source revision"
-					echo "      --asuser                        = do everything as the user, not as root"
-					echo "      --no-sudopwd                    = sudo don't need a password..."
-					echo "  -c, --clean                         = clean the sources before building"
-					echo "                                        (more --cleans means more cleaning, up"
-					echo "                                        to a maximum of three, which will"
-					echo "                                        uninstall e17)"
-					echo "  -s, --skip-srcupdate                = don't update sources"
-					echo "  -a, --ask-on-src-conflicts          = ask what to do with a conflicting"
-					echo "                                        source file"
-					echo "      --skip=<name1>,<name2>,...      = this will skip installing the named"
-					echo "                                        libs/apps"
-					echo "  -d, --docs                          = generate programmers documentation"
-					echo "      --postscript=<name>             = full path to a script to run as root"
-					echo "                                        after installation"
-					echo "  -e, --skip-errors                   = continue compiling even if there is"
-					echo "                                        an error"
-					echo "  -w, --wait                          = don't exit the script after finishing,"
-					echo "                                        this allows 'xterm -e ./easy_e17.sh -i'"
-					echo "                                        without closing the xterm"
-					echo "      --anim=<animation>              = build animation:"
-					echo "                                        - star: rotating star (default)"
-					echo "                                        - weeh: waving man"
-					echo "  -n  --disable-notification          = disable the osd notification"
-					echo "  -k, --keep                          = don't delete the temporary dir"
-					echo
-					echo "  -l, --low                           = use lowest nice level (19, slowest,"
-					echo "                                        takes more time to compile, select"
-					echo "                                        this if you need to work on the pc"
-					echo "                                        while compiling)"
-					echo "      --normal                        = default nice level ($nice_level),"
-					echo "                                        will be automatically used"
-					echo "  -h, --high                          = use highest nice level (-20, fastest,"
-					echo "                                        slows down the pc)"
-					echo "      --cache                         = Use a common configure cache and"
-					echo "                                        ccache if available"
-					echo "      --threads=<int>                 = 'make' can use threads, recommended on"
-					echo "                                        smp systems (default: 2 threads)"
-					echo "      --autogen_args=<n1>:<o1>+<o2>,. = pass some options to autogen:"
-					echo "                                        <name1>:<opt1>+<opt2>,<name2>:<opt1>+..."
-					echo "      --cflags=<flag1>,<flag2>,...    = pass cflags to the gcc"
-					echo "      --ldflags=<flag1>,<flag2>,...   = pass ldflags to the gcc"
-					echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-					echo
-					echo -e "\033[1m----------------------\033[7m Configurationfile '~/.easy_e17.conf' \033[0m\033[1m--------------------\033[0m"
-					echo "  Just create this file and save your favourite arguments."
-					echo "  Example: If you use a diffent source path, add this line:"
-					echo "           --srcpath=$HOME/enlightenment/e17_src"
-				fi fi
-				;;
-			1)
-				echo "- running some basic system checks"
-				echo "- source checkout/update"
-				;;
-			2)
-				echo "- lib-compilation and installation"
-				echo "- apps-compilation and installation"
-				;;
-			3)
-				echo "- cleaning"
-				echo "- install notes"
-				;;
-		esac
-	fi
+function phase ()
+{
+	echo -e "\033[1m--------------------------------\033[7m Build phase $1/3 \033[0m\033[1m-------------------------------\033[0m"
+	case $1 in
+        1)
+            echo "- running some basic system checks"
+            echo "- source checkout/update"
+            ;;
+        2)
+            echo "- lib-compilation and installation"
+            echo "- apps-compilation and installation"
+            ;;
+        3)
+            echo "- cleaning"
+            echo "- install notes"
+            ;;
+    esac
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 	echo
 	echo
 }
 
+
+# INIT #############################################################################
 function define_os_vars ()
 {
 	case $os in
@@ -244,12 +253,10 @@ function define_os_vars ()
 			export CPPFLAGS+="$CPPFLAGS -I/usr/pkg/include -I/usr/X11R7/include"
 			export LDFLAGS+="$LDFLAGS -L/usr/pkg/include -L/usr/pkg/lib -L/usr/X11R7/lib"
 			;;
-
 		Linux)
 			install_path="/opt/e17"
 			ldconfig="/sbin/ldconfig"
 			make="make"
-
 			if [ -z "$linux_distri" ]; then
 				if [ -e "/etc/debian_version" ]; then linux_distri="debian"; fi
 				if [ -e "/etc/gentoo-release" ]; then linux_distri="gentoo"; fi
@@ -264,13 +271,177 @@ function define_os_vars ()
 			;;
 		*)
 			os="not supported"
-			logo 0
 			set_title
-			exit 0
+			wrong
 			;;
 	esac
 }
 
+function read_config_files ()
+{
+    # add alternate config files
+    for arg in $my_args; do
+	    option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
+	    value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
+	    if [ "$value" == "$option" ]; then value=""; fi
+	    if [ "$option" == "--conf" -a -e "$value" ]; then conf_files="$conf_files $value"; fi
+    done
+    # remove duplicated and no existing files
+    tmp=""
+    for conf_file in $conf_files; do
+        if [ -e "$conf_file" ]; then
+            exists=0
+            for tmp_file in $tmp; do
+                if [ "$conf_file" == "$tmp_file" ]; then
+                    exists=1
+                    break;
+                fi
+            done
+            if [ $exists -eq 0 ]; then tmp="$tmp $conf_file"; fi
+        fi
+    done
+    conf_files=$tmp
+    conf_options=""
+    # read files
+    for file in $conf_files; do
+		for option in `cat "$file"`; do
+            conf_options="$conf_options $option"
+        done
+    done
+    my_args="$conf_options $my_args"
+}
+
+function parse_args ()
+{
+    # check options
+    for arg in $my_args
+    do
+        option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
+        value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
+        if [ "$value" == "$option" ]; then value=""; fi
+        # $action can't be set twice
+        if [ "$action" ]; then
+            if [ "$option" == "-i" ] ||
+               [ "$option" == "--install" ] ||
+               [ "$option" == "-u" ] ||
+               [ "$option" == "--update" ] ||
+               [ "$option" == "--only" ] ||
+               [ "$option" == "--srcupdate" ] ||
+               [ "$option" == "-v" ] ||
+               [ "$option" == "--check-script-version" ]; then
+                wrong "Only one action allowed! (currently using '--$action' and '$option')"
+            fi
+        fi
+        case "$option" in
+            -i|--install)				action="install" ;;
+            -u|--update)				action="update" ;;
+            --packagelist)
+                case $value in
+                    "half")				packages="$packages_half" ;;
+                    "full")				packages="$packages_full" ;;
+                    *)					packages="$packages_basic" ;;
+                esac
+                ;;
+            --conf)					;;
+            --only)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                action="only"
+                only="`echo "$value" | tr -s '\,' '\ '` $only"
+                ;;
+            -v|--check-script-version)	action="script" ;;
+            --srcupdate)
+                action="srcupdate"
+                skip="$packages"
+                ;;
+            --instpath)					install_path="$value" ;;
+            --srcpath)					src_path="$value" ;;
+            --srcurl)					src_url="$value" ;;
+            --srcmode)
+                case $value in
+                    "packages")			src_mode="packages" ;;
+                    "full")				src_mode="full" ;;
+                    *)					src_mode="packages" ;;
+                esac
+                ;;
+            --srcrev)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                src_rev="$value"
+                ;;
+            --asuser)					asuser=1 ;;
+            --no-sudopwd)				no_sudopwd=1 ;;
+            -c|--clean)					clean=$(($clean + 1))	;;
+            -d|--docs)					gen_docs=1 ;;
+            --postscript)				easy_e17_post_script="$value" ;;
+            -s|--skip-srcupdate)		skip_srcupdate=1 ;;
+            -a|--ask-on-src-conflicts)	ask_on_src_conflicts=1 ;;
+            --skip)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                skip="`echo "$value" | tr -s '\,' '\ '` $skip"
+                ;;
+            -e|--skip-errors)			skip_errors=1 ;;
+            -w|--wait)					wait=1 ;;
+            --anim)
+                case $value in
+                    "weeh")	animation="weeh" ;;
+                    *)		animation="star" ;;
+                esac
+                ;;
+            -n|--disable-notification)	notification_disabled=1 ;;
+            -k|--keep)					keep=1 ;;
+
+            -l|--low) 					nice_level=19 ;;
+            --normal) ;;
+            -h|--high) 					nice_level=-20 ;;
+            --cache)
+                accache=" --cache-file=$tmp_path/easy_e17.cache"
+                ccache=`whereis ccache`
+                if [ ! "$ccache" = "ccache:" ]; then
+                    export CC="ccache gcc"
+                fi
+                ;;
+            --threads)
+                if [ -z "$value" ] || ! expr "$value" : "[0-9]*$" >/dev/null || [ "$value" -lt 1 ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                threads=$value
+                ;;
+            --autogen_args)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                autogen_args="$value"
+                ;;
+            --cflags)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                CFLAGS="$CFLAGS `echo "$value" | tr -s '\,' '\ '`"
+                ;;
+            --ldflags)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                LDFLAGS="$LDFLAGS `echo "$value" | tr -s '\,' '\ '`"
+                ;;
+            --help)
+                fullhelp=1
+                wrong
+                ;;
+            *)
+                wrong "Unknown argument '$option'!"
+                ;;
+        esac
+    done
+}
+
+
+#############################################################################
 function find_src_path ()
 {
 	package=$1
@@ -819,188 +990,16 @@ function check_script_version ()
 }
 
 
-# SCRIPT:
+# SCRIPT: #############################################################################
 EASY_PWD=`pwd`
+my_args=$@
+clean=0
+accache=""
 set_title
 define_os_vars
-accache=""
-easy_options=""
-command_options=$@
-clean=0
-
-# Check for alternate conf file first.
-test_options=$command_options
-for arg in $test_options; do
-	option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
-	value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
-	if [ "$value" == "$option" ]; then value=""; fi
-	if [ "$option" == "--conf" ]; then conf_files="$conf_files $value"; fi
-done
-
-# remove duplicated configfile entries
-for filea in $conf_files; do
-	exists=0
-	for fileb in $tmp_conf_files; do
-		if [ "$filea" == "$fileb" ]; then
-			exists=1
-			break
-		fi
-	done
-
-	if [ $exists -eq 0 ]; then tmp_conf_files="$tmp_conf_files $filea"; fi
-done
-conf_files=$tmp_conf_files
-
-for file in $conf_files; do
-	if [ -e "$file" ]; then
-		# load configfile
-		for option in `cat "$file"`; do
-			easy_options="$easy_options $option"
-		done
-	fi
-done
-
-# append arguments
-easy_options="$easy_options $command_options"
-
-# check options
-for arg in $easy_options
-do
-	option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
-	value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
-	if [ "$value" == "$option" ]; then value=""; fi
-
-	# $action can't be set twice
-	if [ "$action" ]; then
-		if [ "$option" == "-i" ] ||
-		   [ "$option" == "--install" ] ||
-		   [ "$option" == "-u" ] ||
-		   [ "$option" == "--update" ] ||
-		   [ "$option" == "--only" ] ||
-		   [ "$option" == "--srcupdate" ] ||
-		   [ "$option" == "-v" ] ||
-		   [ "$option" == "--check-script-version" ]; then
-			logo 0 "Only one action allowed! (currently using '--$action' and '$option')"
-			exit 1
-		fi
-	fi
-
-	case "$option" in
-		-i|--install)				action="install" ;;
-		-u|--update)				action="update" ;;
-		--packagelist)
-			case $value in
-				"half")				packages="$packages_half" ;;
-				"full")				packages="$packages_full" ;;
-				*)					packages="$packages_basic" ;;
-			esac
-			;;
-		--conf)					;;
-		--only)
-			if [ -z "$value" ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			action="only"
-			only="`echo "$value" | tr -s '\,' '\ '` $only"
-			;;
-		-v|--check-script-version)	action="script" ;;
-		--srcupdate)
-			action="srcupdate"
-			skip="$packages"
-			;;
-		--instpath)					install_path="$value" ;;
-		--srcpath)					src_path="$value" ;;
-		--srcurl)					src_url="$value" ;;
-		--srcmode)
-			case $value in
-				"packages")			src_mode="packages" ;;
-				"full")				src_mode="full" ;;
-				*)					src_mode="packages" ;;
-			esac
-			;;
-		--srcrev)
-			if [ -z "$value" ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			src_rev="$value"
-			;;
-		--asuser)					asuser=1 ;;
-		--no-sudopwd)				no_sudopwd=1 ;;
-		-c|--clean)					clean=$(($clean + 1))	;;
-		-d|--docs)					gen_docs=1 ;;
-		--postscript)				easy_e17_post_script="$value" ;;
-		-s|--skip-srcupdate)		skip_srcupdate=1 ;;
-		-a|--ask-on-src-conflicts)	ask_on_src_conflicts=1 ;;
-		--skip)
-			if [ -z "$value" ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			skip="`echo "$value" | tr -s '\,' '\ '` $skip"
-			;;
-		-e|--skip-errors)			skip_errors=1 ;;
-		-w|--wait)					wait=1 ;;
-		--anim)
-			case $value in
-				"weeh")	animation="weeh" ;;
-				*)		animation="star" ;;
-			esac
-			;;
-		-n|--disable-notification)	notification_disabled=1 ;;
-		-k|--keep)					keep=1 ;;
-
-		-l|--low) 					nice_level=19 ;;
-		--normal) ;;
-		-h|--high) 					nice_level=-20 ;;
-		--cache)
-			accache=" --cache-file=$tmp_path/easy_e17.cache"
-			ccache=`whereis ccache`
-			if [ ! "$ccache" = "ccache:" ]; then
-			    export CC="ccache gcc"
-			fi
-			;;
-		--threads)
-			if [ -z "$value" ] || ! expr "$value" : "[0-9]*$" >/dev/null || [ "$value" -lt 1 ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			threads=$value
-			;;
-		--autogen_args)
-			if [ -z "$value" ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			autogen_args="$value"
-			;;
-		--cflags)
-			if [ -z "$value" ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			CFLAGS="$CFLAGS `echo "$value" | tr -s '\,' '\ '`"
-			;;
-		--ldflags)
-			if [ -z "$value" ]; then
-				logo 0 "Missing value for argument '$option'!"
-				exit 1
-			fi
-			LDFLAGS="$LDFLAGS `echo "$value" | tr -s '\,' '\ '`"
-			;;
-		--help)
-			fullhelp=1
-			logo 0
-			exit 0
-			;;
-		*)
-			logo 0 "Unknown argument '$option'!"
-			exit 1
-			;;
-	esac
-done
-
+read_config_files
+header
+parse_args
 
 # Sanity check stuff if doing everything as user.
 if [ "$asuser" ] && [ $nice_level -lt 0 ]; then
@@ -1014,13 +1013,11 @@ fi
 
 # quit if some basic option is missing
 if [ -z "$action" ] || [ -z "$install_path" ] || [ -z "$src_path" ]; then
-	logo 0
-	exit 1
+	wrong
 fi
 
 # check for script updates
 if [ "$action" == "script" ]; then
-	logo 0
 	echo -e "\033[1m------------------------------\033[7m Check script version \033[0m\033[1m----------------------------\033[0m"
 	check_script_version
 	echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
@@ -1030,7 +1027,7 @@ fi
 
 
 # run script normally
-logo 1
+phase 1
 set_title "Basic system checks"
 echo -e "\033[1m-------------------------------\033[7m Basic system checks \033[0m\033[1m----------------------------\033[0m"
 echo -n "- creating temporary dirs .... "
@@ -1268,7 +1265,7 @@ elif [ "$action" == "update" ]; then
 			set_notification "normal" "Now building following packages: $only"
 	else	set_notification "normal" "Everything is up to date, nothing to build"; fi
 fi
-logo 2
+phase 2
 echo -e "\033[1m------------------------------\033[7m Installing packages \033[0m\033[1m-----------------------------\033[0m"
 pkg_pos=0
 build_each
@@ -1308,7 +1305,7 @@ echo -n "-> PREPARING FOR PHASE 3..."
 set_title "Preparing for phase 3..."
 sleep 5
 
-logo 3
+phase 3
 set_title "Finished"
 
 for file in $logs_path/*.log ; do
