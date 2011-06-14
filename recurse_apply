@@ -1,0 +1,33 @@
+#! /bin/sh
+
+R=${R:-"0"}         # recurse
+X=${X:-"0"}         # apply CMD on executable files
+V=${V:-"0"}         # verbose mode
+CMD=${CMD:-"file"}
+recurse_apply() {
+    #echo $@ $V $R $X $CMD
+    for I in $@; do
+        if test ! -r $I || test ! -w $I ; then
+            if test $V -eq 1; then echo  "->passing $I (not rw)"; fi
+        else
+            if test -d $I && test $R -eq 1 ; then
+                recurse_apply ${I%/}/*
+            elif test -f $I ; then
+                if test -x $I; then
+                    if test $X -eq 1; then
+                        if test $V -eq 1; then echo " $CMD $I"; fi
+                        $CMD $I || echo "**** error while executing $CMD $I"
+                    else #if test $V -eq 1; then
+                        echo "$I is executable, use -x to force.";
+                    fi
+                else
+                    if test $V -eq 1; then echo " $CMD $I"; fi
+                    $CMD $I || echo "**** error while executing $CMD $I"
+                fi
+            elif test $V -eq 1; then
+                echo  "->passing $I (not a directory or not file)"
+            fi
+        fi
+    done
+}
+recurse_apply $@
