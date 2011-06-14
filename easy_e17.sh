@@ -653,22 +653,46 @@ function mk_dest_dirs ()
     echo "ok"
 }
 
-#############################################################################
-function find_src_path ()
+
+# SVN #############################################################################
+
+function backoff_loop
+{
+    src_cmd=$1
+    backoff=5
+    attempt=1
+    max_attempt=5
+    while [ 1 ]; do
+        $src_cmd | tee -a "$tmp_path/source_update.log"
+        if [ "${PIPESTATUS[0]}" -gt 0 ]; then
+            attempt=$(($attempt + 1))
+            set_title "Source update failed, trying again in $backoff seconds..."
+            for (( i=$(($backoff*$attempt)); i > 0; i-- )) do
+                echo -n -e "\rFAILED! Next attempt $attempt in \033[1m$i\033[0m seconds"
+                sleep 1
+            done
+            echo -n -e "\r                                                            \r"
+        else
+            break
+        fi
+        if [ $attempt == $max_attempt ]; then
+            echo -e "\rFAILED! To many attempts ($attempt)\033[0m" && return
+        fi
+    done
+}
+
+function find_svn_path ()
 {
     package=$1
     subdir=$2
     depth=$3
     cachefile=$src_cache_path/cache_`echo "$subdir" | tr '/' '_'`
-
     if [ $depth -gt 3 ]; then return; fi
-
-
     if [ ! -e "$cachefile" ]; then
-        $cmd_src_list $src_rev "$src_url/$subdir" | egrep "/$" >$cachefile
+        # TODO use backoff_loop
+        $cmd_svn_list $src_rev "$src_url/$subdir" | egrep "/$" >$cachefile
     fi
     contents=`cat $cachefile`
-
     for dir in $contents; do
         if [ "$dir" == "$package/" ]; then
             echo "$subdir/$dir"
@@ -685,8 +709,7 @@ function find_src_path ()
             if [ "$dir" == "$idir/" ]; then found=1; fi
         done
         if [ $found == 1 ]; then continue; fi
-
-        svn_path=`find_src_path $package "$subdir/$dir" $(($depth+1))`
+        svn_path=`find_svn_path $package "$subdir/$dir" $(($depth+1))`
         if [ "$svn_path" ]; then
             echo "$svn_path"
             return
@@ -694,11 +717,58 @@ function find_src_path ()
     done
 }
 
+function svn_fetch ()
+{
+    cd "$src_path"
+    if [ "$src_mode" == "packages" ]; then
+        for package in $real_packages; do
+            src_path_pkg="$src_path$package"
+            mkdir -p "$src_path_pkg" 2>/dev/null
+            if [ "`$cmd_svn_test $src_path_pkg &>/dev/null; echo $?`" == 0 ]; then
+                set_title "Updating sources in '$src_path_pkg' ..."
+                echo "- updating sources in '$src_path_pkg' ..."
+                if [ "$ask_on_src_conflicts" ]; then
+                    backoff_loop "$cmd_svn_update_conflicts_ask $src_rev $package"
+                else
+                    backoff_loop "$cmd_svn_update_conflicts_solve $src_rev $package"
+                fi
+            else
+                set_title "Checkout sources in '$src_path_pkg' ..."
+                echo "- searching for direct source url for '$package' ..."
+                path=`find_svn_path $package '' 1`
+                if [ "$path" ]; then
+                    src_url_pkg="$src_url/$path"
+                    echo "- checkout sources in '$src_path_pkg' ..."
+                    backoff_loop "$cmd_svn_checkout $src_rev $src_url_pkg $src_path_pkg"
+                else
+                    echo "- direct source url not found, package moved to OLD/?"
+                fi
+            fi
+        done
+    elif [ "$src_mode" == "full" ]; then
+        if [ "`$cmd_svn_test &>/dev/null; echo $?`" == 0 ]; then
+            set_title "Updating sources in '$src_path' ..."
+            echo "- updating sources in '$src_path' ..."
+            if [ "$ask_on_src_conflicts" ]; then
+                backoff_loop "$cmd_svn_update_conflicts_ask $src_rev"
+            else
+                backoff_loop "$cmd_svn_update_conflicts_solve $src_rev"
+            fi
+        else
+            set_title "Checkout sources in '$src_path' ..."
+            echo "- checkout sources in '$src_path' ..."
+            backoff_loop "$cmd_svn_checkout $src_rev $src_url $src_path"
+        fi
+    fi
+}
+
+
+# SRC #############################################################################
+
 function find_local_path ()
 {
     name=$1
     path=""
-
     for dir in `find "$src_path" -maxdepth 3 -type d -name "$name" | awk -F "$src_path" '{print $2}'`; do
         found=0
         for idir in $ignore_dirs; do
@@ -713,74 +783,6 @@ function find_local_path ()
     done
 
     if [ "$path" ]; then echo "$src_path/$path"; fi
-}
-
-function backoff_loop
-{
-    src_cmd=$1
-
-    backoff=30
-    attempt=1;
-
-    while [ 1 ]; do
-        $src_cmd | tee -a "$tmp_path/source_update.log"
-        if [ "${PIPESTATUS[0]}" -gt 0 ]; then
-            attempt=$(($attempt + 1))
-               set_title "Source update failed, trying again in $backoff seconds..."
-            for (( i = $backoff / 2; i > 0; i-- )) do
-                echo -n -e "\rFAILED! Next attempt $attempt in \033[1m$i\033[0m seconds"
-                sleep 1
-            done
-            echo -n -e "\r                                                            \r"
-        else
-            break
-        fi
-    done
-}
-
-function get_src ()
-{
-    cd "$src_path"
-    if [ "$src_mode" == "packages" ]; then
-        package=$1
-        src_path_pkg="$src_path$package"
-        mkdir -p "$src_path_pkg" 2>/dev/null
-
-        if [ "`$cmd_src_test $src_path_pkg &>/dev/null; echo $?`" == 0 ]; then
-            set_title "Updating sources in '$src_path_pkg' ..."
-            echo "- updating sources in '$src_path_pkg' ..."
-
-            if [ "$ask_on_src_conflicts" ]; then
-                    backoff_loop "$cmd_src_update_conflicts_ask $src_rev $package"
-            else    backoff_loop "$cmd_src_update_conflicts_solve $src_rev $package"; fi
-        else
-            set_title "Checkout sources in '$src_path_pkg' ..."
-
-             echo "- searching for direct source url for '$package' ..."
-            path=`find_src_path $package '' 1`
-            if [ "$path" ]; then
-                src_url_pkg="$src_url/$path"
-
-                echo "- checkout sources in '$src_path_pkg' ..."
-                backoff_loop "$cmd_src_checkout $src_rev $src_url_pkg $src_path_pkg"
-            else
-                echo "- direct source url not found, package moved to OLD/?"
-            fi
-        fi
-    elif [ "$src_mode" == "full" ]; then
-        if [ "`$cmd_src_test &>/dev/null; echo $?`" == 0 ]; then
-            set_title "Updating sources in '$src_path' ..."
-            echo "- updating sources in '$src_path' ..."
-
-            if [ "$ask_on_src_conflicts" ]; then
-                    backoff_loop "$cmd_src_update_conflicts_ask $src_rev"
-            else    backoff_loop "$cmd_src_update_conflicts_solve $src_rev"; fi
-        else
-            set_title "Checkout sources in '$src_path' ..."
-            echo "- checkout sources in '$src_path' ..."
-            backoff_loop "$cmd_src_checkout $src_rev $src_url $src_path"
-        fi
-    fi
 }
 
 function build_each ()
@@ -1137,7 +1139,6 @@ echo
 echo -e "\033[1m-----------------------------\033[7m Source checkout/update \033[0m\033[1m---------------------------\033[0m"
 if [ -z "$skip_srcupdate" ]; then
     rm "$tmp_path/source_update.log" 2>/dev/null
-
     cd "$src_path"
     if [ "`$cmd_src_test &>/dev/null; echo $?`" == 0 ]; then
         if [ "$src_mode" == "packages" ]; then
@@ -1145,24 +1146,7 @@ if [ -z "$skip_srcupdate" ]; then
             src_mode="full"
         fi
     fi
-
-    if [ "$src_mode" == "packages" ]; then
-        if [ "$only" ]; then
-            for pkgo in $only; do
-                for pkga in $packages; do
-                    if [ "$pkgo" == "$pkga" ]; then
-                        get_src $pkgo
-                    fi
-                done
-            done
-        else
-            for pkg in $packages; do
-                get_src $pkg
-            done
-        fi
-    elif [ "$src_mode" == "full" ]; then
-        get_src
-    fi
+    svn_fetch
 else
     echo -e "\n                                - - - SKIPPED - - -\n"
 fi
