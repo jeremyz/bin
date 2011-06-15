@@ -142,7 +142,7 @@ function header ()
     echo "  Packages:        $packages"
     if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
     if [ "$only" ]; then echo "  Only:            $only"; fi
-    echo "  Effective:      $real_packages"
+    echo "  Effective:      $effective_packages"
     echo
     if [ -z "$action" ]; then action="MISSING!"; fi
     echo "  Script action:   $action"
@@ -451,7 +451,7 @@ function parse_args ()
 
 function build_package_list ()
 {
-    real_packages=""
+    effective_packages=""
     if [ "$only" ]; then
         pkgs=$only
     else
@@ -465,7 +465,7 @@ function build_package_list ()
                 break
             fi
         done
-        [ $found -eq 0 ] && real_packages="$real_packages $pkg"
+        [ $found -eq 0 ] && effective_packages="$effective_packages $pkg"
     done
 }
 
@@ -710,7 +710,7 @@ function svn_fetch ()
 {
     cd "$src_path"
     if [ "$src_mode" == "packages" ]; then
-        for package in $real_packages; do
+        for package in $effective_packages; do
             src_path_pkg="$src_path$package"
             mkdir -p "$src_path_pkg" 2>/dev/null
             if [ "`$cmd_svn_test $src_path_pkg &>/dev/null; echo $?`" == 0 ]; then
@@ -753,7 +753,7 @@ function svn_fetch ()
 
 function parse_svn_updates ()
 {
-    tmp=""
+    updated_packages=""
     for dir in `egrep "^[A|D|G|U] " "$tmp_path/source_update.log" | awk '{print $2}' | sed 's,[^/]*$,,g' | sort -u`; do
         add_pkg=""
         found=0
@@ -762,17 +762,16 @@ function parse_svn_updates ()
             if [ "$topdir" == "$idir" ]; then found=1; fi
         done
         if [ $found == 1 ]; then continue; fi
-        for pkg in $real_packages; do
+        for pkg in $effective_packages; do
             if [ `echo "$dir" | egrep -q "^$pkg/|/$pkg/"; echo $?` == 0 ]; then
-                if [ ! `echo "$tmp" | egrep -q "^$pkg | $pkg\$ | $pkg "; echo $?` == 0 ]; then
-                    tmp="$tmp $pkg"
+                if [ ! `echo "$updated_packages" | egrep -q "^ $pkg | $pkg \$| $pkg "; echo $?` == 0 ]; then
+                    updated_packages="$updated_packages $pkg "
                     echo "- $pkg"
                 fi
                 break
             fi
         done
     done
-    real_packages=$tmp
 }
 
 
@@ -1054,7 +1053,7 @@ function build_each ()
         pkg_pos=$(($pkg_pos+1))
         write_appname "$pkg"
         must=0
-        for one in $real_packages; do
+        for one in $updated_packages; do
             if [ "$pkg" == "$one" ]; then
                 must=1
                 break
@@ -1137,21 +1136,21 @@ fi
 if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
     open_header "Parsing updates"
     parse_svn_updates
-    if [ -z "$real_packages" ]; then
+    if [ -z "$updated_packages" ]; then
         echo -e "\n                         - - - NO UPDATES AVAILABLE - - -\n"
     fi
 fi
-pkg_total=`echo "$real_packages" | wc -w`
+pkg_total=`echo "$updated_packages" | wc -w`
 
 # build/install
 open_header "Compilation & installation"
 if [ "$action" == "install" ]; then
     set_notification "normal" "Now building packages..."
 elif [ "$action" == "only" ]; then
-    set_notification "normal" "Now building following packages: $real_packages"
+    set_notification "normal" "Now building following packages: $updated_packages"
 elif [ "$action" == "update" ]; then
-    if [ "$real_packages" ]; then
-        set_notification "normal" "Now building following packages: $real_packages"
+    if [ "$updated_packages" ]; then
+        set_notification "normal" "Now building following packages: $updated_packages"
     else
         set_notification "normal" "Everything is up to date, nothing to build"
     fi
