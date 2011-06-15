@@ -81,6 +81,32 @@ function set_notification ()
     fi
 }
 
+function wrong () {
+    header
+    if [ "$1" ]; then
+        echo -e "\033[1m-------------------------------\033[7m Bad script argument \033[0m\033[1m----------------------------\033[0m"
+        echo -e "  \033[1m$1\033[0m"
+    else
+        help
+        exit 0
+    fi
+    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
+    echo
+    echo
+    exit 1
+}
+
+function open_header ()
+{
+    l=${#1}
+    set_title $1
+    padding=""
+    for (( i=$((46-l)); i > 0; i-- )) do
+        padding="$padding-"
+    done
+    echo -e "\n\033[1m-------------------------------\033[7m $1 \033[0m\033[1m-$padding\033[0m"
+}
+
 function header ()
 {
     clear
@@ -207,54 +233,6 @@ function help ()
         echo "  Example: If you use a diffent source path, add this line:"
         echo "           --srcpath=$HOME/enlightenment/e17_src"
     fi
-}
-
-function wrong () {
-    header
-    if [ "$1" ]; then
-        echo -e "\033[1m-------------------------------\033[7m Bad script argument \033[0m\033[1m----------------------------\033[0m"
-        echo -e "  \033[1m$1\033[0m"
-    else
-        help
-        exit 0
-    fi
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
-    echo
-    exit 1
-}
-
-function phase ()
-{
-    echo -e "\033[1m--------------------------------\033[7m Build phase $1/3 \033[0m\033[1m-------------------------------\033[0m"
-    case $1 in
-        1)
-            echo "- running some basic system checks"
-            echo "- source checkout/update"
-            ;;
-        2)
-            echo "- lib-compilation and installation"
-            echo "- apps-compilation and installation"
-            ;;
-        3)
-            echo "- cleaning"
-            echo "- install notes"
-            ;;
-    esac
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
-    echo
-}
-
-function open_header ()
-{
-    l=${#1}
-    set_title $1
-    padding=""
-    for (( i=$((46-l)); i > 0; i-- )) do
-        padding="$padding-"
-    done
-    echo -e "\n\033[1m-------------------------------\033[7m $1 \033[0m\033[1m-$padding\033[0m"
 }
 
 
