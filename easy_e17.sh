@@ -762,229 +762,41 @@ function svn_fetch ()
     fi
 }
 
-
-# SRC #############################################################################
-
-function find_local_path ()
+function parse_svn_updates ()
 {
-    name=$1
-    path=""
-    for dir in `find "$src_path" -maxdepth 3 -type d -name "$name" | awk -F "$src_path" '{print $2}'`; do
+    tmp=""
+    for dir in `egrep "^[A|D|G|U] " "$tmp_path/source_update.log" | awk '{print $2}' | sed 's,[^/]*$,,g' | sort -u`; do
+        add_pkg=""
         found=0
         for idir in $ignore_dirs; do
             topdir=`echo "$dir" | cut -d'/' -f1`
             if [ "$topdir" == "$idir" ]; then found=1; fi
         done
         if [ $found == 1 ]; then continue; fi
-
-        if [ "${#dir}" -lt "${#path}" ] || [ -z "$path" ]; then
-            path=$dir
-        fi
-    done
-
-    if [ "$path" ]; then echo "$src_path/$path"; fi
-}
-
-function build_each ()
-{    for pkg in $packages; do compile $pkg; done
-}
-
-function run_command ()
-{
-    name=$1
-    path=$2
-    title=$3
-    log_title=$4
-    mode_needed=$5
-    cmd=$6
-
-    set_title "$name: $title ($pkg_pos/$pkg_total)"
-    echo -n "$log_title"
-    logfile_banner "$cmd" "$logs_path/$name.log"
-
-    if [ $mode_needed == "rootonly" ]; then
-        mode_needed=$mode
-    else
-        if [ $nice_level -ge 0 ]; then
-            mode_needed="user"
-        fi
-    fi
-    rm -f $status_path/$name.noerrors
-    case "$mode_needed" in
-        "sudo")
-            echo "$sudopwd" | sudo -S PKG_CONFIG_PATH="$PKG_CONFIG_PATH" PYTHONPATH="$PYTHONPATH" \
-                               nice -n $nice_level $cmd >> "$logs_path/$name.log" 2>&1 && touch $status_path/$name.noerrors &
-            ;;
-        *)
-            nice -n $nice_level $cmd >> "$logs_path/$name.log" 2>&1 && touch $status_path/$name.noerrors &
-            ;;
-    esac
-
-    pid="$!"
-    rotate "$pid" "$name"
-}
-
-function write_appname ()
-{
-    name=$1
-    hidden=$2
-    cnt=${#name}
-    max=27
-
-    if [ "$hidden" ]; then
-        c=-3
-        while [ ! $c = $cnt ]; do
-            echo -n " "
-            c=$(($c+1))
+        for pkg in $real_packages; do
+            if [ `echo "$dir" | egrep -q "^$pkg/|/$pkg/"; echo $?` == 0 ]; then
+                if [ ! `echo "$tmp" | egrep -q "^$pkg | $pkg\$ | $pkg "; echo $?` == 0 ]; then
+                    tmp="$tmp $pkg"
+                    echo "- $pkg"
+                fi
+                break
+            fi
         done
-    else
-        echo -n "- $name "
-    fi
+    done
+    real_packages=$tmp
+}
 
-    while [ ! $cnt = $max ]; do
-        echo -n "."
+
+# SRC #############################################################################
+
+function del_lines ()
+{
+    cnt=0
+    max=$1
+    while [ ! "$cnt" == "$max" ]; do
+        echo -n -e "\b \b"
         cnt=$(($cnt+1))
     done
-    echo -n " "
-}
-
-function compile ()
-{
-    name=$1
-
-    write_appname "$name"
-
-    for one in $skip; do
-        if [ "$name" == "$one" ]; then
-            echo "SKIPPED"
-            touch $status_path/$name.skipped
-            return
-        fi
-    done
-    if [ "$only" ] || [ "$action" == "update" ]; then
-        found=""
-        for one in $only; do
-            if [ "$name" == "$one" ]; then found=1; fi
-        done
-        if [ -z "$found" ]; then
-            echo "SKIPPED"
-            touch $status_path/$name.skipped
-            return
-        fi
-    fi
-
-    pkg_pos=$(($pkg_pos+1))
-
-    if [ -e "$status_path/$name.installed" ]; then
-        echo "previously installed"
-        return
-    fi
-    path=`find_local_path $name`
-    if [ ! -d "$path" ]; then
-        echo "SOURCEDIR NOT FOUND"
-        set_notification "critical" "Package '$name': sourcedir not found"
-        return
-    fi
-    cd "$path"
-
-    rm -f $status_path/$name.noerrors
-    rm -f "$logs_path/$name.log"
-
-    if [ $clean -ge 1 ]; then
-        if [ -e "Makefile" ]; then
-            if [ $clean -eq 1 ]; then
-                run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
-                if [ ! -e "$status_path/$name.noerrors" ]; then
-                    if [ "$skip_errors" ]; then
-                        write_appname "$name" "hidden"    # clean might fail, that's ok
-                    else
-                        return
-                    fi
-                fi
-            fi
-            if [ $clean -eq 2 ]; then
-                run_command "$name" "$path" "distclean" "distcln: " "$mode" "$make -j $threads clean distclean"
-                if [ ! -e "$status_path/$name.noerrors" ]; then
-                    if [ "$skip_errors" ]; then
-                        write_appname "$name" "hidden"    # distclean might fail, that's ok
-                    else
-                        return
-                    fi
-                fi
-            fi
-            if [ $clean -ge 3 ]; then
-                run_command "$name" "$path" "uninstall" "uninst : " "rootonly" "$make -j $threads uninstall clean distclean"
-                if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-
-                # It's no longer installed if we just uninstalled it.
-                # Even if the uninstall failed, it's best to mark it as uninstalled so that a partial uninstall gets fixed later.
-                rm -f $status_path/$name.installed
-            fi
-        fi
-    fi
-
-    # get autogen arguments
-    args=""
-    for app_arg in `echo $autogen_args | tr -s '\,' ' '`; do
-        app=`echo $app_arg | cut -d':' -f1`
-        if [ "$app" == "$name" ]; then
-            args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
-        fi
-    done
-
-    if [ -e "autogen.sh" ]; then
-        run_command "$name" "$path" "autogen" "autogen: " "$mode"    "./autogen.sh --prefix=$install_path $accache $args"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-    elif [ -e "bootstrap" ]; then
-        run_command "$name" "$path" "bootstrap" "bootstr: " "$mode"    "./bootstrap"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "configure" "config:  " "$mode"    "./configure --prefix=$install_path $accache $args"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "make"      "make:    " "$mode"    "$make -j $threads"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "install"   "install: " "rootonly" "$make install"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-    elif [ -e "Makefile.PL" ]; then
-        run_command "$name" "$path" "perl"    "perl:    " "$mode"    "perl Makefile.PL prefix=$install_path $args"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-    elif [ -e "setup.py" ]; then
-        run_command "$name" "$path" "python"   "python:  " "$mode"    "python setup.py build build_ext --include-dirs=$PYTHONINCLUDE $args"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "install"  "install: " "rootonly" "python setup.py install --prefix=$install_path install_headers --install-dir=$PYTHONINCLUDE"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-    elif [ -e "Makefile" ]; then
-        make_extra="PREFIX=$install_path"
-        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make $make_extra -j $threads"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "install" "install: " "rootonly" "$make $make_extra install"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-    else
-        echo "no build system"
-        set_notification "critical" "Package '$name': no build system"
-        touch $status_path/$name.nobuild
-        return
-    fi
-
-    if [ "$gen_docs" ]; then
-        if [ -e "gendoc" ]; then
-            run_command "$name" "$path" "docs" "docs   : " "$mode" "sh gendoc"
-            if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        fi
-    fi
-
-    # All done, mark it as installed OK.
-    touch $status_path/$name.installed
-    rm -f $status_path/$name.noerrors
-    echo "ok"
-    set_notification "normal" "Package '$name': build successful"
 }
 
 function rotate ()
@@ -1046,16 +858,6 @@ function rotate ()
     fi
 }
 
-function del_lines ()
-{
-    cnt=0
-    max=$1
-    while [ ! "$cnt" == "$max" ]; do
-        echo -n -e "\b \b"
-        cnt=$(($cnt+1))
-    done
-}
-
 function error ()
 {
     echo -e "\n\n\033[1mERROR: $1\033[0m\n\n"
@@ -1073,15 +875,209 @@ function logfile_banner ()
     echo "-------------------------------------------------------------------------------" >> "$logfile"
 }
 
-function cnt_pkgs () {
-    pkg_total=0
-    pkg_pos=0
-
-    if [ -n "$only" ]; then
-        pkg_total=`echo "$only" | wc -w`
+function run_command ()
+{
+    name=$1
+    path=$2
+    title=$3
+    log_title=$4
+    mode_needed=$5
+    cmd=$6
+    set_title "$name: $title ($pkg_pos/$pkg_total)"
+    echo -n "$log_title"
+    logfile_banner "$cmd" "$logs_path/$name.log"
+    if [ $mode_needed == "rootonly" ]; then
+        mode_needed=$mode
     else
-        pkg_total=`echo "$packages" | wc -w`
+        if [ $nice_level -ge 0 ]; then
+            mode_needed="user"
+        fi
     fi
+    rm -f $status_path/$name.noerrors
+    case "$mode_needed" in
+        "sudo")
+            echo "$sudopwd" | sudo -S PKG_CONFIG_PATH="$PKG_CONFIG_PATH" PYTHONPATH="$PYTHONPATH" \
+                               nice -n $nice_level $cmd >> "$logs_path/$name.log" 2>&1 && touch $status_path/$name.noerrors &
+            ;;
+        *)
+            nice -n $nice_level $cmd >> "$logs_path/$name.log" 2>&1 && touch $status_path/$name.noerrors &
+            ;;
+    esac
+    pid="$!"
+    rotate "$pid" "$name"
+}
+
+function find_local_path ()
+{
+    name=$1
+    path=""
+    for dir in `find "$src_path" -maxdepth 3 -type d -name "$name" | awk -F "$src_path" '{print $2}'`; do
+        found=0
+        for idir in $ignore_dirs; do
+            topdir=`echo "$dir" | cut -d'/' -f1`
+            if [ "$topdir" == "$idir" ]; then found=1; fi
+        done
+        if [ $found == 1 ]; then continue; fi
+
+        if [ "${#dir}" -lt "${#path}" ] || [ -z "$path" ]; then
+            path=$dir
+        fi
+    done
+
+    if [ "$path" ]; then echo "$src_path/$path"; fi
+}
+
+function compile ()
+{
+    name=$1
+    if [ -e "$status_path/$name.installed" ]; then
+        echo "previously installed"
+        return
+    fi
+    path=`find_local_path $name`
+    if [ ! -d "$path" ]; then
+        echo "SOURCEDIR NOT FOUND"
+        set_notification "critical" "Package '$name': sourcedir not found"
+        return
+    fi
+    cd "$path"
+    rm -f $status_path/$name.noerrors
+    rm -f "$logs_path/$name.log"
+    if [ $clean -ge 1 ]; then
+        if [ -e "Makefile" ]; then
+            if [ $clean -eq 1 ]; then
+                run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
+                if [ ! -e "$status_path/$name.noerrors" ]; then
+                    if [ "$skip_errors" ]; then
+                        write_appname "$name" "hidden"    # clean might fail, that's ok
+                    else
+                        return
+                    fi
+                fi
+            fi
+            if [ $clean -eq 2 ]; then
+                run_command "$name" "$path" "distclean" "distcln: " "$mode" "$make -j $threads clean distclean"
+                if [ ! -e "$status_path/$name.noerrors" ]; then
+                    if [ "$skip_errors" ]; then
+                        write_appname "$name" "hidden"    # distclean might fail, that's ok
+                    else
+                        return
+                    fi
+                fi
+            fi
+            if [ $clean -ge 3 ]; then
+                run_command "$name" "$path" "uninstall" "uninst : " "rootonly" "$make -j $threads uninstall clean distclean"
+                if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+                # It's no longer installed if we just uninstalled it.
+                # Even if the uninstall failed, it's best to mark it as uninstalled so that a partial uninstall gets fixed later.
+                rm -f $status_path/$name.installed
+            fi
+        fi
+    fi
+    # get autogen arguments
+    args=""
+    for app_arg in `echo $autogen_args | tr -s '\,' ' '`; do
+        app=`echo $app_arg | cut -d':' -f1`
+        if [ "$app" == "$name" ]; then
+            args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
+        fi
+    done
+    if [ -e "autogen.sh" ]; then
+        run_command "$name" "$path" "autogen" "autogen: " "$mode"    "./autogen.sh --prefix=$install_path $accache $args"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    elif [ -e "bootstrap" ]; then
+        run_command "$name" "$path" "bootstrap" "bootstr: " "$mode"    "./bootstrap"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "configure" "config:  " "$mode"    "./configure --prefix=$install_path $accache $args"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "make"      "make:    " "$mode"    "$make -j $threads"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "install"   "install: " "rootonly" "$make install"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    elif [ -e "Makefile.PL" ]; then
+        run_command "$name" "$path" "perl"    "perl:    " "$mode"    "perl Makefile.PL prefix=$install_path $args"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    elif [ -e "setup.py" ]; then
+        run_command "$name" "$path" "python"   "python:  " "$mode"    "python setup.py build build_ext --include-dirs=$PYTHONINCLUDE $args"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "install"  "install: " "rootonly" "python setup.py install --prefix=$install_path install_headers --install-dir=$PYTHONINCLUDE"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    elif [ -e "Makefile" ]; then
+        make_extra="PREFIX=$install_path"
+        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make $make_extra -j $threads"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "install" "install: " "rootonly" "$make $make_extra install"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    else
+        echo "no build system"
+        set_notification "critical" "Package '$name': no build system"
+        touch $status_path/$name.nobuild
+        return
+    fi
+
+    if [ "$gen_docs" ]; then
+        if [ -e "gendoc" ]; then
+            run_command "$name" "$path" "docs" "docs   : " "$mode" "sh gendoc"
+            if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        fi
+    fi
+    # All done, mark it as installed OK.
+    touch $status_path/$name.installed
+    rm -f $status_path/$name.noerrors
+    echo "ok"
+    set_notification "normal" "Package '$name': build successful"
+}
+
+function write_appname ()
+{
+    name=$1
+    hidden=$2
+    cnt=${#name}
+    max=27
+    if [ "$hidden" ]; then
+        c=-3
+        while [ ! $c = $cnt ]; do
+            echo -n " "
+            c=$(($c+1))
+        done
+    else
+        echo -n "- $name "
+    fi
+    while [ ! $cnt = $max ]; do
+        echo -n "."
+        cnt=$(($cnt+1))
+    done
+    echo -n " "
+}
+
+function build_each ()
+{
+    pkg_pos=0
+    for pkg in $packages; do
+        pkg_pos=$(($pkg_pos+1))
+        write_appname "$pkg"
+        must=0
+        for one in $real_packages; do
+            if [ "$pkg" == "$one" ]; then
+                must=1
+                break
+            fi
+        done
+        if [ $must -eq 1 ]; then
+            compile $pkg
+        else
+            echo "SKIPPED"
+            touch $status_path/$name.skipped
+        fi
+    done
 }
 
 
@@ -1140,7 +1136,7 @@ echo -e "\033[1m-----------------------------\033[7m Source checkout/update \033
 if [ -z "$skip_srcupdate" ]; then
     rm "$tmp_path/source_update.log" 2>/dev/null
     cd "$src_path"
-    if [ "`$cmd_src_test &>/dev/null; echo $?`" == 0 ]; then
+    if [ "`$cmd_svn_test &>/dev/null; echo $?`" == 0 ]; then
         if [ "$src_mode" == "packages" ]; then
             echo -e "\033[1m- Full checkout found, changed source mode to 'full'!\033[0m"
             src_mode="full"
@@ -1157,34 +1153,14 @@ echo
 if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
     echo -e "\033[1m--------------------------------\033[7m Parsing updates \033[0m\033[1m-------------------------------\033[0m"
 
-    for dir in `egrep "^[A|D|G|U] " "$tmp_path/source_update.log" | \
-                awk '{print $2}' | sed 's,[^/]*$,,g' | sort -u`; do
-        add_pkg=""
-        found=0
-        for idir in $ignore_dirs; do
-            topdir=`echo "$dir" | cut -d'/' -f1`
-            if [ "$topdir" == "$idir" ]; then found=1; fi
-        done
-        if [ $found == 1 ]; then continue; fi
-
-        for pkg in $packages; do
-            if [ `echo "$dir" | egrep -q "^$pkg/|/$pkg/"; echo $?` == 0 ]; then
-                if [ ! `echo "$only" | egrep -q "^$pkg | $pkg\$ | $pkg "; echo $?` == 0 ]; then
-                    only="$pkg $only"
-                    echo "- $pkg"
-                fi
-                break
-            fi
-        done
-    done
-
-    if [ -z "$only" ]; then
+    if [ -z "$real_packages" ]; then
         echo -e "\n                         - - - NO UPDATES AVAILABLE - - -\n"
     fi
 
     echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
     echo
 fi
+pkg_total=`echo "$real_packages" | wc -w`
 
 cnt_pkgs    # Count packages
 
@@ -1196,11 +1172,13 @@ sleep 5
 if [ "$action" == "install" ]; then
     set_notification "normal" "Now building packages..."
 elif [ "$action" == "only" ]; then
-    set_notification "normal" "Now building following packages: $only"
+    set_notification "normal" "Now building following packages: $real_packages"
 elif [ "$action" == "update" ]; then
-    if [ "$only" ]; then
-            set_notification "normal" "Now building following packages: $only"
-    else    set_notification "normal" "Everything is up to date, nothing to build"; fi
+    if [ "$real_packages" ]; then
+        set_notification "normal" "Now building following packages: $real_packages"
+    else
+        set_notification "normal" "Everything is up to date, nothing to build"
+    fi
 fi
 phase 2
 echo -e "\033[1m------------------------------\033[7m Installing packages \033[0m\033[1m-----------------------------\033[0m"
