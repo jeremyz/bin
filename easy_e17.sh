@@ -246,6 +246,17 @@ function phase ()
     echo
 }
 
+function open_header ()
+{
+    l=${#1}
+    set_title $1
+    padding=""
+    for (( i=$((46-l)); i > 0; i-- )) do
+        padding="$padding-"
+    done
+    echo -e "\n\033[1m-------------------------------\033[7m $1 \033[0m\033[1m-$padding\033[0m"
+}
+
 
 # INIT #############################################################################
 
@@ -1109,11 +1120,10 @@ if [ -z "$action" ] || [ -z "$install_path" ] || [ -z "$src_path" ]; then
     wrong
 fi
 header
+
 # run script normally
-phase 1
-set_title "Basic system checks"
-echo -e "\033[1m-------------------------------\033[7m Basic system checks \033[0m\033[1m----------------------------\033[0m"
-check_commands "automake gcc $make `echo "$cmd_src_checkout" | cut -d' ' -f1`"
+open_header "Basic system checks"
+check_commands "automake gcc $make `echo "$cmd_svn_checkout" | cut -d' ' -f1`"
 echo -n "- creating temporary dirs .... "
 mkdir -p "$tmp_path"        2>/dev/null
 mkdir -p "$logs_path"        2>/dev/null
@@ -1128,11 +1138,9 @@ if [ ! "$action"  == "srcupdate" ]; then
     mk_dest_dirs
     check_ld_path
 fi
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo
 
 # sources
-echo -e "\033[1m-----------------------------\033[7m Source checkout/update \033[0m\033[1m---------------------------\033[0m"
+open_header "Source checkout/update"
 if [ -z "$skip_srcupdate" ]; then
     rm "$tmp_path/source_update.log" 2>/dev/null
     cd "$src_path"
@@ -1146,29 +1154,19 @@ if [ -z "$skip_srcupdate" ]; then
 else
     echo -e "\n                                - - - SKIPPED - - -\n"
 fi
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo
 
-
+# parse updates
 if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
-    echo -e "\033[1m--------------------------------\033[7m Parsing updates \033[0m\033[1m-------------------------------\033[0m"
-
+    open_header "Parsing updates"
+    parse_svn_updates
     if [ -z "$real_packages" ]; then
         echo -e "\n                         - - - NO UPDATES AVAILABLE - - -\n"
     fi
-
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
 fi
 pkg_total=`echo "$real_packages" | wc -w`
 
-cnt_pkgs    # Count packages
-
-
-echo -n "-> PREPARING FOR PHASE 2..."
-set_title "Preparing for phase 2... compilation & installation"
-sleep 5
-
+# build/install
+open_header "Compilation & installation"
 if [ "$action" == "install" ]; then
     set_notification "normal" "Now building packages..."
 elif [ "$action" == "only" ]; then
@@ -1180,17 +1178,11 @@ elif [ "$action" == "update" ]; then
         set_notification "normal" "Everything is up to date, nothing to build"
     fi
 fi
-phase 2
-echo -e "\033[1m------------------------------\033[7m Installing packages \033[0m\033[1m-----------------------------\033[0m"
-pkg_pos=0
 build_each
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo
 
 # Restore current directory in case post processing wants to be pathless.
+open_header "Finish installation"
 cd $EASY_PWD
-
-echo -e "\033[1m-----------------------------\033[7m Finishing installation \033[0m\033[1m---------------------------\033[0m"
 echo -n "- registering libraries ...... "
 if [ -z "$asuser" ]; then
     case "$mode" in
@@ -1212,20 +1204,9 @@ if [ "$easy_e17_post_script" ]; then
 else
     echo "skipped"
 fi
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo
-
-
-echo -n "-> PREPARING FOR PHASE 3..."
-set_title "Preparing for phase 3..."
-sleep 5
-
-phase 3
-set_title "Finished"
-
+echo -n "- check compilation logs ..... "
 for file in $logs_path/*.log ; do
     if [ "$file" == "$logs_path/*.log" ]; then break; fi
-
     pkg=`basename "$file" | cut -d'.' -f1`
     if [ -e "$status_path/$pkg.installed" ]; then
         packages_installed="$packages_installed $pkg"
@@ -1239,8 +1220,7 @@ for file in $logs_path/*.log ; do
         fi
     fi
 done
-
-echo -e "\033[1m--------------------------------\033[7m Cleaning temp dir \033[0m\033[1m-----------------------------\033[0m"
+echo "ok"
 if [ -z "$keep" ]; then
     if [ "$packages_failed" ]; then
         echo -n "- saving logs ................ "
@@ -1256,25 +1236,18 @@ if [ -z "$keep" ]; then
 else
     echo "- saving temp dir ............ ok"
 fi
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo
 
 if [ "$packages_failed" ]; then
-    echo -e "\033[1m---------------------------------\033[7m Failed packages \033[0m\033[1m------------------------------\033[0m"
+    open_header "Failed packages"
     for pkg in $packages_failed; do
         echo "- $pkg (error log: $logs_path/$pkg.log)"
     done
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
     set_notification "critical" "Script finished with build errors"
 else
     set_notification "normal" "Script finished successful"
 fi
-
 if [ "$action" == "install" ]; then
-    echo
-    echo "INSTALL NOTES:"
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
+    open_header "INSTALL NOTES:"
     echo "The most incredible and really unbelievable dream has become true:"
     echo "You compiled e17 successfully!"
     echo
@@ -1297,27 +1270,21 @@ if [ "$action" == "install" ]; then
     echo "We hope you will enjoy your trip into e17... Have fun!"
     echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
 fi
-
-echo
-echo "ADD THESE ENVIRONMENT VARIABLES:"
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo "export PATH=\"$install_path/bin:\$PATH\""
-echo "export PYTHONPATH=\"`python -c \"import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='$install_path')\" 2>/dev/null`:\$PYTHONPATH\""
-echo "export LD_LIBRARY_PATH=\"$install_path/lib:\$LD_LIBRARY_PATH\""
-echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-echo
-
+open_header "usefull environment variables"
+echo "  export PATH=\"$install_path/bin:\$PATH\""
+echo "  export PYTHONPATH=\"`python -c \"import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='$install_path')\" 2>/dev/null`:\$PYTHONPATH\""
+echo "  export LD_LIBRARY_PATH=\"$install_path/lib:\$LD_LIBRARY_PATH\""
 # Clear this out if we ever set it.
 export CC=""
-
 # exit script or wait?
 if [ "$wait" ]; then
     echo
     echo -e -n "\033[1mThe script is waiting here - simply press [enter] to exit.\033[0m"
     read
 fi
-
 set_title
 if [ "$packages_failed" ]; then
         exit 2
-else    exit 0; fi
+else
+    exit 0
+fi
