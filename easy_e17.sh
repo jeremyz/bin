@@ -898,21 +898,9 @@ function run_command ()
 function find_local_path ()
 {
     name=$1
-    path=""
-    for dir in `find "$src_path" -maxdepth 3 -type d -name "$name" | awk -F "$src_path" '{print $2}'`; do
-        found=0
-        for idir in $ignore_dirs; do
-            topdir=`echo "$dir" | cut -d'/' -f1`
-            if [ "$topdir" == "$idir" ]; then found=1; fi
-        done
-        if [ $found == 1 ]; then continue; fi
-
-        if [ "${#dir}" -lt "${#path}" ] || [ -z "$path" ]; then
-            path=$dir
-        fi
-    done
-
-    if [ "$path" ]; then echo "$src_path/$path"; fi
+    path=$(find $src_path -maxdepth 5 -type d -name $pkg | grep -v -E "^${src_path}$" | grep  -v -E '$ignore_dirs_re' | \
+        while read line; do echo `echo $line | wc -c` $line; done | sort -n | head -n 1 | cut -d " " -f 2)
+    if [ "$path" ]; then echo "$path"; fi
 }
 
 function compile ()
