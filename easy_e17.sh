@@ -22,6 +22,7 @@ src_cache_path="$tmp_path/src_cache"
 src_path="$HOME/e17_src"
 conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 
+git_url="git@asynk.ch:e"
 
 src_url="http://svn.enlightenment.org/svn/e/trunk"
 src_rev="HEAD"
@@ -45,12 +46,14 @@ packages_full="$efl_basic $bin_basic $e_modules_bin $e_modules_extra $efl_extra 
 packages=$packages_basic    # default
 src_mode="packages"
 
+ignore_dirs_re="/(devs|packaging|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)"
 ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
 autogen_args=""        # evas:--enable-gl-x11
 linux_distri=""        # if your distribution is wrongly detected, define it here
 nice_level=0        # nice level (19 == low, -20 == high)
 os=$(uname)            # operating system
 threads=2            # make -j <threads>
+git=0
 
 animation="star"
 online_source="http://omicron.homeip.net/projects/easy_e17/easy_e17.sh"    # URL of latest stable release
@@ -179,6 +182,7 @@ function help ()
         echo
         echo "      --srcupdate                     = update only the sources"
         echo "  -v, --check-script-version          = check for a newer release of easy_e17"
+        echo "      --git                           = use git instead fo svn"
         echo "      --help                          = this help"
         echo
         echo -e "  \033[1mOPTIONS:\033[0m"
@@ -407,6 +411,7 @@ function parse_args ()
             -l|--low)                       nice_level=19 ;;
             --normal) ;;
             -h|--high)                      nice_level=-20 ;;
+            -g|--git)                       git=1 ;;
             --cache)
                 accache=" --cache-file=$tmp_path/easy_e17.cache"
                 ccache=`whereis ccache`
@@ -775,6 +780,42 @@ function parse_svn_updates ()
     done
 }
 
+function git_fetch ()
+{
+	if [ -d $src_path/.git ]; then
+		set_title "Updating sources in '$src_path' ..."
+        echo "- updating sources in '$src_path' ..."
+		cd $src_path
+        SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
+        git pull
+        SHA_HEAD=$(git log --pretty="format:%H" HEAD~1..)
+        git show ${SHA_PREV}..${SHA_HEAD} --name-only --pretty="format:" | sort | uniq | grep -v -e '^$' | cut -d " " -f 1 > "$tmp_path/source_update.log"
+	else
+		set_title "Clone sources in '$src_path' ..."
+        echo "- clone sources in '$src_path' ..."
+		cd $src_path/..
+        git clone $git_url $src_path
+        touch "$tmp_path/git-clone" "$tmp_path/source_update.log"
+	fi
+}
+
+function parse_git_updates ()
+{
+    if [ -e "$tmp_path/git-clone" ]; then
+        updated_packages=$effective_packages
+        echo "- all packages !!"
+    else
+        updated_packages=""
+        for pkg in $effective_packages; do
+            path=$(find_local_path $kpg)
+            if [ `cat "$tmp_path/source_update.log" | egrep -q "^${path#$src_path}"; echo $?` == 0 ]; then
+                updated_packages="$updated_packages $pkg"
+                echo "- $pkg"
+            fi
+        done
+    fi
+}
+
 
 # SRC #############################################################################
 
@@ -1122,7 +1163,11 @@ if [ -z "$skip_srcupdate" ]; then
             src_mode="full"
         fi
     fi
-    svn_fetch
+    if [ $git -eq 0 ]; then
+        svn_fetch
+    else
+        git_fetch
+    fi
 else
     echo -e "\n                                - - - SKIPPED - - -\n"
 fi
@@ -1130,7 +1175,12 @@ fi
 # parse updates
 if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
     open_header "Parsing updates"
-    parse_svn_updates
+    echo "- parse updated sources  ..."
+    if [ $git -eq 0 ]; then
+        parse_svn_updates
+    else
+        parse_git_updates
+    fi
     if [ -z "$updated_packages" ]; then
         echo -e "\n                         - - - NO UPDATES AVAILABLE - - -\n"
     fi
