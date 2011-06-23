@@ -20,10 +20,16 @@ logs_path="$tmp_path/install_logs"
 status_path="$tmp_path/status"
 src_cache_path="$tmp_path/src_cache"
 src_path="$HOME/e17_src"
+conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
+
 
 src_url="http://svn.enlightenment.org/svn/e/trunk"
 src_rev="HEAD"
-conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
+cmd_svn_test="svn info"
+cmd_svn_list="svn list -r"
+cmd_svn_checkout="svn checkout -r "
+cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
+cmd_svn_update_conflicts_ask="svn update -r"
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
 efl_extra="imlib2 emotion ethumb libeweather elementary enlil ensure libast python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary azy"
@@ -37,14 +43,9 @@ packages_basic="$efl_basic $bin_basic"
 packages_half="$efl_basic $bin_basic $e_modules_bin $e_modules_extra"
 packages_full="$efl_basic $bin_basic $e_modules_bin $e_modules_extra $efl_extra $bin_extra $bin_games"
 packages=$packages_basic    # default
-
-cmd_svn_test="svn info"
-cmd_svn_list="svn list -r"
-cmd_svn_checkout="svn checkout -r "
-cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
-cmd_svn_update_conflicts_ask="svn update -r"
 src_mode="packages"
-ignore_dirs="devs DOCS E16 EXAMPLES TEST THEMES web"
+
+ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
 autogen_args=""        # evas:--enable-gl-x11
 linux_distri=""        # if your distribution is wrongly detected, define it here
 nice_level=0        # nice level (19 == low, -20 == high)
