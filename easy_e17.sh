@@ -28,14 +28,14 @@ conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
 efl_extra="imlib2 emotion ethumb libeweather elementary enlil ensure libast python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary azy"
 bin_basic="exchange e"
-bin_extra="calculator convertor phonebook sticky-notes e_phys edje_viewer editje elicit elsa emote empower enjoy enki envision ephoto Eterm eve expedite exquisite eyelight rage elmdentica"
+bin_extra="calculator converter phonebook sticky-notes e_phys edje_viewer editje elsa emote empower enjoy enki envision ephoto Eterm eve expedite exquisite eyelight rage elmdentica"
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 e_modules_bin="emprint exalt"
-e_modules_extra="mpdule exebuf cpu mem slideshow wlan elfe everything-pidgin execwatch calendar notification efm_nav snow drawer everything-skel engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain comp-scale efm_path places eweather deskshow winlist-ng weather itask-ng mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts efm_pathbar everything-websearch winselector quickaccess uptime net"
+e_modules_extra="mpdule exebuf cpu mem slideshow wlan elfe everything-pidgin execwatch calendar notification efm_nav snow drawer everything-skel engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain comp-scale efm_path places eweather deskshow winlist-ng weather mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts efm_pathbar everything-websearch winselector quickaccess uptime net"
 
 packages_basic="$efl_basic $bin_basic"
 packages_half="$efl_basic $bin_basic $e_modules_bin $e_modules_extra"
-packages_full="$efl_basic $bin_basic $e_modules_bin $e_modules_extra $efl_extra $bin_extra"
+packages_full="$efl_basic $bin_basic $e_modules_bin $e_modules_extra $efl_extra $bin_extra $bin_games"
 packages=$packages_basic    # default
 
 cmd_svn_test="svn info"
@@ -128,6 +128,7 @@ function header ()
     echo
     echo
     echo -e "\033[1m-----------------------------\033[7m Current Configuration \033[0m\033[1m----------------------------\033[0m"
+    echo "  Config files:    $conf_files"
     echo "  Install path:    $install_path"
     echo "  Source path:     $src_path"
     echo "  Source url:      $src_url (Revision: $src_rev)"
@@ -139,10 +140,9 @@ function header ()
         echo "  OS:              $os"
     fi
     echo
-    echo "  Packages:        $packages"
-    if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
     if [ "$only" ]; then echo "  Only:            $only"; fi
-    echo "  Effective:      $effective_packages"
+    if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
+    echo "  Packages:       $effective_packages"
     echo
     if [ -z "$action" ]; then action="MISSING!"; fi
     echo "  Script action:   $action"
@@ -347,13 +347,13 @@ function parse_args ()
             fi
         fi
         case "$option" in
-            -i|--install)                action="install" ;;
-            -u|--update)                action="update" ;;
+            -i|--install)                   action="install" ;;
+            -u|--update)                    action="update" ;;
             --packagelist)
                 case $value in
-                    "half")                packages="$packages_half" ;;
-                    "full")                packages="$packages_full" ;;
-                    *)                    packages="$packages_basic" ;;
+                    "half")                 packages="$packages_half" ;;
+                    "full")                 packages="$packages_full" ;;
+                    *)                      packages="$packages_basic" ;;
                 esac
                 ;;
             --conf)                    ;;
@@ -364,19 +364,19 @@ function parse_args ()
                 action="only"
                 only="`echo "$value" | tr -s '\,' '\ '` $only"
                 ;;
-            -v|--check-script-version)    action="script" ;;
+            -v|--check-script-version)      action="script" ;;
             --srcupdate)
                 action="srcupdate"
                 skip="$packages"
                 ;;
-            --instpath)                    install_path="$value" ;;
-            --srcpath)                    src_path="$value" ;;
-            --srcurl)                    src_url="$value" ;;
+            --instpath)                     install_path="$value" ;;
+            --srcpath)                      src_path="$value" ;;
+            --srcurl)                       src_url="$value" ;;
             --srcmode)
                 case $value in
-                    "packages")            src_mode="packages" ;;
-                    "full")                src_mode="full" ;;
-                    *)                    src_mode="packages" ;;
+                    "packages")             src_mode="packages" ;;
+                    "full")                 src_mode="full" ;;
+                    *)                      src_mode="packages" ;;
                 esac
                 ;;
             --srcrev)
@@ -385,27 +385,27 @@ function parse_args ()
                 fi
                 src_rev="$value"
                 ;;
-            --asuser)                    asuser=1 ;;
-            --no-sudopwd)                no_sudopwd=1 ;;
-            -c|--clean)                    clean=$(($clean + 1))    ;;
-            -d|--docs)                    gen_docs=1 ;;
-            --postscript)                easy_e17_post_script="$value" ;;
-            -s|--skip-srcupdate)        skip_srcupdate=1 ;;
-            -a|--ask-on-src-conflicts)    ask_on_src_conflicts=1 ;;
+            --asuser)                       asuser=1 ;;
+            --no-sudopwd)                   no_sudopwd=1 ;;
+            -c|--clean)                     clean=$(($clean + 1))    ;;
+            -d|--docs)                      gen_docs=1 ;;
+            --postscript)                   easy_e17_post_script="$value" ;;
+            -s|--skip-srcupdate)            skip_srcupdate=1 ;;
+            -a|--ask-on-src-conflicts)      ask_on_src_conflicts=1 ;;
             --skip)
                 if [ -z "$value" ]; then
                     wrong "Missing value for argument '$option'!"
                 fi
                 skip="`echo "$value" | tr -s '\,' '\ '` $skip"
                 ;;
-            -e|--skip-errors)            skip_errors=1 ;;
-            -w|--wait)                    wait=1 ;;
-            -n|--disable-notification)    notification_disabled=1 ;;
-            -k|--keep)                    keep=1 ;;
+            -e|--skip-errors)               skip_errors=1 ;;
+            -w|--wait)                      wait=1 ;;
+            -n|--disable-notification)      notification_disabled=1 ;;
+            -k|--keep)                      keep=1 ;;
 
-            -l|--low)                     nice_level=19 ;;
+            -l|--low)                       nice_level=19 ;;
             --normal) ;;
-            -h|--high)                     nice_level=-20 ;;
+            -h|--high)                      nice_level=-20 ;;
             --cache)
                 accache=" --cache-file=$tmp_path/easy_e17.cache"
                 ccache=`whereis ccache`
@@ -676,7 +676,7 @@ function find_svn_path ()
     subdir=$2
     depth=$3
     cachefile=$src_cache_path/cache_`echo "$subdir" | tr '/' '_'`
-    if [ $depth -gt 3 ]; then return; fi
+    if [ $depth -gt 4 ]; then return; fi
     if [ ! -e "$cachefile" ]; then
         # TODO use backoff_loop
         $cmd_svn_list $src_rev "$src_url/$subdir" | egrep "/$" >$cachefile
@@ -765,7 +765,7 @@ function parse_svn_updates ()
         for pkg in $effective_packages; do
             if [ `echo "$dir" | egrep -q "^$pkg/|/$pkg/"; echo $?` == 0 ]; then
                 if [ ! `echo "$updated_packages" | egrep -q "^ $pkg | $pkg \$| $pkg "; echo $?` == 0 ]; then
-                    updated_packages="$updated_packages $pkg "
+                    updated_packages="$updated_packages $pkg"
                     echo "- $pkg"
                 fi
                 break
@@ -1054,6 +1054,12 @@ function build_each ()
         write_appname "$pkg"
         must=0
         for one in $updated_packages; do
+            if [ "$pkg" == "$one" ]; then
+                must=1
+                break
+            fi
+        done
+        for one in $only; do
             if [ "$pkg" == "$one" ]; then
                 must=1
                 break
