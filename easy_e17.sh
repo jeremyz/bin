@@ -135,7 +135,11 @@ function header ()
     echo "  Config files:    $conf_files"
     echo "  Install path:    $install_path"
     echo "  Source path:     $src_path"
-    echo "  Source url:      $src_url (Revision: $src_rev)"
+    if [ $git -eq 1 ]; then
+        echo "  Source url:      $git_url"
+    else
+        echo "  Source url:      $src_url (Revision: $src_rev)"
+    fi
     echo "  Source mode:     $src_mode"
     echo "  Logs path:       $logs_path"
     if [ "$linux_distri" ]; then
