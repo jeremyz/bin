@@ -791,6 +791,11 @@ function git_fetch ()
         echo "- updating sources in '$src_path' ..."
 		cd $src_path
         SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
+        # checkout modified files !!!
+        echo "- checkout modified files"
+        git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout
+        echo "- remove untracked files"
+        git status -s | grep -e '^??' | cut -d " " -f 2 | xargs rm
         git pull
         SHA_HEAD=$(git log --pretty="format:%H" HEAD~1..)
         git show ${SHA_PREV}..${SHA_HEAD} --name-only --pretty="format:" | sort | uniq | grep -v -e '^$' | cut -d " " -f 1 > "$tmp_path/source_update.log"
@@ -799,7 +804,8 @@ function git_fetch ()
         echo "- clone sources in '$src_path' ..."
 		cd $src_path/..
         git clone $git_url $src_path
-        touch "$tmp_path/git-clone" "$tmp_path/source_update.log"
+        cd $src_path && echo -e "*~\n*.o\n.libs\n.deps\n**.cache" > .gitignore && git add .gitignore && git commit -m "add .gitignore"
+        touch "./git-clone" "./source_update.log"
 	fi
 }
 
