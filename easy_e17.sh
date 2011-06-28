@@ -458,7 +458,6 @@ function parse_args ()
     done
 }
 
-
 function build_package_list ()
 {
     effective_packages=""
@@ -784,19 +783,22 @@ function parse_svn_updates ()
     done
 }
 
+
+# GIT #############################################################################
+
 function git_fetch ()
 {
 	if [ -d $src_path/.git ]; then
 		set_title "Updating sources in '$src_path' ..."
         echo "- updating sources in '$src_path' ..."
 		cd $src_path
-        SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
-        # checkout modified files !!!
         echo "- checkout modified files"
-        git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout
+        git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout 2>/dev/null
         echo "- remove untracked files"
-        git status -s | grep -e '^??' | cut -d " " -f 2 | xargs rm
-        git pull
+        git status -s | grep -e '^??' | cut -d " " -f 2 | xargs rm 2>/dev/null
+        SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
+        echo "- pull from `git remote -v | grep origin | grep fetch | cut -f 2 |cut -d " " -f 1`"
+        git pull --no-stat
         SHA_HEAD=$(git log --pretty="format:%H" HEAD~1..)
         git show ${SHA_PREV}..${SHA_HEAD} --name-only --pretty="format:" | sort | uniq | grep -v -e '^$' | cut -d " " -f 1 > "$tmp_path/source_update.log"
 	else
@@ -1192,7 +1194,7 @@ if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
         parse_git_updates
     fi
     if [ -z "$updated_packages" ]; then
-        echo -e "\n                         - - - NO UPDATES AVAILABLE - - -\n"
+        echo "- nothing to do"
     fi
 fi
 pkg_total=`echo "$updated_packages" | wc -w`
