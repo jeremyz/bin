@@ -1185,9 +1185,9 @@ else
 fi
 
 # parse updates
+open_header "Parsing updates"
+echo "- parse updated sources  ..."
 if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
-    open_header "Parsing updates"
-    echo "- parse updated sources  ..."
     if [ $git -eq 0 ]; then
         parse_svn_updates
     else
@@ -1196,6 +1196,8 @@ if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
     if [ -z "$updated_packages" ]; then
         echo "- nothing to do"
     fi
+elif [ "$action" == "install" ]; then
+    updated_packages=$effective_packages
 fi
 pkg_total=`echo "$updated_packages" | wc -w`
 
