@@ -22,8 +22,8 @@ src_cache_path="$tmp_path/src_cache"
 src_path="$HOME/e17_src"
 conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 
+git=0
 git_url="git@asynk.ch:e"
-
 src_url="http://svn.enlightenment.org/svn/e/trunk"
 src_rev="HEAD"
 cmd_svn_test="svn info"
@@ -53,9 +53,8 @@ linux_distri=""        # if your distribution is wrongly detected, define it her
 nice_level=0        # nice level (19 == low, -20 == high)
 os=$(uname)            # operating system
 threads=2            # make -j <threads>
-git=0
+make_only=0
 
-animation="star"
 online_source="http://omicron.homeip.net/projects/easy_e17/easy_e17.sh"    # URL of latest stable release
 
 
@@ -227,6 +226,7 @@ function help ()
         echo "                                        will be automatically used"
         echo "  -h, --high                          = use highest nice level (-20, fastest,"
         echo "                                        slows down the pc)"
+        echo "  -m, --make-only                     = do not run autogen, previous to make"
         echo "      --cache                         = Use a common configure cache and"
         echo "                                        ccache if available"
         echo "      --threads=<int>                 = 'make' can use threads, recommended on"
@@ -380,6 +380,7 @@ function parse_args ()
                 ;;
             --instpath)                     install_path="$value" ;;
             --srcpath)                      src_path="$value" ;;
+            -g|--git)                       git=1 ;;
             --srcurl)                       src_url="$value" ;;
             --srcmode)
                 case $value in
@@ -415,7 +416,7 @@ function parse_args ()
             -l|--low)                       nice_level=19 ;;
             --normal) ;;
             -h|--high)                      nice_level=-20 ;;
-            -g|--git)                       git=1 ;;
+            -m|--make-only)                 make_only=1 ;;
             --cache)
                 accache=" --cache-file=$tmp_path/easy_e17.cache"
                 ccache=`whereis ccache`
@@ -1013,8 +1014,10 @@ function compile ()
         fi
     done
     if [ -e "autogen.sh" ]; then
-        run_command "$name" "$path" "autogen" "autogen: " "$mode"    "./autogen.sh --prefix=$install_path $accache $args"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        if [ $make_only != 1 ]; then
+            run_command "$name" "$path" "autogen" "autogen: " "$mode"    "./autogen.sh --prefix=$install_path $accache $args"
+            if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        fi
         run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
