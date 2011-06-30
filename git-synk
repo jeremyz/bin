@@ -1,0 +1,21 @@
+#! /bin/sh
+
+GIT_BASE=${GIT_BASE:-$HOME/usr/git}
+GIT_ORIGIN=${GIT_ORIGIN:-asynk}
+
+function git_cmd () {
+    path=$1
+    cmd=$2
+    cd $path && echo -e "\033[0;33m$cmd\033[0m within \033[0;31m$path\033[0m" || return 1
+    for dir in $(ls -1); do
+        [ -d $dir ] && [ -e $dir/.git/config ] || continue
+        cd $dir
+        git remote show $GIT_ORIGIN >/dev/null 2>&1 && echo -e "  \033[0;36m$cmd:\033[0;35m $dir\033[0m" && git $cmd $GIT_ORIGIN master
+        cd ..
+    done
+}
+
+for gitdir in $GIT_BASE; do
+    git_cmd "$gitdir" pull
+    git_cmd "$gitdir" push
+done
