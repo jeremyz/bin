@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+[ $# -lt 1 ] && echo "usage $0 pkg_list (generated with pacman -Q)" && exit 1
+
+tmp=/tmp/__pkgs
+[ -e $tmp ] && rm $tmp
+
+echo " * read packages list"
+pkgs=`cat $1 | gawk '{ print $1 }'`
+echo " * search packages to install"
+for pkg in $pkgs; do
+    pacman -Q $pkg >/dev/null 2>&1 || echo $pkg >> $tmp
+done
+if [ -e $tmp ]; then
+    echo " * install packages"
+    pkgs=$(cat $tmp)
+    pacman -S $pkgs || exit 1
+    echo " * done"
+else
+    echo " * nothing todo"
+fi
