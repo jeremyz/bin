@@ -6,9 +6,9 @@ RESET="\033[0m"
 
 READ_SPEED=52
 WRITE_SPEED=40
-MOUNT='/media/cd'
+MOUNT='/media/cdrom'
 # DEVICES=`ls -1l /dev/cdr* | gawk '{ print $8; }'`
-DEVICE='/dev/cdrom'
+DEVICE='/dev/scd0'
 WAV_TMP='WAV_tmp'
 ISO_TMP='ISO_tmp'
 NBR=1
