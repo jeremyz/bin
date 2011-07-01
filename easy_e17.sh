@@ -807,7 +807,7 @@ function git_fetch ()
         echo "- clone sources in '$src_path' ..."
 		cd $src_path/..
         git clone $git_url $src_path
-        cd $src_path && echo -e "*~\n*.o\n.libs\n.deps\n**.cache" > .gitignore && git add .gitignore && git commit -m "add .gitignore"
+        cd $src_path && echo -e "*~\n*.o\n*.lo\n*.m4\n.libs\n.deps\n**.cache" >> .git/info/exclude
         touch "$tmp_path/git-clone" "$tmp_path/source_update.log"
 	fi
 }
