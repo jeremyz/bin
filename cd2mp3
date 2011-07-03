@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Zurcher Jeremy
+
+MYOPTS="-b 64 -q 7 --ty 2003"
+
+cat <<EOF>lame_opts
+BEGIN { out=""; }
+/Tracknumber/ {
+    match( \$0,/=.*/);
+    S=substr(\$0,RSTART+2,RLENGTH-1);
+    if( int(S)<10 ) {
+        S="0"S;
+    }
+    out=out" --tn "S;
+}
+/Performer/ {
+    match( \$0,/'.*/);
+    S=substr(\$0,RSTART+1,RLENGTH-2);
+    gsub(" ","_",S);
+    out=out" --ta "S;
+}
+/Albumtitle/ {
+    match( \$0,/'.*/);
+    S=substr(\$0,RSTART+1,RLENGTH-2);
+    gsub(" ","_",S);
+    out=out" --tl "S;
+}
+/Tracktitle/ {
+    match( \$0,/'.*/);
+    S=substr(\$0,RSTART+1,RLENGTH-2);
+    gsub(" ","_",S);
+    out=out" --tt "S;
+}
+END { print out; }
+EOF
+
+cat <<EOF>build_name
+BEGIN { out=""; }
+/Tracknumber/ {
+    match( \$0,/=.*/);
+    S=substr(\$0,RSTART+2,RLENGTH-1);
+    if( int(S)<10 ) {
+        S="0"S;
+    }
+    out=S"_"out;
+}
+/Tracktitle/ {
+    match( \$0,/'.*/);
+    S=substr(\$0,RSTART+1,RLENGTH-2);
+    gsub(" ","_",S);
+    out=out""S;
+}
+END { print out; }
+EOF
+echo "cmd : sudo cdda2wav -v all -P 0 -n 75 -B -O wav dev=/dev/cdrom -L 1 || exit 1"
+sudo cdda2wav -v all -P 0 -n 75 -B -O wav dev=/dev/cdrom -L 1 || exit 1
+for I in audio*.wav; do
+    INFO=`basename $I .wav`.inf
+    NAME=`cat $INFO | awk -f ./build_name`
+    LAMEOPTS=`cat $INFO | awk -f ./lame_opts`
+    echo "cdm : lame $MYOPTS $LAMEOPTS $I $NAME.mp3"
+    lame $MYOPTS $LAMEOPTS $I $NAME.mp3
+done
+rm -f lame_opts build_name audio*

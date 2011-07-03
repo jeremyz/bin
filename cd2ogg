@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# Zurcher Jeremy
+
+
+OGGOPTS=${OGGOPTS:="-b 192 -q 7"}
+
+sudo cdda2wav -v trackid,titles -P 0 -n 75 -B -O wav dev=/dev/scd0 -L 1 || exit 1
+
+DISCID=$(cat audio.cddb | gawk  '/DISCID/ { split($0,a,"="); print a[2]; }')
+ARTIST=$(cat audio.cddb | gawk  '/DTITLE/ { split($0,a,"="); i=index(a[2],"/"); print substr(a[2],0,i-2); }')
+ALBUM=$(cat audio.cddb | gawk  '/DTITLE/ { split($0,a,"="); i=index(a[2],"/"); print substr(a[2],i+2); }')
+YEAR=$(cat audio.cddb | gawk  '/DYEAR/ { split($1,a,"="); print a[2]; }')
+GENRE=$(cat audio.cddb | gawk  '/DGENRE/ { split($1,a,"="); print a[2]; }')
+
+echo "discid :  >$DISCID<"
+echo "Artist :  >$ARTIST<"
+echo "Album  :  >$ALBUM<"
+echo "Year   :  >$YEAR<"
+echo "Genre  :  >$GENRE<"
+
+IDX=0
+for I in audio*.wav; do
+    TRACK=$(cat audio.cddb | gawk  "/TTITLE$IDX/ { split(\$0,a,\"=\"); print a[2]; exit; }" )
+    IDX=$((IDX+1))
+    TNUM=$(echo $IDX | gawk '{ n=$0; if(int($0)<10) { n="0"n; } print n; }' )
+    OUTPUT=$(echo "${TNUM}_${TRACK}" | gawk "{ s=tolower(\$0); gsub(\" \",\"_\",s); gsub(\"'\",\"_\",s); print s; }" )
+    #echo "$TNUM $TRACK => $OUTPUT.ogg"
+    oggenc $I -o "$OUTPUT.ogg" $OGGOPTS -a "$ARTIST" -l "$ALBUM" -t "$TRACK" -N "$TNUM" -G "$GENRE" -d "$YEAR"
+done
+rm -f ogg_opts audio*
+
+#ARTIST=$(cat audio.cdindex | gawk  "/<Artist>/ { match(\$0,/<Artist>.*<\/Artist>/); print substr(\$0,RSTART+8,RLENGTH-18); }" )
+#ALBUM=$(cat audio.cdindex | gawk  "/<Title>/ { match(\$0,/<Title>.*<\/Title>/); print substr(\$0,RSTART+7,RLENGTH-16); }" )
+#cat << EOF >ogg_opts
+#BEGIN { out=""; }
+#/Tracknumber/ {
+#    match( \$0,/=.*/);
+#    S=substr(\$0,RSTART+2,RLENGTH-1);
+#    if( int(S)<10 ) {
+#        S="0"S;
+#    }
+#    out=out" -N "S;§
+#}
+#/Performer/ {
+#    match( \$0,/'.*/);
+#    S=substr(\$0,RSTART+1,RLENGTH-2);
+#    gsub(" ","_",S);
+#    gsub("'","_",S);
+#    if( S~/\\\`$/ ) S = ENVIRON["BAND"];
+#    if( S~/\\\`$/ ) S = "Unknown";
+#    out=out" -a "S;
+#}
+#/Albumtitle/ {
+#    match( \$0,/'.*/);
+#    S=substr(\$0,RSTART+1,RLENGTH-2);
+#    gsub(" ","_",S);
+#    gsub("'","_",S);
+#    if( S~/\\\`$/ ) S = ENVIRON["ALBUM"];
+#    if( S~/\\\`$/ ) S = "Unknown";
+#    out=out" -l "S;
+#}
+#/Tracktitle/ {
+#    match( \$0,/'.*/);
+#    S=substr(\$0,RSTART+1,RLENGTH-2);
+#    gsub(" ","_",S);
+#    gsub("'","_",S);
+#    if( S~/\\\`$/ ) S = ENVIRON["TRACK"];
+#    if( S~/\\\`$/ ) S = "Unknown";
+#    out=out" -t "S;
+#}
+#END { print out; }
+#EOF
+#    INFO=$(basename $I .wav).inf
+#    TRACK=$(cat $INFO | gawk '/Tracknumber/ { n=$2; if( int(n)<10 ) { n="0"n; } print n; }' )
+#    TITLE=$(cat $INFO | gawk "/Tracktitle/ { match( \$0,/'.*/); t=substr(\$0,RSTART+1,RLENGTH-2); 
+#    gsub(\" \",\"_\",t); gsub(\"'\",\"_\",t);
+#    if( t~/\\\`$/ ) S = ENVIRON["TRACK"];
+#    if( t~/\\\`$/ ) S = "Unknown";
+#    print t; } " )
+#    FILE=$(cat $INFO | gawk "/Tracktitle/ { match(\$0,/'.*'/); t=substr(\$0,RSTART+1,RLENGTH-2); gsub(\" \",\"_\",t); gsub(\"'\",\"_\",t); print t; }" )
+#    oggenc $I -o "$TRACK_$FILE.ogg" $OGGOPTS -a "$ARTIST" -l "$ALBUM" -t "$TITLE" -N "$TRACK" -G "$GENRE" -d "$YEAR"
+#done
