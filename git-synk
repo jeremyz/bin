@@ -3,14 +3,24 @@
 GIT_BASE=${GIT_BASE:-$HOME/usr/git}
 GIT_ORIGIN=${GIT_ORIGIN:-asynk}
 
+RESET="\033[0m"
+RED="\033[0;31m"
+BROWN="\033[0;33m"
+PURPLE="\033[0;35m"
+CYAN="\033[0;36m"
+
 function git_cmd () {
     path=$1
     cmd=$2
-    cd $path && echo -e "\033[0;33m$cmd\033[0m within \033[0;31m$path\033[0m" || return 1
+    cd $path && echo -e "$BROWN$cmd$RESET within $RED$path$RESET" || return 1
     for dir in $(ls -1); do
         [ -d $dir ] && [ -e $dir/.git/config ] || continue
         cd $dir
-        git remote show $GIT_ORIGIN >/dev/null 2>&1 && echo -e "  \033[0;36m$cmd:\033[0;35m $dir\033[0m" && git $cmd $GIT_ORIGIN master
+        git gc 2>/dev/null && git diff --quiet
+        if [ $? -ne 0 ]; then
+            echo -e "   $RED$dir's head is not clear$RESET" && cd .. && continue
+        fi
+        git remote show $GIT_ORIGIN >/dev/null 2>&1 && echo -e "   $CYAN$cmd:$BROWN $dir$RESET" && git $cmd $GIT_ORIGIN master
         cd ..
     done
 }
