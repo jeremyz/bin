@@ -1,0 +1,17 @@
+#! /bin/sh
+
+DEST_DIR=$HOME/bin
+
+rm *~
+for f in *; do
+    [ "$f" == "install" ] && continue
+    ff=$(readlink -f $f)
+    if [ ! -e $DEST_DIR/$f ]; then
+        echo "symlink $DEST_DIR/$f" && ln -s $ff $DEST_DIR/$f
+    else
+        bf=$(readlink -e $DEST_DIR/$f)
+        if [ "$bf" != "$ff" ]; then
+            echo "$bf is not OK"
+        fi
+    fi
+done
