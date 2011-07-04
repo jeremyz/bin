@@ -18,6 +18,7 @@ YELLOW="\033[1;33m"
 for gitdir in ${GIT_BASE}; do
     echo -e "enter ${BROWN}${gitdir}${RESET}" && cd ${gitdir} || return 1
     for dir in $(ls -1); do
+        STASH=0
         [ -d ${dir} ] && [ -e ${dir}/.git/config ] || continue
         # SEARCH REMOTE
         echo -e "  enter ${BROWN}${dir}${RESET}" && cd $dir || exit 1
@@ -28,7 +29,8 @@ for gitdir in ${GIT_BASE}; do
         # GC + CLEAN
         echo -ne "    ${CYAN}clean$RESET ... " && git gc 2>/dev/null && git diff --quiet && echo -e "${GREEN}OK${RESET}"
         if [ $? -ne 0 ]; then
-            echo -e "${RED}head is not clear${RESET}" && cd .. && continue
+            STASH=1
+            echo -e "${RED}head is not clean, ${CYAN}git stash save${RESET}" && git stash save -q
         fi
         # PULL
         echo -ne "    ${CYAN}pull${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
@@ -41,6 +43,9 @@ for gitdir in ${GIT_BASE}; do
         git push -q ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
         if [ $? -ne 0 ]; then
             echo -e "${RED}KO${RESET}" && cd .. && continue
+        fi
+        if [ $STASH -eq 1 ]; then
+            echo -e "    ${RED}was not clean, ${CYAN}git stash pop${RESET}" && git stash pop -q
         fi
         cd ..
     done
