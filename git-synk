@@ -1,7 +1,10 @@
 #! /bin/sh
 
+if [ $# -gt 0 ]; then GIT_REMOTE=$1; shift; fi
+if [ $# -gt 0 ]; then GIT_BRANCH=$1; shift; fi
+
 GIT_BASE=${GIT_BASE:-$HOME/usr/git}
-GIT_REMOTE=${GIT_REMOTE:-asynk}
+GIT_REMOTE=${GIT_REMOTE:-origin}
 GIT_BRANCH=${GIT_BRANCH:-master}
 
 RESET="\033[0m"
