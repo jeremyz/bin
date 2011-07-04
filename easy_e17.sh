@@ -38,7 +38,7 @@ bin_basic="exchange e"
 bin_extra="calculator converter phonebook sticky-notes e_phys edje_viewer editje elsa emote empower enjoy enki envision ephoto Eterm eve expedite exquisite eyelight rage elmdentica"
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 e_modules_bin="emprint exalt"
-e_modules_extra="mpdule exebuf cpu comp-scale mem slideshow wlan elfe everything-pidgin execwatch calendar notification efm_nav snow drawer everything-skel engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain comp-scale efm_path places eweather deskshow winlist-ng weather mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts efm_pathbar everything-websearch winselector quickaccess uptime net"
+e_modules_extra="mpdule exebuf cpu comp-scale mem slideshow wlan elfe everything-pidgin execwatch calendar notification efm_nav snow drawer everything-skel engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain efm_path places eweather deskshow winlist-ng weather mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts efm_pathbar everything-websearch winselector quickaccess uptime net"
 
 packages_basic="$efl_basic $bin_basic"
 packages_half="$efl_basic $bin_basic $e_modules_bin $e_modules_extra"
