@@ -1015,7 +1015,7 @@ function compile ()
     done
     if [ -e "autogen.sh" ]; then
         if [ $make_only != 1 ]; then
-            run_command "$name" "$path" "autogen" "autogen: " "$mode"    "./autogen.sh --prefix=$install_path $accache $args"
+            run_command "$name" "$path" "autogen" "autogen: " "$mode"    "sh ./autogen.sh --prefix=$install_path $accache $args"
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         fi
         run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
@@ -1023,9 +1023,9 @@ function compile ()
         run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
     elif [ -e "bootstrap" ]; then
-        run_command "$name" "$path" "bootstrap" "bootstr: " "$mode"    "./bootstrap"
+        run_command "$name" "$path" "bootstrap" "bootstr: " "$mode"    "sh ./bootstrap"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "$path" "configure" "config:  " "$mode"    "./configure --prefix=$install_path $accache $args"
+        run_command "$name" "$path" "configure" "config:  " "$mode"    "sh ./configure --prefix=$install_path $accache $args"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         run_command "$name" "$path" "make"      "make:    " "$mode"    "$make -j $threads"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
