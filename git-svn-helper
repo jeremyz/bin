@@ -34,72 +34,78 @@ SRC="\033[0;35m"    # SVN CLONE REPO COLOR
 SBC="\033[0;32m"    # SVN CLONE BRANCH COLOR
 DSBC="\033[0;37m"   # DISTANT SVN BRANCH COLOR
 
+BATCH_MODE=0
+
 function ask_ok () {
-    echo -n -e "$1${RESET}[${RED}Y${RESET}n] : "
+    [ $BATCH_MODE == 1 ] && return 0
+    echo -e -n "$1${RESET}[${RED}Y${RESET}n] : "
     read  OK
     if [ "$OK" = "" -o "$OK" = "y" -o "$OK" = "Y" ]; then
         return 0
     fi
-    echo -e "${RED}abort${RESET}" && return 1
+    say "${RED}abort${RESET}" && return 1
 }
 
 function create_svn_clone () {
-    echo -e "** clone from ${URL_COLOR}${SVN_URL}${RESET}" && cd $GIT_BASE && git svn clone ${SVN_URL} -T trunk -b branches -t tags ${PRJ}_svn || error
+    say "** clone from ${URL_COLOR}${SVN_URL}${RESET}" && cd $GIT_BASE && git svn clone ${SVN_URL} -T trunk -b branches -t tags ${SVN_CLONE_DIR} || error
     cd ${SVN_CLONE_DIR}
     for branch in $BRANCHES_TO_TRACK; do
-        echo -e "** checkout ${DSBC}${branch}${RESET} in ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}_svn${RESET}" && git checkout $branch -b ${branch}_svn  || error
+        say "** checkout ${DSBC}${branch}${RESET} in ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}${SVN_SUFFIX}${RESET}" && \
+            git checkout $branch -b ${branch}${SVN_SUFFIX}  || error
     done
-    echo -e "** add ${LRC}${LOCAL_DIR}${RESET} as repo ${LRC}${LOCAL_REPO}${RESET}" && git remote add ${LOCAL_REPO} ${LOCAL_DIR} || error
+    say "** remove master branch" && git branch -D master || error
+    say "** add ${LRC}${LOCAL_DIR}${RESET} as repo ${LRC}${LOCAL_REPO}${RESET}" && git remote add ${LOCAL_REPO} ${LOCAL_DIR} || error
 }
 
 function create_local_repo () {
-    echo -e "** git init ${LRC}${LOCAL_DIR}${RESET}" && git init ${LOCAL_DIR}|| error
-    echo -e "** cd ${LRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
-    echo -e "** add ${SRC}${SVN_CLONE_DIR}${RESET} as repo ${SRC}${SVN_CLONE_REPO}${RESET}" && git remote add ${SVN_CLONE_REPO} ${SVN_CLONE_DIR} || error
-    echo -e "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
+    say "** git init ${LRC}${LOCAL_DIR}${RESET}" && git init ${LOCAL_DIR}|| error
+    say "** cd ${LRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
+    say "** add ${SRC}${SVN_CLONE_DIR}${RESET} as repo ${SRC}${SVN_CLONE_REPO}${RESET}" && git remote add ${SVN_CLONE_REPO} ${SVN_CLONE_DIR} || error
+    say "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
     for branch in $BRANCHES_TO_TRACK; do
-        echo -e "** checkout ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}_svn${RESET} to ${SBC}${branch}${RESET}" && git checkout ${SVN_CLONE_REPO}/${branch}_svn -b ${branch}  || error
+        say "** checkout ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}${SVN_SUFFIX}${RESET} to ${SBC}${branch}${RESET}" && \
+            git checkout ${SVN_CLONE_REPO}/${branch}${SVN_SUFFIX} -b ${branch}  || error
     done
 }
 
 function fetch_svn () {
-    echo -e "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
-    echo -e "** fetch from ${URL_COLOR}${SVN_URL}${RESET}" && git svn fetch || error
-    BRANCHES=$(git branch | sed -e s/*//)
+    say "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
+    say "** fetch from ${URL_COLOR}${SVN_URL}${RESET}" && git svn fetch || error
+    BRANCHES=$(git for-each-ref --format="%(refname:short)" refs/heads/)
     for branch in $BRANCHES; do
-        echo -e "** rebase ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}${RESET}" && git checkout $branch && git svn rebase || error
+        say "** rebase ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}${RESET}" && git checkout $branch && git svn rebase || error
     done
-    echo -e "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
-    echo -e "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
-}
-
-function pull_from_clone () {
-    #echo -e "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
-    #echo -e "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
-    #echo -e "** merge ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}" && git merge ${SVN_CLONE_REPO}/${SVN_CLONE_B} || error
-    echo -e "To do so :"
-    echo -e "  ${LRC}- save your current work      ${SRC}$ git stash save NAME${RESET}"
-    echo -e "  ${LRC}- leave your current branch   ${SRC}$ git checkout ANOTHER_BRANCH${RESET}"
-    echo -e "  ${LRC}- delete your branch          ${SRC}$ git branch -D ${LOCAL_B}${RESET}"
-    echo -e "  ${LRC}- checkout your branch        ${SRC}$ git checkout ${SVN_CLONE_REPO}/${LOCAL_B}_svn -b ${LOCAL_B}${RESET}"
-    echo -e "  ${LRC}- apply your current work     ${SRC}$ git stash pop/apply${RESET}"
+    say "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
+    say "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
 }
 
 function push_to_clone () {
-    echo -e "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
-    echo -e "** checkout ${SBC}${SVN_CLONE_B}${RESET}" && git checkout ${SVN_CLONE_B} || error
-    echo -e "** fetch ${LRC}${LOCAL_REPO}${RESET}" && git fetch ${LOCAL_REPO} || error
-    echo -e "** rebase ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}" && git rebase ${LOCAL_REPO}/${LOCAL_B} || error
-    #git log --format="%H %an %s" $SVN_HEAD..$LOCAL_HEAD
-    echo -e "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
-    echo -e "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
+    say "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
+    say "** fetch ${LRC}${LOCAL_REPO}${RESET}" && git fetch ${LOCAL_REPO} || error
+    say "** checkout ${SBC}${SVN_CLONE_B}${RESET}" && git checkout ${SVN_CLONE_B} || error
+    say "** rebase ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}" && \
+        git rebase ${LOCAL_REPO}/${LOCAL_B} || error
+    say "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
+    say "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
 }
 
 function dcommit () {
-    echo -e "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
-    echo -e "** checkout ${SBC}${SVN_CLONE_B}${RESET}" && git checkout ${SVN_CLONE_B} || error
-    echo -e "** rebase ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}" && git svn rebase || error
-    echo -e "** dcommit ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}" && git svn dcommit
+    say "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
+    say "** checkout ${SBC}${SVN_CLONE_B}${RESET}" && git checkout ${SVN_CLONE_B} || error
+    say "** rebase ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}" && git svn rebase || error
+    say "** dcommit ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}" && git svn dcommit
+}
+
+function pull_from_clone () {
+    #say "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
+    #say "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
+    #say "** merge ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}" && git merge ${SVN_CLONE_REPO}/${SVN_CLONE_B} || error
+    say "To do so :"
+    say "  ${LRC}- save your current work      ${SRC}$ git stash save NAME${RESET}"
+    say "  ${LRC}- leave your current branch   ${SRC}$ git checkout ANOTHER_BRANCH${RESET}"
+    say "  ${LRC}- delete your branch          ${SRC}$ git branch -D ${LOCAL_B}${RESET}"
+    say "  ${LRC}- checkout your branch        ${SRC}$ git checkout ${SVN_CLONE_REPO}/${LOCAL_B}${SVN_SUFFIX} -b ${LOCAL_B}${RESET}"
+    say "  ${LRC}- apply your current work     ${SRC}$ git stash pop/apply${RESET}"
 }
 
 if [ ! -d ${SVN_CLONE_DIR} ]; then
