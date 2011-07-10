@@ -82,8 +82,8 @@ function fetch_svn () {
 function push_to_clone () {
     say "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
     say "** fetch ${LRC}${LOCAL_REPO}${RESET}" && git fetch ${LOCAL_REPO} || error
-    say "** checkout ${SBC}${SVN_CLONE_B}${RESET}" && git checkout ${SVN_CLONE_B} || error
-    say "** rebase ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}" && \
+    say "** checkout ${SBC}${SVN_B}${RESET}" && git checkout ${SVN_B} || error
+    say "** rebase ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET}" && \
         git rebase ${LOCAL_REPO}/${LOCAL_B} || error
     say "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
     say "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
@@ -91,15 +91,15 @@ function push_to_clone () {
 
 function dcommit () {
     say "** cd ${SRC}${SVN_CLONE_DIR}${RESET}" && cd ${SVN_CLONE_DIR} || error
-    say "** checkout ${SBC}${SVN_CLONE_B}${RESET}" && git checkout ${SVN_CLONE_B} || error
-    say "** rebase ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}" && git svn rebase || error
-    say "** dcommit ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}" && git svn dcommit
+    say "** checkout ${SBC}${SVN_B}${RESET}" && git checkout ${SVN_B} || error
+    say "** rebase ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET}" && git svn rebase || error
+    say "** dcommit ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}" && git svn dcommit
 }
 
 function pull_from_clone () {
     #say "** cd ${SRC}${LOCAL_DIR}${RESET}" && cd ${LOCAL_DIR} || error
     #say "** fetch ${SRC}${SVN_CLONE_REPO}${RESET}" && git fetch ${SVN_CLONE_REPO} || error
-    #say "** merge ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}" && git merge ${SVN_CLONE_REPO}/${SVN_CLONE_B} || error
+    #say "** merge ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}" && git merge ${SVN_CLONE_REPO}/${SVN_B} || error
     say "To do so :"
     say "  ${LRC}- save your current work      ${SRC}$ git stash save NAME${RESET}"
     say "  ${LRC}- leave your current branch   ${SRC}$ git checkout ANOTHER_BRANCH${RESET}"
@@ -120,18 +120,18 @@ LOCAL_B=$(git branch |grep '*' | gawk '{print $2;}') || error "unable to list lo
 LOCAL_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local head"
 say "** ${LRC}${LOCAL_REPO}${RESET} current branch is ${LBC}${LOCAL_B}${RESET} head ${RED}${LOCAL_HEAD}${RESET}"
 cd ${SVN_CLONE_DIR} || error "${SVN_CLONE_DIR} does not exists"
-SVN_CLONE_B=${LOCAL_B}_svn
-git checkout ${SVN_CLONE_B}
+SVN_B=${LOCAL_B}_svn
+git checkout ${SVN_B}
 SVN_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local head"
-say "** ${LRC}${SVN_CLONE_REPO}${RESET} corresponding branch is ${LBC}${SVN_CLONE_B}${RESET} head ${RED}${SVN_HEAD}${RESET}"
+say "** ${LRC}${SVN_CLONE_REPO}${RESET} corresponding branch is ${LBC}${SVN_B}${RESET} head ${RED}${SVN_HEAD}${RESET}"
 cd ${LOCAL_DIR}
 
 while [ 1 ]; do
     say "\nOptions :"
     say " # 1) ${RED}fetch svn${RESET} and update branches within ${SRC}${SVN_CLONE_DIR}${RESET}"
-    say " # 2) ${RED}push${RESET} ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}"
-    say " # 3) ${RED}push${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}"
-    say " # 4) ${RED}pull${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}"
+    say " # 2) ${RED}push${RESET} ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET}"
+    say " # 3) ${RED}push${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}"
+    say " # 4) ${RED}pull${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}"
     say " # q) ${RED}QUIT${RESET}"
     echo -n -e "\nyour choice : "
     read CHOICE
