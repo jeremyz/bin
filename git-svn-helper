@@ -6,7 +6,11 @@ RED="\033[0;31m"
 RESET="\033[0m"
 
 function error () {
-    echo -e "   => ${RED}FAILURE${RESET}"  && exit 1
+    echo -e " $1 => ${RED}FAILURE${RESET}"  && exit 1
+}
+
+function say () {
+    [ $BATCH_MODE == 0 ] && echo -e "$1"
 }
 
 [ -e $GIT_SVN_CONFIG ] || error "$GIT_SVN_CONFIG does not exists!"
@@ -19,8 +23,9 @@ source ./$GIT_SVN_CONFIG
 
 LOCAL_REPO=${LOCAL_REPO:-"local"}
 LOCAL_DIR=${LOCAL_DIR:-"${GIT_BASE}/${PRJ}"}
+SVN_SUFFIX=_svn
 SVN_CLONE_REPO=${SVN_CLONE_REPO:-"svn_clone"}
-SVN_CLONE_DIR=${SVN_CLONE_DIR:-"${GIT_BASE}/${PRJ}_svn"}
+SVN_CLONE_DIR=${SVN_CLONE_DIR:-"${GIT_BASE}/${PRJ}${SVN_SUFFIX}"}
 
 URL_COLOR="\033[0;34m"
 LRC="\033[0;33m"    # LOCAL REPO COLOR
@@ -104,23 +109,24 @@ if [ ! -d ${LOCAL_DIR} ]; then
     ask_ok "create local repository within ${LRC}${LOCAL_DIR}${RESET} " && create_local_repo
 fi
 
-cd ${LOCAL_DIR}
-LOCAL_B=$(git branch |grep '*' | gawk '{print $2;}') || error
-LOCAL_HEAD=$(git show --format="%H" HEAD | head -n 1 | gawk '{print $1 }') || error
-echo -e "** ${LRC}${LOCAL_REPO}${RESET} current branch is ${LBC}${LOCAL_B}${RESET} head ${RED}${LOCAL_HEAD}${RESET}"
-cd ${SVN_CLONE_DIR}
+cd ${LOCAL_DIR} || error "${LOCAL_DIR} does not exists"
+LOCAL_B=$(git branch |grep '*' | gawk '{print $2;}') || error "unable to list local branches"
+LOCAL_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local head"
+say "** ${LRC}${LOCAL_REPO}${RESET} current branch is ${LBC}${LOCAL_B}${RESET} head ${RED}${LOCAL_HEAD}${RESET}"
+cd ${SVN_CLONE_DIR} || error "${SVN_CLONE_DIR} does not exists"
 SVN_CLONE_B=${LOCAL_B}_svn
-SVN_HEAD=$(git show --format="%H" HEAD | head -n 1 | gawk '{print $1 }') || error
-echo -e "** ${LRC}${SVN_CLONE_REPO}${RESET} corresponding branch is ${LBC}${SVN_CLONE_B}${RESET} head ${RED}${SVN_HEAD}${RESET}"
+git checkout ${SVN_CLONE_B}
+SVN_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local head"
+say "** ${LRC}${SVN_CLONE_REPO}${RESET} corresponding branch is ${LBC}${SVN_CLONE_B}${RESET} head ${RED}${SVN_HEAD}${RESET}"
 cd ${LOCAL_DIR}
 
 while [ 1 ]; do
-    echo -e "\nOptions :"
-    echo -e " # 1) ${RED}fetch svn${RESET} and update branches within ${SRC}${SVN_CLONE_DIR}${RESET}"
-    echo -e " # 2) ${RED}push${RESET} ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}"
-    echo -e " # 3) ${RED}push${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}"
-    echo -e " # 4) ${RED}pull${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}"
-    echo -e " # q) ${RED}QUIT${RESET}"
+    say "\nOptions :"
+    say " # 1) ${RED}fetch svn${RESET} and update branches within ${SRC}${SVN_CLONE_DIR}${RESET}"
+    say " # 2) ${RED}push${RESET} ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET}"
+    say " # 3) ${RED}push${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} to ${URL_COLOR}${SVN_URL}${RESET}"
+    say " # 4) ${RED}pull${RESET} ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_CLONE_B}${RESET} within ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET}"
+    say " # q) ${RED}QUIT${RESET}"
     echo -n -e "\nyour choice : "
     read CHOICE
     echo ""
