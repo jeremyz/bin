@@ -1,6 +1,19 @@
 #! /bin/bash
 
-GIT_SVN_CONFIG=${1:-".git_svn_config"}
+ACTIONS=''
+for arg in $@; do
+    case "$arg" in
+        pull|push|commit)
+            ACTIONS="$ACTIONS $arg"
+            ;;
+        *)
+            GIT_SVN_CONFIG=$arg
+            ;;
+    esac
+done
+BATCH_MODE=0
+[ ! -z "$ACTIONS" ] && BATCH_MODE=1
+GIT_SVN_CONFIG=${GIT_SVN_CONFIG:-".git_svn_config"}
 
 RED="\033[0;31m"
 RESET="\033[0m"
@@ -11,6 +24,7 @@ function error () {
 
 function say () {
     [ $BATCH_MODE == 0 ] && echo -e "$1"
+    return 0
 }
 
 [ -e $GIT_SVN_CONFIG ] || error "$GIT_SVN_CONFIG does not exists!"
@@ -33,8 +47,6 @@ LBC="\033[0;36m"    # LOCAL BRANCH COLOR
 SRC="\033[0;35m"    # SVN CLONE REPO COLOR
 SBC="\033[0;32m"    # SVN CLONE BRANCH COLOR
 DSBC="\033[0;37m"   # DISTANT SVN BRANCH COLOR
-
-BATCH_MODE=0
 
 function ask_ok () {
     [ $BATCH_MODE == 1 ] && return 0
@@ -126,7 +138,7 @@ SVN_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local
 say "** ${LRC}${SVN_CLONE_REPO}${RESET} corresponding branch is ${LBC}${SVN_B}${RESET} head ${RED}${SVN_HEAD}${RESET}"
 cd ${LOCAL_DIR}
 
-while [ 1 ]; do
+while [ -z "$ACTIONS" ]; do
     say "\nOptions :"
     say " # 1) ${RED}fetch svn${RESET} and update branches within ${SRC}${SVN_CLONE_DIR}${RESET}"
     say " # 2) ${RED}push${RESET} ${LRC}${LOCAL_REPO}${RESET}/${LBC}${LOCAL_B}${RESET} within ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${SVN_B}${RESET}"
@@ -154,3 +166,15 @@ while [ 1 ]; do
             ;;
     esac
 done
+
+if [ ! -z "$ACTIONS" ]; then
+    for action in $ACTIONS; do
+        if [ "$action" == "pull" ];  then
+            fetch_svn
+        elif [ "$action" == "push" ];  then
+            push_to_clone
+        elif [ "$action" == "commit" ];  then
+            dcommit
+        fi
+    done
+fi
