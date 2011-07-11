@@ -7,5 +7,5 @@ else
     host=$1
     user="Administrator"
 fi
-echo rdesktop -0 -g 1280x1024  -u  $user $host
+/usr/bin/rdesktop -0 -g 1280x1024  -u  $user $host
 
