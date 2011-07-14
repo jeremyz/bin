@@ -1,10 +1,21 @@
 #! /bin/sh
 
-if [ $# -gt 0 ]; then GIT_REMOTE=$1; shift; fi
-if [ $# -gt 0 ]; then GIT_BRANCH=$1; shift; fi
-if [ $# -gt 0 ]; then USE_STASH=1; shift; fi
+for arg in $@; do
+    option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
+    value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
+    if [ "$value" == "$option" ]; then value=""; fi
+    case "$option" in
+        pull) action="pull";;
+        push) action="push";;
+        -d|--git-dir) GIT_DIR=$value;;
+        -r|--git-remote) GIT_REMOTE=$value;;
+        -b|--git-branch) GIT_BRANCH=$value;;
+        -s|--use-stash) USE_STASH=1;;
+        *) GIT_REMOTE=$arg;;
+    esac
+done
 
-GIT_BASE=${GIT_BASE:-$HOME/usr/git}
+GIT_DIR=${GIT_DIR:-$HOME/usr/git}
 GIT_REMOTE=${GIT_REMOTE:-origin}
 GIT_BRANCH=${GIT_BRANCH:-master}
 USE_STASH=${USE_STASH:-0}
@@ -17,8 +28,9 @@ PURPLE="\033[0;35m"
 CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
 
-echo -e "remote: ${RED}$GIT_REMOTE${RESET}:${CYAN}$GIT_BRANCH${RESET}"
-for gitdir in ${GIT_BASE}; do
+echo -e "GIT_DIR:${BROWN}${GIT_DIR}${RESET} remote:${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} USE_STASH=${RED}${USE_STASH}${RESET}"
+exit 1
+for gitdir in ${GIT_DIR}; do
     echo -e "enter ${BROWN}${gitdir}${RESET}" && cd ${gitdir} || return 1
     for dir in $(ls -1); do
         STASH=0
@@ -28,6 +40,11 @@ for gitdir in ${GIT_BASE}; do
         git remote show ${GIT_REMOTE} >/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo -e "    ${RED}${GIT_REMOTE} remote not found ${RESET}" && cd .. && continue
+        fi
+        # CHECKOUT
+        echo -ne "    ${CYAN}checkout $YELLOW$GIT_BRANCH$RESET ... " && git checkout -q ${GIT_BRANCH} 2>/dev/null && echo -e "${GREEN}OK${RESET}"
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}KO${RESET}" && cd .. && continue
         fi
         # GC + CLEAN
         echo -ne "    ${CYAN}clean$RESET ... " && git gc 2>/dev/null && git diff --quiet && echo -e "${GREEN}OK${RESET}"
@@ -40,16 +57,20 @@ for gitdir in ${GIT_BASE}; do
             fi
         fi
         # PULL
-        echo -ne "    ${CYAN}pull${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
-        git pull -q ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}KO${RESET}" && cd .. && continue
+        if [ "$action" != "push" ] ; then
+            echo -ne "    ${CYAN}pull${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
+            git pull -q ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}KO${RESET}" && cd .. && continue
+            fi
         fi
         # PUSH
-        echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
-        git push -q ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}KO${RESET}" && cd .. && continue
+        if [ "$action" != "pull" ] ; then
+            echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
+            git push -q ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}KO${RESET}" && cd .. && continue
+            fi
         fi
         if [ $STASH -eq 1 ]; then
             echo -e "    ${RED}was not clean, ${CYAN}git stash pop${RESET}" && git stash pop -q
