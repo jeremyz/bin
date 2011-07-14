@@ -28,8 +28,7 @@ PURPLE="\033[0;35m"
 CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
 
-echo -e "GIT_DIR:${BROWN}${GIT_DIR}${RESET} remote:${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} USE_STASH=${RED}${USE_STASH}${RESET}"
-exit 1
+echo -e "remote:${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} USE_STASH=${RED}${USE_STASH}${RESET}"
 for gitdir in ${GIT_DIR}; do
     echo -e "enter ${BROWN}${gitdir}${RESET}" && cd ${gitdir} || return 1
     for dir in $(ls -1); do
