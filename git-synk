@@ -48,7 +48,9 @@ for gitdir in ${GIT_DIR}; do
         # GC + CLEAN
         echo -ne "    ${CYAN}clean$RESET ... " && git gc 2>/dev/null && git diff --quiet && echo -e "${GREEN}OK${RESET}"
         if [ $? -ne 0 ]; then
-            if [ $USE_STASH -eq 1 ]; then
+            if [ "$action" = "push" ]; then
+                echo -e "dirty but ${GREEN}OK${RESET}"
+            elif [ $USE_STASH -eq 1 ]; then
                 STASH=1
                 echo -e "${RED}head is not clean, ${CYAN}git stash save${RESET}" && git stash save -q
             else
