@@ -1,0 +1,6 @@
+#! /bin/sh
+echo "* prune" && git prune && \
+    echo "* prune-packed" && git prune-packed && \
+    echo "* gc" && git gc --aggressive && \
+    echo "* repack" && git repack -a && \
+    echo "* done"
