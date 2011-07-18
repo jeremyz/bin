@@ -41,7 +41,7 @@ for gitdir in ${GIT_DIR}; do
             echo -e "    ${RED}${GIT_REMOTE} remote not found ${RESET}" && cd .. && continue
         fi
         # CHECKOUT
-        echo -ne "    ${CYAN}checkout $YELLOW$GIT_BRANCH$RESET ... " && git checkout -q ${GIT_BRANCH} 2>/dev/null && echo -e "${GREEN}OK${RESET}"
+        echo -ne "    ${CYAN}checkout $YELLOW$GIT_BRANCH$RESET ... " && git branch | grep -q -e " ${GIT_BRANCH}\$" && git checkout -q ${GIT_BRANCH} 2>/dev/null && echo -e "${GREEN}OK${RESET}"
         if [ $? -ne 0 ]; then
             echo -e "${RED}KO${RESET}" && cd .. && continue
         fi
