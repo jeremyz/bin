@@ -46,7 +46,7 @@ for gitdir in ${GIT_DIR}; do
             echo -e "${RED}KO${RESET}" && cd .. && continue
         fi
         # GC + CLEAN
-        echo -ne "    ${CYAN}clean$RESET ... " && git prune && git gc --quiet && git repack && git diff --quiet && echo -e "${GREEN}OK${RESET}"
+        echo -ne "    ${CYAN}clean$RESET ... " && git prune && git gc --quiet && git repack >/dev/null && git diff --quiet && echo -e "${GREEN}OK${RESET}"
         if [ $? -ne 0 ]; then
             if [ "$action" = "push" ]; then
                 echo -e "dirty but ${GREEN}OK${RESET}"
