@@ -13,7 +13,7 @@ for arg in $@; do
 done
 BATCH_MODE=0
 [ ! -z "$ACTIONS" ] && BATCH_MODE=1
-GIT_SVN_CONFIG=${GIT_SVN_CONFIG:-".git_svn_config"}
+GIT_SVN_CONFIG=${GIT_SVN_CONFIG:-".git-svn-config"}
 
 RED="\033[0;31m"
 RESET="\033[0m"
@@ -30,16 +30,15 @@ function say () {
 [ -e $GIT_SVN_CONFIG ] || error "$GIT_SVN_CONFIG does not exists!"
 source ./$GIT_SVN_CONFIG
 
-[ ! -z "$GIT_BASE" ] || error "GIT_BASE variable is not defined"
 [ ! -z "$PRJ" ] || error "PRJ variable is not defined"
 [ ! -z "$SVN_URL" ] || error "SVN_URL variable is not defined"
 [ ! -z "$BRANCHES_TO_TRACK" ] || error "BRANCHES_TO_TRACK variable is not defined"
 
 LOCAL_REPO=${LOCAL_REPO:-"local"}
-LOCAL_DIR=${LOCAL_DIR:-"${GIT_BASE}/${PRJ}"}
+LOCAL_DIR=${LOCAL_DIR:-"$(pwd)/${PRJ}"}
 SVN_SUFFIX=_svn
 SVN_CLONE_REPO=${SVN_CLONE_REPO:-"svn_clone"}
-SVN_CLONE_DIR=${SVN_CLONE_DIR:-"${GIT_BASE}/${PRJ}${SVN_SUFFIX}"}
+SVN_CLONE_DIR=${SVN_CLONE_DIR:-"$(pwd)/${PRJ}${SVN_SUFFIX}"}
 
 URL_COLOR="\033[0;34m"
 LRC="\033[0;33m"    # LOCAL REPO COLOR
@@ -59,7 +58,7 @@ function ask_ok () {
 }
 
 function create_svn_clone () {
-    say "** clone from ${URL_COLOR}${SVN_URL}${RESET}" && cd $GIT_BASE && git svn clone ${SVN_URL} -T trunk -b branches -t tags ${SVN_CLONE_DIR} || error
+    say "** clone from ${URL_COLOR}${SVN_URL}${RESET}" && cd ${SVN_CLONE_DIR%/*} && git svn clone ${SVN_URL} -T trunk -b branches -t tags ${SVN_CLONE_DIR} || error
     cd ${SVN_CLONE_DIR}
     for branch in $BRANCHES_TO_TRACK; do
         say "** checkout ${DSBC}${branch}${RESET} in ${SRC}${SVN_CLONE_REPO}${RESET}/${SBC}${branch}${SVN_SUFFIX}${RESET}" && \
@@ -127,11 +126,11 @@ if [ ! -d ${LOCAL_DIR} ]; then
     ask_ok "create local repository within ${LRC}${LOCAL_DIR}${RESET} " && create_local_repo
 fi
 
-cd ${LOCAL_DIR} || error "${LOCAL_DIR} does not exists"
+cd ${LOCAL_DIR} 2>/dev/null || error "${LOCAL_DIR} does not exists"
 LOCAL_B=$(git branch |grep '*' | gawk '{print $2;}') || error "unable to list local branches"
 LOCAL_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local head"
 say "** ${LRC}${LOCAL_REPO}${RESET} current branch is ${LBC}${LOCAL_B}${RESET} head ${RED}${LOCAL_HEAD}${RESET}"
-cd ${SVN_CLONE_DIR} || error "${SVN_CLONE_DIR} does not exists"
+cd ${SVN_CLONE_DIR} 2>/dev/null || error "${SVN_CLONE_DIR} does not exists"
 SVN_B=${LOCAL_B}_svn
 git checkout ${SVN_B}
 SVN_HEAD=$(git log --pretty="format:%H" HEAD~1..) || error "unable to read local head"
