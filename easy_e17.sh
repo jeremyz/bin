@@ -33,12 +33,12 @@ cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
 cmd_svn_update_conflicts_ask="svn update -r"
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
-efl_extra="imlib2 emotion ethumb libeweather elementary enlil ensure libast python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary azy"
+efl_extra="imlib2 azy emotion ethumb libeweather elementary elfe enlil ensure libast python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary"
 bin_basic="exchange e"
 bin_extra="calculator converter e_phys editje edje_viewer elmdentica elsa emage emote empower enjoy enki envision ephoto espionnage Eterm eve excessive expedite exquisite eyelight phonebook rage sticky-notes"
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 e_modules_bin="emprint exalt"
-e_modules_extra="mpdule exebuf cpu comp-scale mem slideshow wlan elfe everything-pidgin execwatch calendar notification efm_nav snow drawer everything-skel engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain efm_path places eweather deskshow winlist-ng weather mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts efm_pathbar everything-websearch winselector quickaccess uptime net"
+e_modules_extra="mpdule exebuf cpu comp-scale mem slideshow wlan everything-pidgin execwatch calendar notification efm_nav snow drawer everything-skel engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain efm_path places eweather deskshow winlist-ng weather mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts efm_pathbar everything-websearch winselector quickaccess uptime net"
 
 packages_basic="$efl_basic $bin_basic"
 packages_half="$efl_basic $bin_basic $e_modules_bin $e_modules_extra"
@@ -793,8 +793,10 @@ function git_fetch ()
 		set_title "Updating sources in '$src_path' ..."
         echo "- updating sources in '$src_path' ..."
 		cd $src_path
-        echo "- checkout modified files"
-        git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout 2>/dev/null
+        if [ make_only == 0 ]; then
+            echo "- checkout modified files"
+            git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout 2>/dev/null
+        fi
         echo "- remove untracked files"
         git status -s | grep -e '^??' | cut -d " " -f 2 | xargs rm 2>/dev/null
         SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
