@@ -46,7 +46,7 @@ packages_full="$efl_basic $bin_basic $e_modules_bin $e_modules_extra $efl_extra 
 packages=$packages_basic    # default
 src_mode="packages"
 
-ignore_dirs_re="/(devs|packaging|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)"
+ignore_dirs_re="/(devs|packaging|plugins|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)"
 ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
 autogen_args=""        # evas:--enable-gl-x11
 linux_distri=""        # if your distribution is wrongly detected, define it here
