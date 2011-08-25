@@ -1052,7 +1052,7 @@ function compile ()
         run_command "$name" "$path" "install" "install: " "rootonly" "$make $make_extra install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
     else
-        echo "no build system"
+        echo "no build system [$path]"
         set_notification "critical" "Package '$name': no build system"
         touch $status_path/$name.nobuild
         return
