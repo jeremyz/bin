@@ -974,8 +974,10 @@ function compile ()
         return
     fi
     cd "$path"
+    echo "PWD"
     rm -f $status_path/$name.noerrors
     rm -f "$logs_path/$name.log"
+    run_command "$name" "$path" "path" "path  : " "$mode" "pwd"
     if [ $clean -ge 1 ]; then
         if [ -e "Makefile" ]; then
             if [ $clean -eq 1 ]; then
