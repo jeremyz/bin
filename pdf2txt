@@ -10,6 +10,7 @@ OUTF=$(basename $1 .pdf)
 FMT=${TIFF_FMT:-"tiffgray"} #tiff24nc
 
 gs -r300x300 -sDEVICE=${FMT} -sOutputFile=$TIFF -dBATCH -dNOPAUSE $1
+#convert -monochrome -density 200 $1 $TIFF
 tesseract $TIFF $OUTF
 rm $TIFF
 echo "output : ${OUTF}"
