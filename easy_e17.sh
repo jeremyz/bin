@@ -33,12 +33,17 @@ cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
 cmd_svn_update_conflicts_ask="svn update -r"
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
-efl_extra="imlib2 azy emotion ethumb libeweather emap elementary elfe enlil ensure libast python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary"
+efl_extra="imlib2 azy emotion ethumb libeweather emap elementary elfe enlil ensure libast \
+    python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary"
 bin_basic="exchange e"
-bin_extra="calculator clouseau converter e_phys editje edje_viewer elmdentica elsa emote empower enjoy enki envision ephoto espionnage Eterm eve excessive expedite exquisite eyelight phonebook rage sticky-notes"
+bin_extra="calculator clouseau converter e_phys editje edje_viewer elmdentica elsa emote empower enjoy enki envision \
+    ephoto espionnage Eterm eve excessive expedite exquisite eyelight phonebook rage sticky-notes"
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 e_modules_bin="emprint exalt"
-e_modules_extra="mpdule exebuf cpu comp-scale mem slideshow wlan everything-pidgin execwatch calendar notification snow drawer everything-skeleton engage everything-mpris diskio exalt-client everything-wallpaper everything-aspell screenshot rain places eweather deskshow winlist-ng weather mail everything-tracker eooorg empris xkbswitch penguins moon iiirk alarm photo skel language news taskbar everything-places tclock tiling flame itask forecasts everything-websearch winselector quickaccess uptime net"
+e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eenvader.fractal elfe empris engage eooorg \
+everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
+eweather exalt-client exebuf execwatch flame forecasts iiirk itask itask-ng language mail mem moon mpdule net news notification penguins photo places quickaccess \
+rain screenshot skel slideshow snow taskbar tclock tiling uptime weather winlist-ng winselector wlan xkbswitch"
 
 packages_basic="$efl_basic $bin_basic"
 packages_half="$efl_basic $bin_basic $e_modules_bin $e_modules_extra"
