@@ -189,7 +189,6 @@ function help ()
         echo "                                        - full:  simply everything"
         echo
         echo "      --srcupdate                     = update only the sources"
-        echo "  -v, --check-script-version          = check for a newer release of easy_e17"
         echo "      --git                           = use git instead fo svn"
         echo "      --help                          = this help"
         echo
@@ -354,9 +353,7 @@ function parse_args ()
                [ "$option" == "-u" ] ||
                [ "$option" == "--update" ] ||
                [ "$option" == "--only" ] ||
-               [ "$option" == "--srcupdate" ] ||
-               [ "$option" == "-v" ] ||
-               [ "$option" == "--check-script-version" ]; then
+               [ "$option" == "--srcupdate" ]; then
                 wrong "Only one action allowed! (currently using '--$action' and '$option')"
             fi
         fi
@@ -378,7 +375,6 @@ function parse_args ()
                 action="only"
                 only="`echo "$value" | tr -s '\,' '\ '` $only"
                 ;;
-            -v|--check-script-version)      action="script" ;;
             --srcupdate)
                 action="srcupdate"
                 skip="$packages"
@@ -485,31 +481,6 @@ function build_package_list ()
 }
 
 # SETUP #############################################################################
-
-function check_script_version ()
-{
-    echo -e "\033[1m------------------------------\033[7m Check script version \033[0m\033[1m----------------------------\033[0m"
-    echo "- local version .............. $version"
-    echo -n "- downloading script ......... "
-    remote_version=`wget $online_source -q -U "easy_e17.sh/$version" -O - | grep -m 2 -o [0-9]\.[0-9]\.[0-9] | sort -n | head -n 1`
-    if [ "$remote_version" ]; then
-        echo "ok"
-        echo "- remote version ............. $remote_version"
-        remote_ver=`echo "$remote_version" | tr -d '.'`
-        local_ver=`echo "$version" | tr -d '.'`
-        echo
-        echo -n "- update available ........... "
-        if [ $remote_ver -gt $local_ver ]; then
-                echo -e "\033[1mYES!\033[0m"
-        else    echo "no"; fi
-    else
-        echo -e "\033[1mERROR!\033[0m"
-    fi
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
-    exit 0
-}
-
 function check_commands ()
 {
     max=15
@@ -1143,11 +1114,6 @@ define_os_vars
 read_config_files
 parse_args
 build_package_list
-# check for script updates
-if [ "$action" == "script" ]; then
-    header
-    check_script_version
-fi
 # Sanity check stuff if doing everything as user.
 if [ "$asuser" ] && [ $nice_level -lt 0 ]; then
     nice_level=0
