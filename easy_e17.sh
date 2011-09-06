@@ -1298,36 +1298,19 @@ if [ "$packages_failed" ]; then
 else
     set_notification "normal" "Script finished successful"
 fi
-if [ "$action" == "install" ]; then
-    open_header "INSTALL NOTES:"
-    echo "The most incredible and really unbelievable dream has become true:"
-    echo "You compiled e17 successfully!"
-    echo
-    echo "Starting e17:"
-    echo "Create a file ~/.xsession with the line 'exec $install_path/bin/enlightenment_start'."
-    echo "Add a link to this file using 'ln -s ~/.xsession ~/.xinitrc'."
-    echo
-    echo "If you're using a login manager (GDM/KDM), select the session type 'default' in them."
-    echo "If you're using the startx command, simply execute it now."
-    echo
-    echo "Note: e17 is still not released and it won't be in the near future. So don't"
-    echo "ask for a stable release. e17 is still very buggy and only for experienced users"
-    echo "who know what they do..."
-    echo
-    echo "Rasterman didn't write this script so don't ask him for help with it."
-    echo
-    echo "Hint: From now on you can easily keep your installation up to date."
-    echo "Simply run easy_e17.sh with -u instead of -i ."
-    echo
-    echo "We hope you will enjoy your trip into e17... Have fun!"
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-fi
-open_header "usefull environment variables"
-echo "  export PATH=\"$install_path/bin:\$PATH\""
-echo "  export PYTHONPATH=\"`python -c \"import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='$install_path')\" 2>/dev/null`:\$PYTHONPATH\""
-echo "  export LD_LIBRARY_PATH=\"$install_path/lib:\$LD_LIBRARY_PATH\""
-# Clear this out if we ever set it.
-export CC=""
+
+open_header " YEAHAÏY !!"
+echo ""
+echo " you might like to type $ sudo ln -s $install_path/share/xsessions/enlightenment.desktop /usr/share/xsessions/"
+echo " and feed /etc/profile.d/e17.sh with:"
+echo "    export E17DIR=$install_path"
+echo "    export PATH=\$PATH:\$E17DIR/bin"
+echo "    export PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:\$E17DIR/lib/pkgconfig"
+echo ""
+echo " and type $ chmod a+x /etc/profile.d/e17.sh"
+echo ""
+echo "   feel free and powerfull"
+echo ""
 # exit script or wait?
 if [ "$wait" ]; then
     echo
