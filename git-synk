@@ -68,7 +68,7 @@ for gitdir in ${GIT_DIR}; do
         # PUSH
         if [ "$action" != "pull" ] ; then
             echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
-            git push -q ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
+            git push ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
             if [ $? -ne 0 ]; then
                 echo -e "${RED}KO${RESET}" && cd .. && continue
             fi
