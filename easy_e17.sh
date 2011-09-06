@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 
-#############################################################################
-# This script is a result of the ideas from the people of different e       #
-# channels at irc.freenode.net                                              #
-# It will checkout the repository and compile e17.                          #
-#                                                                           #
-# License: BSD licence                                                      #
-# Get the latest version at http://omicron.homeip.net/projects/#easy_e17.sh #
-# Coded by Brian 'morlenxus' Miculcy (morlenxus@gmx.net)                    #
-#                                                                           #
-last_changes="2010-10-12"                                                   #
-version="1.4.0"                                                             #
-#############################################################################
+#################################################################################
+# This script is a result of the ideas from the people of different e           #
+# channels at irc.freenode.net                                                  #
+# It will checkout the repository and compile e17.                              #
+#                                                                               #
+# License: BSD licence                                                          #
+# Get the original version at http://omicron.homeip.net/projects/#easy_e17.sh   #
+# Coded by Brian 'morlenxus' Miculcy (morlenxus@gmx.net)                        #
+#                                                                               #
+# this scrpt is based on version 1.4.0 of the original script                   #
+# it can be found at http://cgit.asynk.ch/cgi-bin/cgit/bin/tree/easy_e17.sh     #
+#                                                                               #
+#################################################################################
 
-
-# Internal variables, run easy_e17.sh --help to get a cleaner way!
 tmp_path="/tmp/easy_e17"
 logs_path="$tmp_path/install_logs"
 status_path="$tmp_path/status"
@@ -53,15 +52,12 @@ src_mode="packages"
 
 ignore_dirs_re="/(devs|packaging|plugins|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)"
 ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
-autogen_args=""        # evas:--enable-gl-x11
-linux_distri=""        # if your distribution is wrongly detected, define it here
-nice_level=0        # nice level (19 == low, -20 == high)
-os=$(uname)            # operating system
-threads=2            # make -j <threads>
+autogen_args=""         # evas:--enable-gl-x11
+linux_distri=""         # if your distribution is wrongly detected, define it here
+nice_level=0            # nice level (19 == low, -20 == high)
+os=$(uname)             # operating system
+threads=2               # make -j <threads>
 make_only=0
-
-online_source="http://omicron.homeip.net/projects/easy_e17/easy_e17.sh"    # URL of latest stable release
-
 
 # VISUAL #############################################################################
 
@@ -117,24 +113,6 @@ function open_header ()
 
 function header ()
 {
-    clear
-    echo -e "\033[1m-------------------------------\033[7m Easy_e17.sh $version \033[0m\033[1m------------------------------\033[0m"
-    echo -e "\033[1m  Developers:\033[0m      Brian 'morlenxus' Miculcy"
-    echo -e "                   David 'onefang' Seikel"
-    echo -e "\033[1m  Contributors:\033[0m    Tim 'amon' Zebulla"
-    echo -e "                   Daniel G. '_ke' Siegel"
-    echo -e "                   Stefan 'slax' Langner"
-    echo -e "                   Massimiliano 'Massi' Calamelli"
-    echo -e "                   Thomas 'thomasg' Gstaedtner"
-    echo -e "                   Roberto 'rex' Sigalotti"
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo -e "\033[1m  Updates:\033[0m         http://omicron.homeip.net/projects/#easy_e17.sh"
-    echo -e "\033[1m  Support:\033[0m         #e.de (irc.freenode.net)"
-    echo -e "                   morlenxus@gmx.net"
-    echo -e "\033[1m  Patches:\033[0m         Generally accepted, please contact me!"
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
-    echo
     echo -e "\033[1m-----------------------------\033[7m Current Configuration \033[0m\033[1m----------------------------\033[0m"
     echo "  Config files:    $conf_files"
     echo "  Install path:    $install_path"
@@ -158,8 +136,6 @@ function header ()
     echo
     if [ -z "$action" ]; then action="MISSING!"; fi
     echo "  Script action:   $action"
-    echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
-    echo
 }
 
 function help ()
@@ -897,7 +873,7 @@ function logfile_banner ()
     cmd=$1
     logfile=$2
     echo "-------------------------------------------------------------------------------" >> "$logfile"
-    echo "EASY_E17 $version CMD: $cmd"                                                       >> "$logfile"
+    echo "  CMD: $cmd" >> "$logfile"
     echo "-------------------------------------------------------------------------------" >> "$logfile"
 }
 
@@ -1105,7 +1081,7 @@ function build_each ()
 
 
 # SCRIPT: #############################################################################
-EASY_PWD=`pwd`
+PWD__=`pwd`
 my_args=$@
 clean=0
 accache=""
@@ -1200,7 +1176,7 @@ build_each
 
 # Restore current directory in case post processing wants to be pathless.
 open_header "Finish installation"
-cd $EASY_PWD
+cd $PWD__
 echo -n "- registering libraries ...... "
 if [ -z "$asuser" ]; then
     case "$mode" in
@@ -1266,17 +1242,17 @@ else
 fi
 
 open_header " YEAHAÏY !!"
-echo ""
+echo
 echo " you might like to type $ sudo ln -s $install_path/share/xsessions/enlightenment.desktop /usr/share/xsessions/"
 echo " and feed /etc/profile.d/e17.sh with:"
 echo "    export E17DIR=$install_path"
 echo "    export PATH=\$PATH:\$E17DIR/bin"
 echo "    export PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:\$E17DIR/lib/pkgconfig"
-echo ""
+echo
 echo " and type $ chmod a+x /etc/profile.d/e17.sh"
-echo ""
+echo
 echo "   feel free and powerfull"
-echo ""
+echo
 # exit script or wait?
 if [ "$wait" ]; then
     echo
