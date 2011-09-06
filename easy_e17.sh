@@ -798,7 +798,7 @@ function git_fetch ()
 		set_title "Updating sources in '$src_path' ..."
         echo "- updating sources in '$src_path' ..."
 		cd $src_path
-        if [ make_only == 0 ]; then
+        if [ $make_only == 0 ]; then
             echo "- checkout modified files"
             git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout 2>/dev/null
         fi
