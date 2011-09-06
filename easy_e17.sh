@@ -806,7 +806,12 @@ function git_fetch ()
         git status -s | grep -e '^??' | cut -d " " -f 2 | xargs rm 2>/dev/null
         SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
         echo "- pull from `git remote -v | grep origin | grep fetch | cut -f 2 |cut -d " " -f 1`"
-        git pull --no-stat
+        git pull --no-stat 2>&1 | tee "$tmp_path/pull_error.log"
+        if [ $(cat "$tmp_path/pull_error.log" | grep $'^\t' | wc -l) -gt 0 ]; then
+            echo "- checkout pull blocking files"
+            cat "$tmp_path/pull_error.log" | grep $'^\t' | while read file; do git checkout "$file"; done
+            git pull --no-stat
+        fi
         SHA_HEAD=$(git log --pretty="format:%H" HEAD~1..)
         git show ${SHA_PREV}..${SHA_HEAD} --name-only --pretty="format:" | sort | uniq | grep -v -e '^$' | cut -d " " -f 1 > "$tmp_path/source_update.log"
 	else
