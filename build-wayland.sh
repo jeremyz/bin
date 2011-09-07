@@ -131,8 +131,8 @@ do_your_job
 
 say "xorg:libxkbcommon"
 my_dir=libxkbcommon
-my_src=git://people.freedesktop.org/xorg/lib/libxkbcommon.git libxkbcommon
-my_configure_opts="--with-xkb-config-root=/usr/share/X11/xkb"
+my_src=git://people.freedesktop.org/xorg/lib/libxkbcommon.git
+my_configure_opts="--with-xkb-config-root=/usr/share/X11/xkb --enable-specs=false"
 do_your_job
 
 say "xorg:pixman"
