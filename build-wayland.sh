@@ -12,6 +12,8 @@ PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
 
 export WLD LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_ALLOW_SYSTEM_CFLAGS
 
+BUILD_DIR=${BUILD_DIR:-~/usr/git/wayland}
+
 [ ! -d "$WLD/share/aclocal" ] && sudo mkdir -p "$WLD/share/aclocal"
 
 RESET="\033[0m"
@@ -45,6 +47,8 @@ function do_your_job () {
     fi
     say " * SUCCESS\n"
 }
+
+cd $BUILD_DIR || exit 1
 
 # WAYLAND
 say "wayland"
