@@ -54,7 +54,7 @@ for gitdir in ${GIT_DIR}; do
                 STASH=1
                 echo -e "${RED}head is not clean, ${CYAN}git stash save${RESET}" && git stash save -q
             else
-                echo -e "${RED}head is not clean, USE_STASH=0 ... ${CYAN}leave${RESET}" && cd .. && continue
+                echo -e "${RED}head is not clean, USE_STASH=0 ... ${CYAN}leave${RESET}\n" && cd .. && continue
             fi
         fi
         # PULL
@@ -68,7 +68,7 @@ for gitdir in ${GIT_DIR}; do
         # PUSH
         if [ "$action" != "pull" ] ; then
             echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
-            git push ${GIT_REMOTE} ${GIT_BRANCH} && echo -e "${GREEN}OK${RESET}"
+            git push ${GIT_REMOTE} ${GIT_BRANCH} 2>/dev/null && echo -e "${GREEN}OK${RESET}"
             if [ $? -ne 0 ]; then
                 echo -e "${RED}KO${RESET}" && cd .. && continue
             fi
@@ -76,7 +76,7 @@ for gitdir in ${GIT_DIR}; do
         if [ $STASH -eq 1 ]; then
             echo -e "    ${RED}was not clean, ${CYAN}git stash pop${RESET}" && git stash pop -q
         fi
-        cd ..
+        echo -e "  leave ${BROWN}${dir}${RESET}\n" && cd .. || exit 1
     done
     echo -e "leave ${BROWN}${gitdir}${RESET}"
 done
