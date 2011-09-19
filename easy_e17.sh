@@ -114,20 +114,20 @@ function open_header ()
 function header ()
 {
     echo -e "\033[1m-----------------------------\033[7m Current Configuration \033[0m\033[1m----------------------------\033[0m"
-    echo "  Config files:    $conf_files"
-    echo "  Install path:    $install_path"
-    echo "  Source path:     $src_path"
+    echo "  Config files : $conf_files"
+    echo "  Install path :  $install_path"
+    echo "  Source path  :  $src_path"
     if [ $git -eq 1 ]; then
-        echo "  Source url:      $git_url"
+        echo "  Source url   :  $git_url"
     else
-        echo "  Source url:      $src_url (Revision: $src_rev)"
+        echo "  Source url   :  $src_url (Revision: $src_rev)"
     fi
-    echo "  Source mode:     $src_mode"
-    echo "  Logs path:       $logs_path"
+    echo "  Source mode  :  $src_mode"
+    echo "  Logs path    :  $logs_path"
     if [ "$linux_distri" ]; then
-        echo "  OS:              $os (Distribution: $linux_distri)"
+        echo "  OS           :  $os (Distribution: $linux_distri)"
     else
-        echo "  OS:              $os"
+        echo "  OS           :  $os"
     fi
     echo
     if [ "$only" ]; then echo "  Only:            $only"; fi
@@ -782,7 +782,7 @@ function parse_git_updates ()
             path=$(find_local_path $kpg)
             if [ `cat "$tmp_path/source_update.log" | egrep -q "^${path#$src_path}"; echo $?` == 0 ]; then
                 updated_packages="$updated_packages $pkg"
-                echo "- $pkg"
+                echo "  - $pkg"
             fi
         done
     fi
