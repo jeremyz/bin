@@ -13,6 +13,8 @@ PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
 export WLD LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL C_INCLUDE_PATH LIBRARY_PATH PKG_CONFIG_ALLOW_SYSTEM_CFLAGS
 
 BUILD_DIR=${BUILD_DIR:-~/usr/git/wayland}
+FORCE_AUTOGEN=0
+for arg in $@; do if [ "$arg"="-f" ]; then FORCE_AUTOGEN=1; fi; done
 
 [ ! -d "$WLD/share/aclocal" ] && sudo mkdir -p "$WLD/share/aclocal"
 
@@ -35,8 +37,12 @@ function update () {
     SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
     say " * pull" && git pull || return 1
     SHA_HEAD=$(git log --pretty="format:%H" HEAD~1..)
-    [ "$SHA_PREV" = "$SHA_HEAD" ] && return 0
-    build
+    if [ $FORCE_AUTOGEN -eq 1 ]; then
+        autogen
+    else
+        [ "$SHA_PREV" = "$SHA_HEAD" ] && return 0
+        build
+    fi
 }
 
 function do_your_job () {
