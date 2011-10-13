@@ -52,6 +52,7 @@ src_mode="packages"
 
 ignore_dirs_re="/(devs|packaging|plugins|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)"
 ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
+package_args=""         # evas:make_only,emotion:clean
 autogen_args=""         # evas:--enable-gl-x11
 linux_distri=""         # if your distribution is wrongly detected, define it here
 nice_level=0            # nice level (19 == low, -20 == high)
@@ -212,6 +213,8 @@ function help ()
         echo "      --threads=<int>                 = 'make' can use threads, recommended on"
         echo "                                        smp systems (default: 2 threads)"
         echo "      --autogen_args=<n1>:<o1>+<o2>,. = pass some options to autogen:"
+        echo "                                        <name1>:<opt1>+<opt2>,<name2>:<opt1>+..."
+        echo "      --package_args=<n1>:<o1>+<o2>,. = pass package specific options:"
         echo "                                        <name1>:<opt1>+<opt2>,<name2>:<opt1>+..."
         echo "      --cflags=<flag1>,<flag2>,...    = pass cflags to the gcc"
         echo "      --ldflags=<flag1>,<flag2>,...   = pass ldflags to the gcc"
@@ -412,6 +415,12 @@ function parse_args ()
                     wrong "Missing value for argument '$option'!"
                 fi
                 autogen_args="$value"
+                ;;
+            --package_args)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                package_args="$value"
                 ;;
             --cflags)
                 if [ -z "$value" ]; then
@@ -934,9 +943,29 @@ function compile ()
     rm -f $status_path/$name.noerrors
     rm -f "$logs_path/$name.log"
     run_command "$name" "$path" "path" "path  : " "$mode" "pwd"
-    if [ $clean -ge 1 ]; then
+    # get package arguments
+    args=""
+    package_clean=$clean
+    package_make_only=$make_only
+    for app_arg in `echo $package_args | tr -s '\,' ' '`; do
+        app=`echo $app_arg | cut -d':' -f1`
+        if [ "$app" == "$name" ]; then
+            args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
+            for arg in $args; do
+                case $arg in
+                    clean)
+                        package_clean=$(($package_clean + 1))
+                        ;;
+                    make_only)
+                        package_make_only=1
+                        ;;
+                esac
+            done
+        fi
+    done
+    if [ $package_clean -ge 1 ]; then
         if [ -e "Makefile" ]; then
-            if [ $clean -eq 1 ]; then
+            if [ $package_clean -eq 1 ]; then
                 run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
                 if [ ! -e "$status_path/$name.noerrors" ]; then
                     if [ "$skip_errors" ]; then
@@ -946,7 +975,7 @@ function compile ()
                     fi
                 fi
             fi
-            if [ $clean -eq 2 ]; then
+            if [ $package_clean -eq 2 ]; then
                 run_command "$name" "$path" "distclean" "distcln: " "$mode" "$make -j $threads clean distclean"
                 if [ ! -e "$status_path/$name.noerrors" ]; then
                     if [ "$skip_errors" ]; then
@@ -956,7 +985,7 @@ function compile ()
                     fi
                 fi
             fi
-            if [ $clean -ge 3 ]; then
+            if [ $package_clean -ge 3 ]; then
                 run_command "$name" "$path" "uninstall" "uninst : " "rootonly" "$make -j $threads uninstall clean distclean"
                 if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
                 # It's no longer installed if we just uninstalled it.
@@ -974,7 +1003,7 @@ function compile ()
         fi
     done
     if [ -e "autogen.sh" ]; then
-        if [ $make_only != 1 ]; then
+        if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
             run_command "$name" "$path" "autogen" "autogen: " "$mode"    "sh ./autogen.sh --prefix=$install_path $accache $args"
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         fi
