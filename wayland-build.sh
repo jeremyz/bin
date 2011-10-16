@@ -14,7 +14,7 @@ export WLD LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL C_INCLUDE_PATH LIBRARY_PATH P
 
 BUILD_DIR=${BUILD_DIR:-~/usr/git/wayland}
 FORCE_AUTOGEN=0
-for arg in $@; do if [ "$arg"="-f" ]; then FORCE_AUTOGEN=1; fi; done
+for arg in $@; do if [ "$arg" = "-f" ]; then FORCE_AUTOGEN=1; fi; done
 
 [ ! -d "$WLD/share/aclocal" ] && sudo mkdir -p "$WLD/share/aclocal"
 
