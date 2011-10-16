@@ -1,8 +1,8 @@
 #! /bin/bash
-APT_SOURCES="./sources"
-APT_PKGS="./pkgs"
+APT_SRCS=./srcs
+APT_PKGS=./pkgs
 
-LISTS_DST="/var/lib/apt/lists/"
+LISTS_DST=/var/lib/apt/lists/
 
 MORE_PKGS=$@
 RED="\033[0;31m"
@@ -12,67 +12,60 @@ fail () {
     echo -e "\n   ${RED}@2-#*% ==>>  $1${RESET}" && [ ! -z "$2" ] && exit $2
 }
 
-clean_empty () {
-    for I in `ls`; do
-        if [ `stat -c %b $I` -eq 0 ]; then
-            echo "  remove empty file $I" && rm $I
-            continue
-        fi
-    done
+rm_empty () {
+    if [ $(stat -c %b $1) -eq 0 ]; then
+        echo "  remove empty file $1" && rm $1
+    fi
 }
 
 offline () {
-    if [ -z `which apt-get 2>/dev/null` ]; then fail "apt-get missing"; fi
-    if [ $UID != 0 ]; then fail "must be root"; fi
-    PKGS=`ls ${APT_PKGS}/* 2>/dev/null`
-    if [ ! -z "${PKGS}" ]; then
-        echo "  *** install pkgs";
-        for I in ${PKGS}; do
-            dpkg -i --force-depends $I && rm $I || fail "unable to install $I"
-        done
-    fi
+    if [ -z $(which apt-get 2>/dev/null) ]; then fail "apt-get missing" 1; fi
+    if [ $UID != 0 ]; then fail "must be root" 1; fi
+    echo "  *** install pkgs";
+    for pkg in $(ls ${APT_PKGS}/* 2>/dev/null); do
+        dpkg -i --force-depends $pkg && rm $pkg || fail "unable to install $I"
+    done
     apt-get clean
-    SRC_LIST=`ls ${APT_SOURCES}/* 2>/dev/null`
-    if [ ! -z "${SRC_LIST}" ]; then
-        echo "  *** install sources lists";
-        for I in ${SRC_LIST}; do
-            RET=`file -bi $I | gawk '{ print $1}'`
-            if [ "$RET" == "application/x-bzip2;" ]; then
-                bunzip2 -q $I && mv $I.out $I
-                if [ `stat -c %b $I` -eq 0 ]; then
-                    echo "remove empty file $I" && rm $I
-                    continue
-                fi
-            fi
-            mv $I $LISTS_DST
-        done
-    fi
+    echo "  *** install sources lists";
+    for list in $(ls ${APT_SRCS}/* 2>/dev/null); do
+        RET=$(file -bi $list | gawk '{ print $1}')
+        if [ "$RET" == "application/x-bzip2;" ]; then
+            bunzip2 -q $list && mv $list.out $list
+            rm_empty $list
+        fi
+        [ -f $list ] && mv $list $LISTS_DST
+    done
     apt-get check
-    echo "  *** build wget lists"
-    apt-get -qq --print-uris update | awk '{print "wget --quiet -O " $2 " " $1}' > ./wget-update
-    apt-get -qq --print-uris dist-upgrade | awk '{print "wget --quiet -O " $2 " " $1}' > ./wget-upgrade
+    echo "  *** build download lists"
+    apt-get -qq --print-uris update | awk '{print $2 " " $1}' > ./update-urls
+    apt-get -qq --print-uris dist-upgrade | awk '{print $2 " " $1}' > ./upgrade-urls
     for name in $MORE_PKGS; do
-        apt-get -qq -d --print-uris install $name | awk '{print "wget --quiet -O " $2 " " $1}' > ./wget-upgrade;
+        apt-get -qq -d --print-uris install $name | awk '{print $2 " " $1}' > ./upgrade-urls;
+    done
+}
+
+download() {
+    cat $1 | while read line; do
+        out=$(echo $line | cut -d' ' -f1);
+        url=$(echo $line | cut -d' ' -f2 | sed "s/'//g");
+        echo " get $url" && curl -s -o$out $url || fail "unable to download $url"
+        rm_empty $out
     done
 }
 
 online() {
-    if [ -z `which wget 2>/dev/null` ]; then fail "wget missing"; fi
-    rm -fr $APT_SOURCES 2>/dev/null && mkdir $APT_SOURCES && cd $APT_SOURCES && sh -x ../wget-update; clean_empty && cd .. || fail "unable to download sources"
-    rm -fr $APT_PKGS 2>/dev/null && mkdir $APT_PKGS && cd $APT_PKGS && sh -x ../wget-upgrade; clean_empty && cd .. || fail "unable to download pkgs"
+    if [ -z $(which curl 2>/dev/null) ]; then fail "curl missing" 1; fi
+    for dir in $APT_SRCS $APT_PKGS; do
+        rm -fr $dir 2>/dev/null && mkdir $dir || fail "unable to create empty dir $dir" 1
+    done
+    cd $APT_SRCS && download ../update-urls && cd ..
+    cd $APT_PKGS && download ../upgrade-urls && cd ..
 }
 
-ping -q -W 1 -c 1 google.com >/dev/null
+ping -q -W 1 -c 1 debian.org >/dev/null
 if [ $? -eq 0 ]; then
     online
 else
     offline
 fi
-
-#OPTIONS="offline online"
-#select OPT in $OPTIONS; do
-#    if [ "$OPT" = "offline" ]; then offline && break; fi;
-#    if [ "$OPT" = "online" ]; then online && break; fi;
-#    break;
-#done
 
