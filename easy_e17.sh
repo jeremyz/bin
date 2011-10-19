@@ -21,6 +21,13 @@ src_cache_path="$tmp_path/src_cache"
 src_path="$HOME/e17_src"
 conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 
+ewk_enabled=0
+ewk_src_url="http://svn.webkit.org/repository/webkit/trunk/Source"
+ewk_src_rev="HEAD"
+ewk_src_path="$HOME/ewebkit_src"
+ewk_install_path="/opt/ewebkit"
+ewk_cmake_cmd="cmake .. -DPORT=Efl -DSHARED_CORE=OFF -DCMAKE_BUILD_TYPE=Release"
+
 git=0
 git_url="git@asynk.ch:e"
 src_url="http://svn.enlightenment.org/svn/e/trunk"
@@ -131,6 +138,11 @@ function header ()
         echo "  OS           :  $os"
     fi
     echo
+    echo " ewebkit"
+    echo "  Source url   :  $ewk_src_url (Revision: $ewk_src_rev)"
+    echo "  Source path  :  $ewk_src_path"
+    echo "  Install path :  $ewk_install_path"
+    echo
     if [ "$only" ]; then echo "  Only:            $only"; fi
     if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
     echo "  Packages:       $effective_packages"
@@ -218,6 +230,11 @@ function help ()
         echo "                                        <name1>:<opt1>+<opt2>,<name2>:<opt1>+..."
         echo "      --cflags=<flag1>,<flag2>,...    = pass cflags to the gcc"
         echo "      --ldflags=<flag1>,<flag2>,...   = pass ldflags to the gcc"
+        echo -e "\033[1m-----------------\033[7m ewebkit specific options  <ACTION> <OPTIONS...>' \033[0m\033[1m----------------\033[0m"
+        echo "      --ewk-enable                    = enable build of ewebkit"
+        echo "      --ewk-srcurl=<url>              = change ewebkit default source url"
+        echo "      --ewk-srcpath=<path>            = change ewebkit default source path"
+        echo "      --ewk-instpath=<path>           = change ewebkit default install path"
         echo -e "\033[1m--------------------------------------------------------------------------------\033[0m"
         echo
         echo -e "\033[1m----------------------\033[7m Configurationfile '~/.easy_e17.conf' \033[0m\033[1m--------------------\033[0m"
@@ -433,6 +450,16 @@ function parse_args ()
                     wrong "Missing value for argument '$option'!"
                 fi
                 LDFLAGS="$LDFLAGS `echo "$value" | tr -s '\,' '\ '`"
+                ;;
+            --ewk-enable)   ewk_enabled=1 ;;
+            --ewk-srcurl)   ewk_src_url="$value" ;;
+            --ewk-srcpath)  ewk_src_path="$value" ;;
+            --ewk-instpath) ewk_install_path="$value" ;;
+            --ewk-srcrev)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                ewk_src_rev="$value"
                 ;;
             --help)
                 fullhelp=1
@@ -1149,6 +1176,70 @@ if [ ! "$action"  == "srcupdate" ]; then
     set_build_env
     mk_dest_dirs
     check_ld_path
+fi
+
+# ewebkit
+open_header "ewebkit"
+if [ $ewk_enabled -eq 0 ]; then
+    set_notification "normal" "ewebkit not enabled..."
+else
+    mkdir -p "$ewk_src_path" 2>/dev/null
+    cd "$ewk_src_path"
+    if [ "`$cmd_svn_test &>/dev/null; echo $?`" == 0 ]; then
+        set_title "Updating sources in '$ewk_src_path' ..."
+        echo "- updating sources in '$ewk_src_path' ..."
+        if [ "$ask_on_src_conflicts" ]; then
+            backoff_loop "$cmd_svn_update_conflicts_ask $ewk_src_rev"
+        else
+            backoff_loop "$cmd_svn_update_conflicts_solve $ewk_src_rev"
+        fi
+    else
+        set_title "Checkout sources in '$ewk_src_path' ..."
+        echo "- checkout sources in '$ewk_src_path' ..."
+        backoff_loop "$cmd_svn_checkout $ewk_src_rev $ewk_src_url $ewk_src_path"
+    fi
+    # fix FindEFL.cmake
+    find -name FindEFL.cmake | xargs sed -i 's/999\..*/0/'
+    # get package arguments
+    args=""
+    package_clean=$clean
+    package_make_only=$make_only
+    for app_arg in `echo $package_args | tr -s '\,' ' '`; do
+        app=`echo $app_arg | cut -d':' -f1`
+        if [ "$app" == "ewebkit" ]; then
+            args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
+            for arg in $args; do
+                case $arg in
+                    clean)
+                        package_clean=$(($package_clean + 1))
+                        ;;
+                    make_only)
+                        package_make_only=1
+                        ;;
+                esac
+            done
+        fi
+    done
+    if [ -d build ]; then
+        if [ $package_clean -ge 2 ]; then
+            run_command "ewebkit" "NOT USED" "purge" "purge  : " "user" "rm -fr build"
+            mkdir -p build 2>/dev/null
+            cd build
+            package_make_only=0
+        elif [ $package_clean -eq 1 ]; then
+            cd build
+            run_command "ewebkit" "NOT USED" "clean" "clean  : " "user" "$make -j $threads clean"
+        else
+            cd build
+        fi
+    else
+        mkdir -p "build" 2>/dev/null
+        cd build
+        package_make_only=0
+    fi
+    [ $package_make_only -eq 0 ] && run_command "ewebkit" "NOT USED" "cmake" "cmake  : " "$mode" "$ewk_cmake_cmd -DCMAKE_INSTALL_PREFIX=$ewk_install_path"
+    run_command "ewebkit" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
+    run_command "ewebkit" "NOT USED" "install" "install : " "rootonly" "$make install"
 fi
 
 # sources
