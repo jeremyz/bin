@@ -889,7 +889,7 @@ function logfile_banner ()
 function run_command ()
 {
     name=$1
-    path=$2
+    path=$2                     # TODO : NOT USED
     title=$3
     log_title=$4
     mode_needed=$5
