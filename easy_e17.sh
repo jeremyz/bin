@@ -472,6 +472,27 @@ function parse_args ()
     done
 }
 
+function parse_package_args ()
+{
+    args=""
+    for app_arg in `echo $package_args | tr -s '\,' ' '`; do
+        app=`echo $app_arg | cut -d':' -f1`
+        if [ "$app" == "$name" ]; then
+            args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
+        fi
+    done
+    for arg in $args; do
+        case $arg in
+            clean)
+                package_clean=$(($package_clean + 1))
+                ;;
+            make_only)
+                package_make_only=1
+                ;;
+        esac
+    done
+}
+
 function build_package_list ()
 {
     effective_packages=""
@@ -971,25 +992,9 @@ function compile ()
     rm -f "$logs_path/$name.log"
     run_command "$name" "$path" "path" "path  : " "$mode" "pwd"
     # get package arguments
-    args=""
     package_clean=$clean
     package_make_only=$make_only
-    for app_arg in `echo $package_args | tr -s '\,' ' '`; do
-        app=`echo $app_arg | cut -d':' -f1`
-        if [ "$app" == "$name" ]; then
-            args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
-            for arg in $args; do
-                case $arg in
-                    clean)
-                        package_clean=$(($package_clean + 1))
-                        ;;
-                    make_only)
-                        package_make_only=1
-                        ;;
-                esac
-            done
-        fi
-    done
+    parse_package_args
     if [ $package_clean -ge 1 ]; then
         if [ -e "Makefile" ]; then
             if [ $package_clean -eq 1 ]; then
