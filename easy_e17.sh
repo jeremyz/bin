@@ -27,6 +27,7 @@ ewk_src_rev="HEAD"
 ewk_src_path="$HOME/ewebkit_src"
 ewk_install_path="/opt/ewebkit"
 ewk_cmake_cmd="cmake .. -DPORT=Efl -DSHARED_CORE=OFF -DCMAKE_BUILD_TYPE=Release"
+cmake_build_dir="build"
 
 git=0
 git_url="git@asynk.ch:e"
@@ -231,7 +232,7 @@ function help ()
         echo "      --cflags=<flag1>,<flag2>,...    = pass cflags to the gcc"
         echo "      --ldflags=<flag1>,<flag2>,...   = pass ldflags to the gcc"
         echo -e "\033[1m-----------------\033[7m ewebkit specific options  <ACTION> <OPTIONS...>' \033[0m\033[1m----------------\033[0m"
-        echo "      --ewk-enable                    = enable build of ewebkit"
+        echo "      --ewk-enabled                   = enable build of ewebkit"
         echo "      --ewk-srcurl=<url>              = change ewebkit default source url"
         echo "      --ewk-srcpath=<path>            = change ewebkit default source path"
         echo "      --ewk-instpath=<path>           = change ewebkit default install path"
@@ -451,7 +452,7 @@ function parse_args ()
                 fi
                 LDFLAGS="$LDFLAGS `echo "$value" | tr -s '\,' '\ '`"
                 ;;
-            --ewk-enable)   ewk_enabled=1 ;;
+            --ewk-enabled)   ewk_enabled=1 ;;
             --ewk-srcurl)   ewk_src_url="$value" ;;
             --ewk-srcpath)  ewk_src_path="$value" ;;
             --ewk-instpath) ewk_install_path="$value" ;;
@@ -500,6 +501,7 @@ function build_package_list ()
         pkgs=$only
     else
         pkgs=$packages
+        [ $ewk_enabled -eq 1 ] && pkgs="ewebkit $pkgs"
     fi
     for pkg in $pkgs; do
         found=0
@@ -845,6 +847,26 @@ function parse_git_updates ()
     fi
 }
 
+# EWEBKIT #############################################################################
+
+function ewebkit_fetch ()
+{
+    cd "$ewk_src_path"
+    if [ "`$cmd_svn_test &>/dev/null; echo $?`" == 0 ]; then
+        set_title "Updating ewebkit sources in '$ewk_src_path' ..."
+        echo "- updating ewebkit sources in '$ewk_src_path' ..."
+        if [ "$ask_on_src_conflicts" ]; then
+            backoff_loop "$cmd_svn_update_conflicts_ask $ewk_src_rev"
+        else
+            backoff_loop "$cmd_svn_update_conflicts_solve $ewk_src_rev"
+        fi
+    else
+        set_title "Checkout ewebkit sources in '$ewk_src_path' ..."
+        echo "- checkout ewebkit sources in '$ewk_src_path' ..."
+        backoff_loop "$cmd_svn_checkout $ewk_src_rev $ewk_src_url $ewk_src_path"
+    fi
+    mv $tmp_path/source_update.log $tmp_path/ewebkit_update.log
+}
 
 # SRC #############################################################################
 
@@ -981,7 +1003,11 @@ function compile ()
         echo "previously installed"
         return
     fi
-    path=`find_local_path $name`
+    if [ "$name" == "ewebkit" ]; then
+        path=$ewk_src_path
+    else
+        path=`find_local_path $name`
+    fi
     if [ ! -d "$path" ]; then
         echo "SOURCEDIR NOT FOUND"
         set_notification "critical" "Package '$name': sourcedir not found"
@@ -996,7 +1022,22 @@ function compile ()
     package_make_only=$make_only
     parse_package_args
     if [ $package_clean -ge 1 ]; then
-        if [ -e "Makefile" ]; then
+        if [ -e "CMakeLists.txt" ]; then
+            if [ $package_clean -eq 1 ]; then
+                cd $cmake_build_dir
+                run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
+                if [ ! -e "$status_path/$name.noerrors" ]; then
+                    if [ "$skip_errors" ]; then
+                        write_appname "$name" "hidden"    # clean might fail, that's ok
+                    else
+                        return
+                    fi
+                fi
+                cd ..
+            elif [ $package_clean -ge 2 ]; then
+                [ -d $cmake_build_dir ] && run_command "$name" "path" "purge" "purge  : " "$mode" "rm -fr $cmake_build_dir"
+            fi
+        elif [ -e "Makefile" ]; then
             if [ $package_clean -eq 1 ]; then
                 run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
                 if [ ! -e "$status_path/$name.noerrors" ]; then
@@ -1034,7 +1075,20 @@ function compile ()
             args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
         fi
     done
-    if [ -e "autogen.sh" ]; then
+    if [ -e "CMakeLists.txt" ]; then
+        mkdir -p $cmake_build_dir 2>/dev/null
+        cd $cmake_build_dir
+        # TOWO $ewk_ is ewebkit specific !!!!!
+        if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
+            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_cmake_cmd -DCMAKE_INSTALL_PREFIX=$ewk_install_path"
+        fi
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "NOT USED" "install" "install : " "rootonly" "$make install"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        cd ..
+    elif [ -e "autogen.sh" ]; then
         if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
             run_command "$name" "$path" "autogen" "autogen: " "$mode"    "sh ./autogen.sh --prefix=$install_path $accache $args"
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
@@ -1140,59 +1194,6 @@ function build_each ()
     done
 }
 
-function update_ewebkit ()
-{
-    if [ "`$cmd_svn_test &>/dev/null; echo $?`" == 0 ]; then
-        set_title "Updating $name sources in '$ewk_src_path' ..."
-        echo "- updating $name sources in '$ewk_src_path' ..."
-        if [ "$ask_on_src_conflicts" ]; then
-            backoff_loop "$cmd_svn_update_conflicts_ask $ewk_src_rev"
-        else
-            backoff_loop "$cmd_svn_update_conflicts_solve $ewk_src_rev"
-        fi
-    else
-        set_title "Checkout $name sources in '$ewk_src_path' ..."
-        echo "- checkout $name sources in '$ewk_src_path' ..."
-        backoff_loop "$cmd_svn_checkout $ewk_src_rev $ewk_src_url $ewk_src_path"
-    fi
-}
-
-function build_ewebkit ()
-{
-    package_clean=$clean
-    package_make_only=$make_only
-    parse_package_args
-    if [ -d build ]; then
-        if [ $package_clean -ge 2 ]; then
-            run_command "$name" "NOT USED" "purge" "purge  : " "user" "rm -fr build"
-            mkdir -p build 2>/dev/null
-            cd build
-            package_make_only=0
-        elif [ $package_clean -eq 1 ]; then
-            cd build
-            run_command "$name" "NOT USED" "clean" "clean  : " "user" "$make -j $threads clean"
-        else
-            cd build
-        fi
-    else
-        mkdir -p "build" 2>/dev/null
-        cd build
-        package_make_only=0
-    fi
-    touch "$status_path/$name.noerrors"
-    [ $package_make_only -eq 0 ] && run_command "$name" "NOT USED" "cmake" "cmake  : " "$mode" "$ewk_cmake_cmd -DCMAKE_INSTALL_PREFIX=$ewk_install_path"
-    [ -e "$status_path/$name.noerrors" ] && run_command "$name" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
-    [ -e "$status_path/$name.noerrors" ] && run_command "$name" "NOT USED" "install" "install : " "rootonly" "$make install"
-    if [ -e "$status_path/$name.noerrors" ]; then
-        touch "$status_path/$name.installed"
-        rm -f "$status_path/$name.noerrors"
-        echo "ok"
-        set_notification "normal" "Package '$name': build successful"
-    else
-        set_notification "critical" "Package 'ewebkit': build failed"
-    fi
-}
-
 # SCRIPT: #############################################################################
 PWD__=`pwd`
 my_args=$@
@@ -1222,10 +1223,11 @@ open_header "Basic system checks"
 check_commands "automake gcc $make `echo "$cmd_svn_checkout" | cut -d' ' -f1`"
 echo -n "- creating temporary dirs .... "
 mkdir -p "$tmp_path"        2>/dev/null
-mkdir -p "$logs_path"        2>/dev/null
-mkdir -p "$status_path"        2>/dev/null
-mkdir -p "$src_cache_path"    2>/dev/null
+mkdir -p "$logs_path"       2>/dev/null
+mkdir -p "$status_path"     2>/dev/null
+mkdir -p "$src_cache_path"  2>/dev/null
 mkdir -p "$src_path"        2>/dev/null
+mkdir -p "$ewk_src_path"    2>/dev/null
 chmod 700 "$tmp_path"
 echo "ok"
 if [ ! "$action"  == "srcupdate" ]; then
@@ -1234,48 +1236,24 @@ if [ ! "$action"  == "srcupdate" ]; then
     mk_dest_dirs
     check_ld_path
 fi
-
-# ewebkit
-open_header "ewebkit"
-#rm -f "$status_path/ewebkit.noerrors"
-#rm -f "$status_path/ewebkit.installed"
-#rm -f "$logs_path/ewebkit.log"
-if [ $ewk_enabled -eq 0 ]; then
-    set_notification "normal" "ewebkit not enabled..."
-else
-    name="ewebkit"
-    mkdir -p "$ewk_src_path" 2>/dev/null
-    cd "$ewk_src_path"
-    update_ewebkit
-    find -name FindEFL.cmake | xargs sed -i 's/999\..*/0/'
-    buildewebkit=1
-    updated=$(cat $tmp_path/source_update.log | grep 'U ' | wc -l)
-    if [ "$action" == "install" ]; then
-        set_notification "normal" "Now building $name..."
-    elif [ "$action" == "only" ]; then
-        # TODO
-        echo
-    elif [ "$action" == "update" ]; then
-        if [ $updated -ge 0 ]; then
-            set_notification "normal" "Now building $name..."
-        else
-            set_notification "normal" "Everything is up to date, nothing to build"
-            buildewebkit=0
-        fi
-    fi
-    [ $buildewebkit -eq 1 ] && build_ewebkit
-fi
+[ $ewk_enabled -eq 1 ] && packages="ewebkit $packages"
 
 # sources
 open_header "Source checkout/update"
 if [ -z "$skip_srcupdate" ]; then
     rm "$tmp_path/source_update.log" 2>/dev/null
+    rm "$tmp_path/ewebkit_update.log" 2>/dev/null
     cd "$src_path"
     if [ "`$cmd_svn_test &>/dev/null; echo $?`" == 0 ]; then
         if [ "$src_mode" == "packages" ]; then
             echo -e "\033[1m- Full checkout found, changed source mode to 'full'!\033[0m"
             src_mode="full"
         fi
+    fi
+    if [ $ewk_enabled -eq 1 ]; then
+        for package in $effective_packages; do
+            [ "$package" == "ewebkit" ] && ewebkit_fetch
+        done
     fi
     if [ $git -eq 0 ]; then
         svn_fetch
@@ -1289,14 +1267,23 @@ fi
 # parse updates
 open_header "Parsing updates"
 echo "- parse updated sources  ..."
-if [ "$action" == "update" ] && [ -e "$tmp_path/source_update.log" ]; then
-    if [ $git -eq 0 ]; then
-        parse_svn_updates
+if [ "$action" == "update" ]; then
+    if [ $ewk_enabled -eq 1 ] && [ -e "$tmp_path/ewebkit_update.log" ]; then
+        ewebkit_updates=$(egrep "^[A|D|G|U] " $tmp_path/ewebkit_update.log | wc -l)
+        [ $ewebkit_updates -gt 0 ] && echo "- ewebkit"
     else
-        parse_git_updates
+        ewebkit_updates=0
     fi
-    if [ -z "$updated_packages" ]; then
+    if [ $git -eq 0 ]; then
+        [ -e "$tmp_path/source_update.log" ] && parse_svn_updates
+    else
+        [ -e "$tmp_path/source_update.log" ] && parse_git_updates
+    fi
+    if [ -z "$updated_packages" ] && [ $ewebkit_updates -eq 0 ]; then
         echo "- nothing to do"
+    fi
+    if [ $ewk_enabled -eq 1 ] && [ $ewebkit_updates -gt 0 ]; then
+        updated_packages="ewebkit $updated_packages"
     fi
 elif [ "$action" == "install" ]; then
     updated_packages=$effective_packages
