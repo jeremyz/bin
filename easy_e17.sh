@@ -1308,7 +1308,7 @@ open_header "Compilation & installation"
 if [ "$action" == "install" ]; then
     set_notification "normal" "Now building packages..."
 elif [ "$action" == "only" ]; then
-    set_notification "normal" "Now building following packages: $updated_packages"
+    set_notification "normal" "Now building following packages: $effective_packages"
 elif [ "$action" == "update" ]; then
     if [ "$updated_packages" ]; then
         set_notification "normal" "Now building following packages: $updated_packages"
