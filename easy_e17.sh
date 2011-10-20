@@ -673,7 +673,7 @@ function backoff_loop
     attempt=1
     max_attempt=5
     while [ 1 ]; do
-        $src_cmd | tee -a "$tmp_path/source_update.log"
+        $src_cmd >> "$tmp_path/source_update.log"
         if [ "${PIPESTATUS[0]}" -gt 0 ]; then
             attempt=$(($attempt + 1))
             set_title "Source update failed, trying again in $backoff seconds..."
@@ -812,7 +812,7 @@ function git_fetch ()
         git status -s | grep -e '^??' | cut -d " " -f 2 | xargs rm 2>/dev/null
         SHA_PREV=$(git log --pretty="format:%H" HEAD~1..)
         echo "- pull from `git remote -v | grep origin | grep fetch | cut -f 2 |cut -d " " -f 1`"
-        git pull --no-stat 2>&1 | tee "$tmp_path/pull_error.log"
+        git pull --no-stat 2>&1 >> "$tmp_path/pull_error.log"
         if [ $(cat "$tmp_path/pull_error.log" | grep $'^\t' | wc -l) -gt 0 ]; then
             echo "- checkout pull blocking files"
             cat "$tmp_path/pull_error.log" | grep $'^\t' | while read file; do git checkout "$file"; done
@@ -1016,7 +1016,7 @@ function compile ()
     cd "$path"
     rm -f $status_path/$name.noerrors
     rm -f "$logs_path/$name.log"
-    run_command "$name" "$path" "path" "path  : " "$mode" "pwd"
+    run_command "$name" "$path" "path" "path:    " "$mode" "pwd"
     # get package arguments
     package_clean=$clean
     package_make_only=$make_only
@@ -1085,7 +1085,7 @@ function compile ()
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         run_command "$name" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "NOT USED" "install" "install : " "rootonly" "$make install"
+        run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         cd ..
     elif [ -e "autogen.sh" ]; then
