@@ -784,6 +784,7 @@ function parse_svn_updates ()
         done
         if [ $found == 1 ]; then continue; fi
         for pkg in $effective_packages; do
+            [ "$pkg" == "ewebkit" ] && continue
             if [ `echo "$dir" | egrep -q "^$pkg/|/$pkg/"; echo $?` == 0 ]; then
                 if [ ! `echo "$updated_packages" | egrep -q "^ $pkg | $pkg \$| $pkg "; echo $?` == 0 ]; then
                     updated_packages="$updated_packages $pkg"
@@ -838,6 +839,7 @@ function parse_git_updates ()
     else
         updated_packages=""
         for pkg in $effective_packages; do
+            [ "$pkg" == "ewebkit" ] && continue
             path=$(find_local_path $kpg)
             if [ `cat "$tmp_path/source_update.log" | egrep -q "^${path#$src_path}"; echo $?` == 0 ]; then
                 updated_packages="$updated_packages $pkg"
@@ -1270,7 +1272,7 @@ echo "- parse updated sources  ..."
 if [ "$action" == "update" ]; then
     if [ $ewk_enabled -eq 1 ] && [ -e "$tmp_path/ewebkit_update.log" ]; then
         ewebkit_updates=$(egrep "^[A|D|G|U] " $tmp_path/ewebkit_update.log | wc -l)
-        [ $ewebkit_updates -gt 0 ] && echo "- ewebkit"
+        [ $ewebkit_updates -gt 0 ] && echo "  - ewebkit"
     else
         ewebkit_updates=0
     fi
