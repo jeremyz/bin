@@ -1091,7 +1091,7 @@ function compile ()
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         cd ..
     elif [ -e "autogen.sh" ]; then
-        if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
+        if [ ! -e "Makefile" ] || [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
             run_command "$name" "$path" "autogen" "autogen: " "$mode"    "sh ./autogen.sh --prefix=$install_path $accache $args"
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         fi
