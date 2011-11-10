@@ -840,7 +840,7 @@ function parse_git_updates ()
         updated_packages=""
         for pkg in $effective_packages; do
             [ "$pkg" == "ewebkit" ] && continue
-            path=$(find_local_path $kpg)
+            path=$(find_local_path $pkg)
             if [ `cat "$tmp_path/source_update.log" | egrep -q "^${path#$src_path}"; echo $?` == 0 ]; then
                 updated_packages="$updated_packages $pkg"
                 echo "  - $pkg"
@@ -993,7 +993,7 @@ function run_command ()
 function find_local_path ()
 {
     name=$1
-    path=$(find $src_path -maxdepth 5 -type d -name $pkg | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" | \
+    path=$(find $src_path -maxdepth 5 -type d -name $name | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" | \
         while read line; do echo `echo $line | wc -c` $line; done | sort -n | head -n 1 | cut -d " " -f 2)
     if [ "$path" ]; then echo "$path"; fi
 }
@@ -1008,7 +1008,7 @@ function compile ()
     if [ "$name" == "ewebkit" ]; then
         path=$ewk_src_path
     else
-        path=`find_local_path $name`
+        path=$(find_local_path $name)
     fi
     if [ ! -d "$path" ]; then
         echo "SOURCEDIR NOT FOUND"
