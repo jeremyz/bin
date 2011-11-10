@@ -49,7 +49,7 @@ bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 e_modules_bin="emprint exalt"
 e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eenvader.fractal elfe empris engage eooorg e-tiling \
 everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
-eweather exalt-client exebuf execwatch flame forecasts iiirk itask itask-ng language mail mem moon mpdule net news notification penguins photo places quickaccess \
+eweather exalt-client exebuf execwatch flame forecasts iiirk itask itask-ng language mail mem moon mpdule net news penguins photo places quickaccess \
 rain screenshot skel slideshow snow taskbar tclock tiling uptime weather winlist-ng winselector wlan xkbswitch"
 
 packages_basic="$efl_basic $bin_basic"
