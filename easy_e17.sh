@@ -192,6 +192,7 @@ function help ()
         echo "      --srcrev=<revision>             = set the default source revision"
         echo "      --asuser                        = do everything as the user, not as root"
         echo "      --no-sudopwd                    = sudo don't need a password..."
+        echo "      --sudopwd                       = provide sudo password"
         echo "  -c, --clean                         = clean the sources before building"
         echo "                                        (more --cleans means more cleaning, up"
         echo "                                        to a maximum of three, which will"
@@ -395,6 +396,7 @@ function parse_args ()
                 ;;
             --asuser)                       asuser=1 ;;
             --no-sudopwd)                   no_sudopwd=1 ;;
+            --sudopwd)                      sudopwd=$value ;;
             -c|--clean)                     clean=$(($clean + 1))    ;;
             -d|--docs)                      gen_docs=1 ;;
             --postscript)                   easy_e17_post_script="$value" ;;
@@ -559,6 +561,13 @@ function check_build_user ()
             sudo -K
             if [ -e "$tmp_path/sudo.test" ]; then
                 rm -f "$tmp_path/sudo.test"
+            fi
+            # check cmdline provided password
+            if [ -n "sudopwd" ]; then
+                echo "$sudopwd" | sudo -S touch "$tmp_path/sudo.test" &>/dev/null
+                if [ ! -e "$tmp_path/sudo.test" ]; then
+                    error "cmdline provided sudo password failed!"
+                fi
             fi
             while [ -z "$sudopwd" ]; do
                 echo -n "enter sudo-password: "
