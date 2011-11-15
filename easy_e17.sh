@@ -563,7 +563,7 @@ function check_build_user ()
                 rm -f "$tmp_path/sudo.test"
             fi
             # check cmdline provided password
-            if [ -n "sudopwd" ]; then
+            if [ -n "$sudopwd" ]; then
                 echo "$sudopwd" | sudo -S touch "$tmp_path/sudo.test" &>/dev/null
                 if [ ! -e "$tmp_path/sudo.test" ]; then
                     error "cmdline provided sudo password failed!"
