@@ -850,7 +850,7 @@ function parse_git_updates ()
         for pkg in $effective_packages; do
             [ "$pkg" == "ewebkit" ] && continue
             path=$(find_local_path $pkg)
-            if [ `cat "$tmp_path/source_update.log" | egrep -q "^${path#$src_path}"; echo $?` == 0 ]; then
+            if [ `cat "$tmp_path/source_update.log" | egrep -q "^${path#$src_path/}"; echo $?` == 0 ]; then
                 updated_packages="$updated_packages $pkg"
                 echo "  - $pkg"
             fi
@@ -1003,7 +1003,7 @@ function find_local_path ()
 {
     name=$1
     re_src_path=$(echo $src_path | sed 's/\//\\\//g')
-    path=$(find $src_path -maxdepth 5 -type d -name $name | sed -e "s/$re_src_path//" | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" | \
+    path=$(find $src_path -maxdepth 5 -type d -name $name | sed -e "s/$re_src_path\///" | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" | \
         while read line; do echo `echo $line | wc -c` $line; done | sort -n | head -n 1 | cut -d " " -f 2)
     if [ "$path" ]; then echo "$src_path/$path"; fi
 }
