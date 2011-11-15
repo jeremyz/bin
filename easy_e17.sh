@@ -1004,7 +1004,7 @@ function find_local_path ()
     name=$1
     re_src_path=$(echo $src_path | sed 's/\//\\\//g')
     path=$(find $src_path -maxdepth 5 -type d -name $name | sed -e "s/$re_src_path\///" | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" | \
-        while read line; do echo `echo $line | wc -c` $line; done | sort -n | head -n 1 | cut -d " " -f 2)
+        while read line; do echo $(echo $line | grep -o '/' | wc -l) $line; done | sort -n | head -n 1 | cut -d " " -f 2)
     if [ "$path" ]; then echo "$src_path/$path"; fi
 }
 
