@@ -1221,9 +1221,7 @@ if [ "$asuser" ] && [ $nice_level -lt 0 ]; then
     nice_level=0
 fi
 # Fix issues with a slash at the end
-if [ ! "${src_path:$((${#src_path}-1)):1}" == "/" ]; then
-    src_path="$src_path/"
-fi
+src_path=$(readlink -f $src_path)
 # quit if some basic option is missing
 if [ -z "$action" ] || [ -z "$install_path" ] || [ -z "$src_path" ]; then
     wrong
