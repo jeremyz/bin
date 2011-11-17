@@ -123,30 +123,31 @@ function open_header ()
 function header ()
 {
     echo -e "\033[1m-----------------------------\033[7m Current Configuration \033[0m\033[1m----------------------------\033[0m"
-    echo "  Config files : $conf_files"
-    echo "  Install path :  $install_path"
-    echo "  Source path  :  $src_path"
-    if [ $git -eq 1 ]; then
-        echo "  Source url   :  $git_url"
-    else
-        echo "  Source url   :  $src_url (Revision: $src_rev)"
-    fi
-    echo "  Source mode  :  $src_mode"
-    echo "  Logs path    :  $logs_path"
     if [ "$linux_distri" ]; then
         echo "  OS           :  $os (Distribution: $linux_distri)"
     else
         echo "  OS           :  $os"
     fi
+    echo "  Config files : $conf_files"
+    echo "  Logs path    :  $logs_path"
+    echo
+    echo " efl e +"
+    if [ $git -eq 1 ]; then
+        echo "  Source url   :  $git_url"
+    else
+        echo "  Source url   :  $src_url (Revision: $src_rev)"
+    fi
+    echo "  Source path  :  $src_path"
+    echo "  Install path :  $install_path"
+    echo "  Source mode  :  $src_mode"
+    if [ "$only" ]; then echo "  Only:            $only"; fi
+    if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
+    echo "  Packages:       $effective_packages"
     echo
     echo " ewebkit"
     echo "  Source url   :  $ewk_src_url (Revision: $ewk_src_rev)"
     echo "  Source path  :  $ewk_src_path"
     echo "  Install path :  $ewk_install_path"
-    echo
-    if [ "$only" ]; then echo "  Only:            $only"; fi
-    if [ "$skip" ]; then echo "  Skipping:        $skip"; fi
-    echo "  Packages:       $effective_packages"
     echo
     if [ -z "$action" ]; then action="MISSING!"; fi
     echo "  Script action:   $action"
