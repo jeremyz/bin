@@ -41,7 +41,7 @@ cmd_svn_update_conflicts_ask="svn update -r"
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
 efl_extra="imlib2 azy emotion ethumb libeweather emap elementary elev8 enlil ensure libast \
-    python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary"
+    python-evas python-ecore python-e_dbus python-edje python-ethumb python-emotion python-elementary shellementary vala"
 bin_basic="exchange e"
 bin_extra="calculator clouseau converter e_phys editje edje_viewer elmdentica elsa emote empower enjoy enki envision \
     ephoto espionnage Eterm eve excessive expedite exquisite eyelight phonebook rage sticky-notes"
