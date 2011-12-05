@@ -53,8 +53,8 @@ bin_extra="calculator clouseau converter e_phys editje edje_viewer elfe elmdenti
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 
 packages_basic="$efl_basic $bin_basic"
-packages_half="$efl_basic $elf_extra $bin_basic $e_modules_bin"
-packages_full="$efl_basic $elf_extra $bin_basic $e_modules_bin $e_modules_extra $bin_extra $bin_games"
+packages_half="$efl_basic $efl_extra $bin_basic $e_modules_bin"
+packages_full="$efl_basic $efl_extra $bin_basic $e_modules_bin $e_modules_extra $bin_extra $bin_games"
 packages=$packages_basic    # default
 src_mode="packages"
 
