@@ -217,7 +217,7 @@ class Attribute
             rl = RELATIONS.find { |r| r.tbl_to==@tbl and r.attr_to.name==@name }
             if rl.nil?
                 $stderr << "MISSING RELATION FOR FOREIGN KEY #{@tbl.name} #{@name}\n"
-                raise Excpetion.new "MISSING RELATION FOR FOREIGN KEY #{@tbl.name} #{@name}\n"
+                raise Exception.new "MISSING RELATION FOR FOREIGN KEY #{@tbl.name} #{@name}\n"
             else
                 r << "integer REFERENCES #{rl.tbl_from.name}(#{rl.attr_from.real_name})"
                 r << " NOT NULL" if not @nullable
@@ -270,7 +270,7 @@ doc.xpath('//dia:object[@type="Database - Table"]').each do |node|
 end
 # DATABASE REFERENCES
 doc.xpath('//dia:object[@type="Database - Reference"]').each do |node|
-    r = Relation.new options
+    r = Relation.new
     r.m_from = node.xpath('dia:attribute[@name="start_point_desc"]/dia:string').first.content[1..-2]
     r.m_to = node.xpath('dia:attribute[@name="end_point_desc"]/dia:string').first.content[1..-2]
     r.tbl_from = DATABASE[node.xpath('dia:connections/dia:connection[@handle="0"]/@to').to_s]
