@@ -59,7 +59,7 @@ packages=$packages_basic    # default
 src_mode="packages"
 
 ignore_dirs_re="/(devs|packaging|plugins|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)"
-ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
+ignore_dirs="devs packaging web DOCS E16 EXAMPLES FORMATTING MARKETING THEMES TEST"
 package_args=""         # evas:make_only,emotion:clean
 autogen_args=""         # evas:--enable-gl-x11
 linux_distri=""         # if your distribution is wrongly detected, define it here
