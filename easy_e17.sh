@@ -22,11 +22,13 @@ src_path="$HOME/e17_src"
 conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 
 ewk_enabled=0
-ewk_src_url="http://svn.webkit.org/repository/webkit/trunk/Source"
+ewk_src_url="http://svn.webkit.org/repository/webkit/trunk" #/Source"
 ewk_src_rev="HEAD"
 ewk_src_path="$HOME/ewebkit_src"
 ewk_install_path="/opt/ewebkit"
 ewk_cmake_cmd="cmake .. -DPORT=Efl -DSHARED_CORE=OFF -DCMAKE_BUILD_TYPE=Release"
+ewk_build_cmd="./Tools/Scripts/build-webkit --efl  --prefix=/opt/ewebkit"
+ewk_build_dir="WebKitBuild/"
 cmake_build_dir="build"
 
 git=0
@@ -1089,18 +1091,22 @@ function compile ()
         fi
     done
     if [ -e "CMakeLists.txt" ]; then
-        mkdir -p $cmake_build_dir 2>/dev/null
-        cd $cmake_build_dir
-        # TOWO $ewk_ is ewebkit specific !!!!!
-        if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
-            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_cmake_cmd -DCMAKE_INSTALL_PREFIX=$ewk_install_path"
-        fi
+#        mkdir -p $cmake_build_dir 2>/dev/null
+#        cd $cmake_build_dir
+#        # TOWO $ewk_ is ewebkit specific !!!!!
+#        if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
+#            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_cmake_cmd -DCMAKE_INSTALL_PREFIX=$ewk_install_path"
+#        fi
+#        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+#        run_command "$name" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
+#        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+#        run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
+#        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        cd "${ewk_build_dir}/Release"
         run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        cd ..
     elif [ -e "autogen.sh" ]; then
         if [ ! -e "Makefile" ] || [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
             run_command "$name" "$path" "autogen" "autogen: " "$mode"    "sh ./autogen.sh --prefix=$install_path $accache $args"
