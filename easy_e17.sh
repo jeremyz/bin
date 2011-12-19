@@ -58,7 +58,7 @@ packages_full="$efl_basic $efl_extra $bin_basic $e_modules_bin $e_modules_extra 
 packages=$packages_basic    # default
 src_mode="packages"
 
-ignore_dirs_re="(devs|packaging|plugins|src|web|DOCS|E16|EXAMPLES|FORMATTING|MARKETING|THEMES|TEST)"
+ignore_dirs_re="^(devs|packaging|plugins|src|web|DOCS|E16|EXAMPLES|FORMATTING|MARKETING|THEMES|TEST)/"
 ignore_dirs="devs packaging web DOCS E16 EXAMPLES FORMATTING MARKETING THEMES TEST"
 package_args=""         # evas:make_only,emotion:clean
 autogen_args=""         # evas:--enable-gl-x11
