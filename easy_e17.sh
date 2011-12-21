@@ -60,8 +60,8 @@ packages_full="$efl_basic $efl_extra $bin_basic $e_modules_bin $e_modules_extra 
 packages=$packages_basic    # default
 src_mode="packages"
 
-ignore_dirs_re="^(devs|packaging|plugins|src|web|DOCS|E16|EXAMPLES|FORMATTING|MARKETING|THEMES|TEST)/"
-ignore_dirs="devs packaging web DOCS E16 EXAMPLES FORMATTING MARKETING THEMES TEST"
+ignore_dirs_re="^(devs|packaging|plugins|src|web|DOCS|E16|FORMATTING|MARKETING|THEMES|TEST)/"
+ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
 package_args=""         # evas:make_only,emotion:clean
 autogen_args=""         # evas:--enable-gl-x11
 linux_distri=""         # if your distribution is wrongly detected, define it here
@@ -1006,8 +1006,14 @@ function find_local_path ()
 {
     name=$1
     re_src_path=$(echo $src_path | sed 's/\//\\\//g')
-    path=$(find $src_path -maxdepth 5 -type d -name $name | sed -e "s/$re_src_path\///" | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" | \
-        while read line; do echo $(echo $line | grep -o '/' | wc -l) $line; done | sort -n | head -n 1 | cut -d " " -f 2)
+    tmpf=$tmp_path/__find_local_path
+    find $src_path -maxdepth 5 -type d -name $name | sed -e "s/$re_src_path\///" | grep -v -E "^${src_path}$" | grep  -v -E "$ignore_dirs_re" > $tmpf
+    if [ $(cat $tmpf | wc -l ) -gt 1 ]; then
+        dirs=$(cat $tmpf | grep -v -E "^EXAMPLES/")
+    else
+        dirs=$(cat $tmpf)
+    fi
+    path=$(echo $dirs | while read line; do echo $(echo $line | grep -o '/' | wc -l) $line; done | sort -n | head -n 1 | cut -d " " -f 2)
     if [ "$path" ]; then echo "$src_path/$path"; fi
 }
 
