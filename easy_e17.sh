@@ -1013,7 +1013,10 @@ function find_local_path ()
     else
         dirs=$(cat $tmpf)
     fi
-    path=$(echo $dirs | while read line; do echo $(echo $line | grep -o '/' | wc -l) $line; done | sort -n | head -n 1 | cut -d " " -f 2)
+    echo " ** SORT" >> $tmpf
+    echo -e "$dirs" | while read line; do echo $(echo $line | grep -o '/' | wc -l) $line; done | sort -n >> $tmpf
+    path=$(echo -e "$dirs" | while read line; do echo $(echo $line | grep -o '/' | wc -l) $line; done | sort -n | head -n 1 | cut -d " " -f 2)
+    echo -e " ** FOUND\n$path" >> $tmpf
     if [ "$path" ]; then echo "$src_path/$path"; fi
 }
 
