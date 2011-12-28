@@ -1363,8 +1363,10 @@ for file in $logs_path/*.log ; do
             packages_skipped="$packages_skipped $pkg"
         else
             if [ -e "$status_path/$pkg.nobuild" ]; then
-                    packages_nobuild="$packages_nobuild $pkg"
-            else    packages_failed="$packages_failed $pkg"; fi
+                packages_nobuild="$packages_nobuild $pkg"
+            else
+                packages_failed="$packages_failed $pkg";
+            fi
         fi
     fi
 done
