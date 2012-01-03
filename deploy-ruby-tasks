@@ -7,6 +7,8 @@ for arg in $@; do
     case "$option" in
         -d|--git-dir) GIT_DIR=$value;;
         -t|--tasks-dir) TASKS_DIR=$value;;
+        -c|--no-create) NO_CREATE=1;;
+        -u|--force-update) FORCE_UPDATE=1;;
         *) GIT_REMOTE=$arg;;
     esac
 done
@@ -14,6 +16,8 @@ done
 GIT_DIR=${GIT_DIR:-$HOME/usr/git}
 TASKS_DIR=${TASKS_DIR:-$GIT_DIR/templates/ruby-gem/tasks}
 DIFF_OPTS=${DIFF_OPTS:--y --suppress-common-lines}
+NO_CREATE=${NO_CREATE:-0}
+FORCE_UPDATE=${ORCE_UPDATE:-0}
 
 RESET="\033[0m"
 RED="\033[0;31m"
@@ -23,20 +27,28 @@ PURPLE="\033[0;35m"
 CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
 
+function copy() {
+    echo -e "  copy ${PURPLE}${1}${RESET} into ${CYAN}${2}${RESET}" && cp ${1} ${2}
+}
+
 function update() {
-    echo -e "\n${BROWN}${1}${RESET} :  ${YELLOW}${2} ${PURPLE}${3}${RESET} differs ..."
-    diff ${DIFF_OPTS} ${3} ${2}
-    read -p "  update it? [yN]" RET
-    if [ "${RET}" = "Y" -o "${RET}" = "y" ]; then
-        cp ${2} ${3}
+    if [ $FORCE_UPDATE -eq 1 ]; then
+        echo -n -e "\n${RED}${1}${RESET} :  " && copy ${2} ${3}
+    else
+        echo -e "\n${RED}${1}${RESET} :  ${PURPLE}${2} ${CYAN}${3}${RESET} differs ..."
+        diff ${DIFF_OPTS} ${3} ${2}
+        read -p "  update it? [yN]" RET
+        if [ "${RET}" = "Y" -o "${RET}" = "y" ]; then
+            copy ${2} ${3}
+        fi
     fi
 }
 
-function copy() {
-    echo -e "\n${BROWN}${1}${RESET} : ${PURPLE}${3}${RESET} does not exists"
+function create() {
+    echo -e "\n${RED}${1}${RESET} : ${CYAN}${3}${RESET} does not exists"
     read -p "  create it? [yN]" RET
     if [ "${RET}" = "Y" -o "${RET}" = "y" ]; then
-        cp ${2} ${3}
+        copy ${2} ${3}
     fi
 }
 
@@ -51,8 +63,8 @@ for gitdir in ${GIT_DIR}; do
             dest="./tasks/${task_file##*/}"
             if [ -e $dest ]; then
                 cmp -s ${task_file} ${dest} || update ${dir} ${task_file} ${dest}
-            else
-                copy ${dir} ${task_file} ${dest}
+            elif [ $NO_CREATE -eq 0 ];then
+                create ${dir} ${task_file} ${dest}
             fi
         done
         echo -e "  leave ${BROWN}${dir}${RESET}\n" && cd .. || exit 1
