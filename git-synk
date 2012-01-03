@@ -1,5 +1,14 @@
 #! /bin/sh
 
+function help() {
+    echo "${0##*/} [drbs] [push|pull] [remote]"
+    echo -e "-d --git-dir       set GIT_DIR"
+    echo -e "-r --git-remote    set GIT_REMOTE"
+    echo -e "-b --git-branch    set GIT_BRANCH"
+    echo -e "-s --use-stash     set USE_STASH"
+    exit 0
+}
+
 for arg in $@; do
     option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
     value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
@@ -11,6 +20,7 @@ for arg in $@; do
         -r|--git-remote) GIT_REMOTE=$value;;
         -b|--git-branch) GIT_BRANCH=$value;;
         -s|--use-stash) USE_STASH=1;;
+        -h|--help) help;;
         *) GIT_REMOTE=$arg;;
     esac
 done
