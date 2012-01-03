@@ -1,5 +1,14 @@
 #! /bin/sh
 
+function help() {
+    echo "${0##*/} [dtcu] "
+    echo -e "\t-d --git-dir         set GIT_DIR"
+    echo -e "\t-t --tasks-dir       set TASKS_DIR"
+    echo -e "\t-c --no-create       set NO_CREATE"
+    echo -e "\t-u --force-update    set FORCE_UPDATE"
+    exit 0
+}
+
 for arg in $@; do
     option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
     value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
@@ -9,7 +18,7 @@ for arg in $@; do
         -t|--tasks-dir) TASKS_DIR=$value;;
         -c|--no-create) NO_CREATE=1;;
         -u|--force-update) FORCE_UPDATE=1;;
-        *) GIT_REMOTE=$arg;;
+        -h|--help) help;;
     esac
 done
 
