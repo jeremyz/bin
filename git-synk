@@ -75,7 +75,7 @@ for gitdir in ${GIT_DIR}; do
                 STASH=1
                 echo -e "${RED}head is not clean, ${CYAN}git stash save${RESET}" && git stash save -q
             else
-                fail "head is not clean, USE_STASH=0 ... " && continue
+                fail "head is not clean, use -s flag to use stash ... " && continue
             fi
         fi
         # PULL
