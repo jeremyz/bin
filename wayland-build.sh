@@ -14,7 +14,9 @@ export WLD LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL C_INCLUDE_PATH LIBRARY_PATH P
 
 BUILD_DIR=${BUILD_DIR:-~/usr/git/wayland}
 FORCE_AUTOGEN=0
+FORCE_DISTCLEAN=0
 for arg in $@; do if [ "$arg" = "-f" ]; then FORCE_AUTOGEN=1; fi; done
+for arg in $@; do if [ "$arg" = "-c" ]; then FORCE_DISTCLEAN=1; fi; done
 
 [ ! -d "$WLD/share/aclocal" ] && sudo mkdir -p "$WLD/share/aclocal"
 
@@ -23,9 +25,13 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 
 function say () { echo -e "$GREEN$1$RESET"; }
+
 function error () { echo -e "${RED}FAILURE${RESET}" && exit 1; }
 
 function build () {
+    if [ $FORCE_DISTCLEAN -eq 1 ]; then
+        say " * make distclean" && make distclean
+    fi
     say " * make" && make && say " * install" && sudo -E make install
 }
 
@@ -63,44 +69,52 @@ my_src=git://anongit.freedesktop.org/wayland/wayland
 my_configure_opts=
 do_your_job
 
-# XCB
-[ ! -d xcb ] && mkdir xcb
-cd xcb
-
-say "cxb:pthread-stubs"
+say "xcb:pthread-stubs"
 my_dir=pthread-stubs
 my_src=git://anongit.freedesktop.org/xcb/pthread-stubs
 my_configure_opts=
 do_your_job
 
-cd ..
-
-# MESA
-[ ! -d mesa ] && mkdir mesa
-cd mesa
-
-say "mesa:drm"
-my_dir=drm
-my_src=git://anongit.freedesktop.org/git/mesa/drm
-my_configure_opts="--enable-nouveau-experimental-api"
-do_your_job
-
-say "mesa:macros"
+say "xorg:util:macros"
 my_dir=macros
-my_src=git://anongit.freedesktop.org/git/xorg/util/macros
+my_src=git://anongit.freedesktop.org/xorg/util/macros
 my_configure_opts=
 do_your_job
 
-say "mesa:glproto"
+#say "xorg:util:macros"
+#my_dir=macros
+#my_src=git://anongit.freedesktop.org/git/xorg/util/macros
+#my_configure_opts=
+#do_your_job
+
+say "xorg:proto:xproto"
+my_dir=xproto
+my_src=git://anongit.freedesktop.org/xorg/proto/xproto
+my_configure_opts=
+do_your_job
+
+say "xorg:proto:kbproto"
+my_dir=kbproto
+my_src=git://anongit.freedesktop.org/xorg/proto/kbproto
+my_configure_opts=
+do_your_job
+
+say "xorg:proto:glproto"
 my_dir=glproto
 my_src=git://anongit.freedesktop.org/xorg/proto/glproto
 my_configure_opts=
 do_your_job
 
-say "mesa:dri2proto"
+say "xorg:proto:dri2proto"
 my_dir=dri2proto
 my_src=git://anongit.freedesktop.org/xorg/proto/dri2proto
 my_configure_opts=
+do_your_job
+
+say "mesa:drm"
+my_dir=drm
+my_src=git://anongit.freedesktop.org/git/mesa/drm
+my_configure_opts="--enable-nouveau-experimental-api"
 do_your_job
 
 say "mesa:mesa"
@@ -109,37 +123,13 @@ my_src=git://anongit.freedesktop.org/mesa/mesa
 my_configure_opts="--enable-gles2 --disable-gallium-egl --with-egl-platforms=x11,wayland,drm --enable-gbm --enable-shared-glapi"
 do_your_job
 
-cd ..
-
-# XORG
-[ ! -d xorg ] && mkdir xorg
-cd xorg
-
-say "xorg:macros"
-my_dir=macros
-my_src=git://anongit.freedesktop.org/xorg/util/macros
-my_configure_opts=
-do_your_job
-
-say "xorg:xproto"
-my_dir=xproto
-my_src=git://anongit.freedesktop.org/xorg/proto/xproto
-my_configure_opts=
-do_your_job
-
-say "xorg:kbproto"
-my_dir=kbproto
-my_src=git://anongit.freedesktop.org/xorg/proto/kbproto
-my_configure_opts=
-do_your_job
-
-say "xorg:libX11"
+say "xorg:lib:libX11"
 my_dir=libX11
 my_src=git://anongit.freedesktop.org/xorg/lib/libX11
 my_configure_opts="--enable-specs=false"
 do_your_job
 
-say "xorg:libxkbcommon"
+say "xorg:lib:libxkbcommon"
 my_dir=libxkbcommon
 my_src=git://people.freedesktop.org/xorg/lib/libxkbcommon.git
 my_configure_opts="--with-xkb-config-root=/usr/share/X11/xkb --enable-specs=false"
@@ -156,8 +146,6 @@ my_dir=cairo
 my_src=git://anongit.freedesktop.org/cairo
 my_configure_opts="--enable-gl --enable-xcb"
 do_your_job
-
-cd ..
 
 # WAYLAND-DEMOS
 say "wayland-demos"
