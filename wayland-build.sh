@@ -51,7 +51,7 @@ function build () {
     if [ $FORCE_DISTCLEAN -eq 1 ]; then
         say " * make distclean" && make distclean
     fi
-    say " * make" && make && say " * install" && echo "$SUDO_PASSWD" | sudo -S -E make install
+    say " * make" && make >/dev/null && say " * install" && echo "$SUDO_PASSWD" | sudo -S -E make install
 }
 
 function autogen () {
