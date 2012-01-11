@@ -43,6 +43,7 @@ if [ ! -e "$TMP" ]; then
 else
     echo "$SUDO_PASSWD" | sudo -S rm -f "$TMP"
 fi
+echo
 
 [ ! -d "$WLD/share/aclocal" ] && echo "$SUDO_PASSWD" | sudo -S mkdir -p "$WLD/share/aclocal"
 
