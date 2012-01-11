@@ -49,7 +49,7 @@ echo
 
 function build () {
     if [ $FORCE_DISTCLEAN -eq 1 ]; then
-        say " * make distclean" && make distclean
+        say " * make distclean" && make distclean >/dev/null
     fi
     say " * make" && make >/dev/null && say " * install" && echo "$SUDO_PASSWD" | sudo -S -E make install
 }
