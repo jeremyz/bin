@@ -15,10 +15,16 @@ export WLD LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL C_INCLUDE_PATH LIBRARY_PATH P
 BUILD_DIR=${BUILD_DIR:-~/usr/git/wayland}
 FORCE_AUTOGEN=0
 FORCE_DISTCLEAN=0
-for arg in $@; do if [ "$arg" = "-f" ]; then FORCE_AUTOGEN=1; fi; done
-for arg in $@; do if [ "$arg" = "-c" ]; then FORCE_DISTCLEAN=1; fi; done
-
-[ ! -d "$WLD/share/aclocal" ] && sudo mkdir -p "$WLD/share/aclocal"
+SUDO_PASSWD=""
+for arg in $@; do
+    option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
+    value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
+    case $option in
+        "-f")   FORCE_AUTOGEN=1;;
+        "-c")   FORCE_DISTCLEAN=1;;
+        "-s")   SUDO_PASSWD=$value;;
+    esac
+done
 
 RESET="\033[0m"
 RED="\033[0;31m"
@@ -26,13 +32,25 @@ GREEN="\033[0;32m"
 
 function say () { echo -e "$GREEN$1$RESET"; }
 
-function error () { echo -e "${RED}FAILURE${RESET}" && exit 1; }
+function error () { echo -e "${RED}FAILURE${RESET} $1" && exit 1; }
+
+sudo -K
+TMP=/tmp/sudo.test
+[ -e "$TMP" ] && rm -f "$TMP"
+echo "$SUDO_PASSWD" | sudo -S touch "$TMP" &>/dev/null
+if [ ! -e "$TMP" ]; then
+    error "cmdline provided sudo password failed!"
+else
+    echo "$SUDO_PASSWD" | sudo -S rm -f "$TMP"
+fi
+
+[ ! -d "$WLD/share/aclocal" ] && echo "$SUDO_PASSWD" | sudo -S mkdir -p "$WLD/share/aclocal"
 
 function build () {
     if [ $FORCE_DISTCLEAN -eq 1 ]; then
         say " * make distclean" && make distclean
     fi
-    say " * make" && make && say " * install" && sudo -E make install
+    say " * make" && make && say " * install" && echo "$SUDO_PASSWD" | sudo -S -E make install
 }
 
 function autogen () {
