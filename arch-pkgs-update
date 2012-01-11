@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 [ $# -lt 1 ] && echo "usage $0 pkg_list (generated with pacman -Q)" && exit 1
 
 tmp=/tmp/__pkgs
