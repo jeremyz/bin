@@ -333,7 +333,7 @@ function read_config_files ()
     # read files
     for file in $conf_files; do
         for option in `cat "$file"`; do
-            conf_options="$conf_options $option"
+            conf_options="$conf_options $(echo "$option" | tr -d '\n')"
         done
     done
     my_args="$conf_options $my_args"
