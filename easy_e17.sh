@@ -332,9 +332,7 @@ function read_config_files ()
     conf_options=""
     # read files
     for file in $conf_files; do
-        for option in `cat "$file"`; do
-            conf_options="$conf_options $(echo "$option" | tr -d '\n')"
-        done
+        conf_options="$conf_options $(cat $file | tr -d '\n')"
     done
     my_args="$conf_options $my_args"
 }
