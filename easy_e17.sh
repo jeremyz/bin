@@ -1044,6 +1044,7 @@ function compile ()
     package_make_only=$make_only
     parse_package_args
     if [ $package_clean -ge 1 ]; then
+        [ -e config.cache ] && rm config.cache
         if [ -e "CMakeLists.txt" ]; then
             if [ $package_clean -eq 1 ]; then
                 cd $cmake_build_dir
