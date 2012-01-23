@@ -1212,6 +1212,7 @@ function build_each ()
             fi
         done
         if [ $must -eq 1 ]; then
+            [ "$pkg" = "azy" ] && echo "$sudopwd" | sudo -S ldconfig
             compile $pkg
         else
             echo "SKIPPED"
