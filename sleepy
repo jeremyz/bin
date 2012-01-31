@@ -1,0 +1,12 @@
+#! /bin/bash
+[ $# -lt 1 ] && echo "missing mandatory argument 'hostname'" && exit 1
+host=$1
+ssh $host "sudo halt" || exit 1
+CPT=0
+while [ ${CPT} -ne 5 ]; do
+    CPT=$((CPT+1))
+    ping -c 1 -W 2 -q $host 2>&1 >/dev/null
+    [ $? -ne 0 ] && echo "sshhh, he's asleep..." && exit 0
+    sleep 5
+done
+echo "$host is still awake!" && exit 1
