@@ -3,7 +3,7 @@
 host=$1
 mac=$2
 CPT=0
-while [ ${CPT} -ne 5 ]; do
+while [ ${CPT} -ne 10 ]; do
     CPT=$((CPT+1))
     wol $mac
     ping -c 1 -W 10 $host 2>&1 >/dev/null
