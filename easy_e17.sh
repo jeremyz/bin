@@ -26,10 +26,9 @@ ewk_src_url="http://svn.webkit.org/repository/webkit/trunk" #/Source"
 ewk_src_rev="HEAD"
 ewk_src_path="$HOME/ewebkit_src"
 ewk_install_path="/opt/ewebkit"
-ewk_cmake_cmd="cmake .. -DPORT=Efl -DSHARED_CORE=OFF -DCMAKE_BUILD_TYPE=Release"
+#ewk_cmake_cmd="cmake .. -DPORT=Efl -DSHARED_CORE=OFF -DCMAKE_BUILD_TYPE=Release"
 ewk_build_cmd="./Tools/Scripts/build-webkit --efl  --prefix=/opt/ewebkit"
-ewk_build_dir="WebKitBuild/"
-cmake_build_dir="build"
+ewk_build_dir="./WebKitBuild/Release"
 
 git=0
 git_url="git@asynk.ch:e"
@@ -42,7 +41,7 @@ cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
 cmd_svn_update_conflicts_ask="svn update -r"
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
-efl_extra="imlib2 azy emotion ethumb libeweather emap elementary elev8 enlil ensure libast \
+efl_extra="imlib2 azy emotion ethumb libeweather emap ewebkit elementary elev8 enlil ensure esskyuehl libast \
     python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary shellementary vala"
 bin_basic="exchange e"
 e_modules_bin="emprint exalt"
@@ -504,7 +503,6 @@ function build_package_list ()
         pkgs=$only
     else
         pkgs=$packages
-        [ $ewk_enabled -eq 1 ] && pkgs="ewebkit $pkgs"
     fi
     for pkg in $pkgs; do
         found=0
@@ -1045,9 +1043,9 @@ function compile ()
     parse_package_args
     if [ $package_clean -ge 1 ]; then
         [ -e config.cache ] && rm config.cache
-        if [ -e "CMakeLists.txt" ]; then
+        if [ "$name" == "ewebkit" ]; then
             if [ $package_clean -eq 1 ]; then
-                cd $cmake_build_dir
+                cd $ewk_build_dir
                 run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
                 if [ ! -e "$status_path/$name.noerrors" ]; then
                     if [ "$skip_errors" ]; then
@@ -1058,7 +1056,7 @@ function compile ()
                 fi
                 cd ..
             elif [ $package_clean -ge 2 ]; then
-                [ -d $cmake_build_dir ] && run_command "$name" "path" "purge" "purge  : " "$mode" "rm -fr $cmake_build_dir"
+                [ -d $ewk_build_dir ] && run_command "$name" "path" "purge" "purge  : " "$mode" "rm -fr $ewk_build_dir"
             fi
         elif [ -e "Makefile" ]; then
             if [ $package_clean -eq 1 ]; then
@@ -1098,21 +1096,10 @@ function compile ()
             args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
         fi
     done
-    if [ -e "CMakeLists.txt" ]; then
-#        mkdir -p $cmake_build_dir 2>/dev/null
-#        cd $cmake_build_dir
-#        # TOWO $ewk_ is ewebkit specific !!!!!
-#        if [ $package_make_only != 1 -o $package_clean -gt 1 ]; then
-#            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_cmake_cmd -DCMAKE_INSTALL_PREFIX=$ewk_install_path"
-#        fi
-#        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-#        run_command "$name" "NOT USED" "build" "build  : " "$mode" "$make -j $threads"
-#        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-#        run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
-#        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    if [ "$name" == "ewebkit" ]; then
         run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        cd "${ewk_build_dir}/Release"
+        cd "${ewk_build_dir}"
         run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
     elif [ -e "autogen.sh" ]; then
@@ -1262,7 +1249,6 @@ if [ ! "$action"  == "srcupdate" ]; then
     mk_dest_dirs
     check_ld_path
 fi
-[ $ewk_enabled -eq 1 ] && packages="ewebkit $packages"
 
 # sources
 open_header "Source checkout/update"
