@@ -5,7 +5,7 @@
 
 OGGOPTS=${OGGOPTS:="-b 192 -q 7"}
 
-sudo cdda2wav -v trackid,titles -P 0 -n 75 -B -O wav dev=/dev/scd0 -L 1 || exit 1
+sudo cdda2wav -v trackid,titles -P 0 -n 75 -B -O wav dev=/dev/sr0 -L 1 || exit 1
 
 DISCID=$(cat audio.cddb | gawk  '/DISCID/ { split($0,a,"="); print a[2]; }')
 ARTIST=$(cat audio.cddb | gawk  '/DTITLE/ { split($0,a,"="); i=index(a[2],"/"); print substr(a[2],0,i-2); }')
