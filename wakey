@@ -6,8 +6,9 @@ CPT=0
 while [ ${CPT} -ne 10 ]; do
     CPT=$((CPT+1))
     wol $mac
-    ping -c 1 -W 10 $host 2>&1 >/dev/null
+    ping -c 1 -W 5 $host 2>&1 >/dev/null
     [ $? -eq 0 ] && break
+    sleep 5
 done
 [ $? -ne 0 ] && echo " he is still asleep !" && exit 1
 echo "$host is up, have fun!"
