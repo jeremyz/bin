@@ -1044,7 +1044,7 @@ function compile ()
     if [ $package_clean -ge 1 ]; then
         [ -e config.cache ] && rm config.cache
         if [ "$name" == "ewebkit" ]; then
-            if [ $package_clean -eq 1 ]; then
+            if [ $package_clean -eq 1 -a -e "$ewk_build_dir" ]; then
                 cd $ewk_build_dir
                 run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
                 if [ ! -e "$status_path/$name.noerrors" ]; then
