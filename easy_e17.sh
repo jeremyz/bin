@@ -1054,7 +1054,7 @@ function compile ()
                         return
                     fi
                 fi
-                cd ..
+                cd "$path"
             elif [ $package_clean -ge 2 ]; then
                 [ -d $ewk_build_dir ] && run_command "$name" "path" "purge" "purge  : " "$mode" "rm -fr $ewk_build_dir"
             fi
