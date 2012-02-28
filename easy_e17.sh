@@ -1097,8 +1097,10 @@ function compile ()
         fi
     done
     if [ "$name" == "ewebkit" ]; then
-        run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
-        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        if [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
+            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
+            if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        fi
         cd "${ewk_build_dir}"
         run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
