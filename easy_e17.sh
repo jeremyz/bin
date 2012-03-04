@@ -132,7 +132,7 @@ function header ()
     echo "  Config files : $conf_files"
     echo "  Logs path    :  $logs_path"
     echo
-    echo " efl e +"
+    echo " efl + e"
     if [ $git -eq 1 ]; then
         echo "  Source url   :  $git_url"
     else
