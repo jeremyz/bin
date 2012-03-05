@@ -32,6 +32,7 @@ ewk_build_dir="./WebKitBuild/Release"
 
 git=0
 git_url="git@asynk.ch:e"
+git_branch="master"
 src_url="http://svn.enlightenment.org/svn/e/trunk"
 src_rev="HEAD"
 cmd_svn_test="svn info"
@@ -134,7 +135,7 @@ function header ()
     echo
     echo " efl e +"
     if [ $git -eq 1 ]; then
-        echo "  Source url   :  $git_url"
+        echo "  Source url   :  $git_url ($git_branch)"
     else
         echo "  Source url   :  $src_url (Revision: $src_rev)"
     fi
@@ -189,6 +190,7 @@ function help ()
         echo "      --instpath=<path>               = change the default install path"
         echo "      --srcpath=<path>                = change the default source path"
         echo "      --srcurl=<url>                  = change the default source url"
+        echo "      --branch=<branch>               = change the default git branch"
         echo "      --srcmode=<packages/full>       = checkout only required package source"
         echo "                                        or simply everthing (huge)"
         echo "      --srcrev=<revision>             = set the default source revision"
@@ -813,6 +815,7 @@ function git_fetch ()
 		set_title "Updating sources in '$src_path' ..."
         echo "- updating sources in '$src_path' ..."
 		cd $src_path
+        git checkout $git_branch || exit 1
         if [ $make_only == 0 ]; then
             echo "- checkout modified files"
             git status -s | grep -e '^ M' | cut -d " " -f 3 | xargs git checkout 2>/dev/null
