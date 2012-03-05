@@ -50,7 +50,7 @@ everything-aspell everything-mpris everything-pidgin everything-places everythin
 eweather exalt-client exebuf execwatch flame forecasts iiirk language mail mem moon mpdule net news penguins photo places quickaccess \
 rain screenshot skel slideshow snow taskbar tclock tiling uptime weather winselector wlan xkbswitch"
 bin_extra="calculator clouseau converter e_phys ecrire editje edje_viewer elfe elmdentica elsa emote empower enjoy enki epdf envision \
-    ephoto espionnage Eterm eve excessive expedite exquisite eyelight phonebook rage sticky-notes"
+    ephoto espionnage Eterm eve excessive exotic expedite exquisite eyelight phonebook rage sticky-notes"
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
 
 packages_basic="$efl_basic $bin_basic"
