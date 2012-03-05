@@ -181,7 +181,7 @@ function help ()
         echo "                                        - full:  simply everything"
         echo
         echo "      --srcupdate                     = update only the sources"
-        echo "      --git                           = use git instead fo svn"
+        echo "      --git                           = use git instead of svn"
         echo "      --help                          = this help"
         echo
         echo -e "  \033[1mOPTIONS:\033[0m"
