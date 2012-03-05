@@ -1280,13 +1280,12 @@ fi
 
 # parse updates
 open_header "Parsing updates"
+ewebkit_updates=0
 echo "- parse updated sources  ..."
 if [ "$action" == "update" ]; then
     if [ $ewk_enabled -eq 1 ] && [ -e "$tmp_path/ewebkit_update.log" ]; then
         ewebkit_updates=$(egrep "^[A|D|G|U] " $tmp_path/ewebkit_update.log | wc -l)
         [ $ewebkit_updates -gt 0 ] && echo "  - ewebkit"
-    else
-        ewebkit_updates=0
     fi
     if [ $git -eq 0 ]; then
         [ -e "$tmp_path/source_update.log" ] && parse_svn_updates
