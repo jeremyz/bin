@@ -41,6 +41,9 @@ cmd_svn_checkout="svn checkout -r "
 cmd_svn_update_conflicts_solve="svn update --accept theirs-full -r"
 cmd_svn_update_conflicts_ask="svn update -r"
 
+cmake_build_dir="build"
+cmake_options=""
+
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje"
 efl_extra="imlib2 azy emotion ethumb libeweather emap ewebkit elementary elev8 enlil ensure esskyuehl libast \
     python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary shellementary vala"
@@ -1061,6 +1064,23 @@ function compile ()
             elif [ $package_clean -ge 2 ]; then
                 [ -d $ewk_build_dir ] && run_command "$name" "path" "purge" "purge  : " "$mode" "rm -fr $ewk_build_dir"
             fi
+        elif [ -e "CMakeLists.txt" ]; then
+            if [ -e "$cmake_build_dir" -a -e "Makefile" ]; then
+                if [ $package_clean -eq 1 ]; then
+                    cd $cmake_build_dir || exit
+                    run_command "$name" "$cmake_build_dir" "clean" "clean  : " "$mode" "$make -j $threads clean"
+                    if [ ! -e "$status_path/$name.noerrors" ]; then
+                        if [ "$skip_errors" ]; then
+                            write_appname "$name" "hidden"    # clean might fail, that's ok
+                        else
+                            return
+                        fi
+                    fi
+                fi
+                if [ $package_clean -ge 1 ]; then
+                    run_command "$name" "$cmake_build_dir" "clean" "clean  : " "$mode" "rm -fr $cmake_build_dir"
+                fi
+            fi
         elif [ -e "Makefile" ]; then
             if [ $package_clean -eq 1 ]; then
                 run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
@@ -1106,6 +1126,17 @@ function compile ()
         fi
         cd "${ewk_build_dir}"
         run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+    elif [ -e "CMakeLists.txt" ]; then
+        if [ ! -e "Makefile" ] || [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
+            [ -e $cmake_build_dir ] || mkdir $cmake_build_dir
+            cd $cmake_build_dir || exit 1
+            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "cmake -DCMAKE_INSTALL_PREFIX=$install_path $cmake_options $args .."
+            if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        fi
+        run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
+        run_command "$name" "$path" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
     elif [ -e "autogen.sh" ]; then
         if [ ! -e "Makefile" ] || [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
