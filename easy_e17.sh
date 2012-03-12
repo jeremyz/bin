@@ -1050,9 +1050,10 @@ function compile ()
     if [ $package_clean -ge 1 ]; then
         [ -e config.cache ] && rm config.cache
         if [ "$name" == "ewebkit" ]; then
-            if [ $package_clean -eq 1 -a -e "$ewk_build_dir" ]; then
+            if [ $package_clean -eq 1 -a -e "$ewk_build_dir" -a -e "$ewk_build_dir/Makefile" ]; then
                 cd $ewk_build_dir
-                run_command "$name" "$path" "clean" "clean  : " "$mode" "$make -j $threads clean"
+                run_command "$name" "$ewk_build_dir" "path" "path:    " "$mode" "pwd"
+                run_command "$name" "$ewk_build_dir" "clean" "clean  : " "$mode" "$make -j $threads clean"
                 if [ ! -e "$status_path/$name.noerrors" ]; then
                     if [ "$skip_errors" ]; then
                         write_appname "$name" "hidden"    # clean might fail, that's ok
@@ -1120,11 +1121,13 @@ function compile ()
         fi
     done
     if [ "$name" == "ewebkit" ]; then
-        if [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
+        if [ $package_make_only != 1 ] || [ $package_clean -gt 1 ] || [ ! -e "$ewk_build_dir/Makefile" ]; then
             run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         fi
         cd "${ewk_build_dir}"
+        run_command "$name" "NOT USED" "make" "make: " "$mode" "$make"
+        if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
     elif [ -e "CMakeLists.txt" ]; then
