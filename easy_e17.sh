@@ -27,7 +27,7 @@ ewk_src_rev="HEAD"
 ewk_src_path="$HOME/ewebkit_src"
 ewk_install_path="/opt/ewebkit"
 #ewk_cmake_cmd="cmake .. -DPORT=Efl -DSHARED_CORE=OFF -DCMAKE_BUILD_TYPE=Release"
-ewk_build_cmd="./Tools/Scripts/build-webkit --efl  --prefix=/opt/ewebkit"
+ewk_build_cmd="./Tools/Scripts/build-webkit --efl --only-webkit --prefix=/opt/ewebkit"
 ewk_build_dir="./WebKitBuild/Release"
 
 git=0
