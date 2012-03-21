@@ -1126,15 +1126,15 @@ function compile ()
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         fi
         cd "${ewk_build_dir}"
-        run_command "$name" "NOT USED" "make" "make: " "$mode" "$make"
+        run_command "$name" "$ewk_build_dir" "make" "make: " "$mode" "$make"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
-        run_command "$name" "NOT USED" "install" "install: " "rootonly" "$make install"
+        run_command "$name" "$ewk_build_dir" "install" "install: " "rootonly" "$make install"
         if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
     elif [ -e "CMakeLists.txt" ]; then
         if [ ! -e "Makefile" ] || [ $package_make_only != 1 ] || [ $package_clean -gt 1 ]; then
             [ -e $cmake_build_dir ] || mkdir $cmake_build_dir
             cd $cmake_build_dir || exit 1
-            run_command "$name" "$path" "cmake" "cmake  : " "$mode" "cmake -DCMAKE_INSTALL_PREFIX=$install_path $cmake_options $args .."
+            run_command "$name" "$cmake_build_dir" "cmake" "cmake  : " "$mode" "cmake -DCMAKE_INSTALL_PREFIX=$install_path $cmake_options $args .."
             if [ ! -e "$status_path/$name.noerrors" ] ; then return ; fi
         fi
         run_command "$name" "$path" "make"    "make:    " "$mode"    "$make -j $threads"
