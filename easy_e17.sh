@@ -21,6 +21,10 @@ src_cache_path="$tmp_path/src_cache"
 src_path="$HOME/e17_src"
 conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 
+ctags_enabled=0
+ctags_file="$HOME/share/ctags/efl.tags"
+ctags_args="-R --c-kinds=+p --fields=+iaS"
+
 ewk_enabled=0
 ewk_src_url="http://svn.webkit.org/repository/webkit/trunk" #/Source"
 ewk_src_rev="HEAD"
@@ -214,6 +218,9 @@ function help ()
         echo "                                        after installation"
         echo "  -e, --skip-errors                   = continue compiling even if there is"
         echo "                                        an error"
+        echo "  -t, --ctags-enabled                 = enable ctags generation"
+        echo "      --ctags-file=<name>             = ctags output (default :$ctags_file)"
+        echo "      --ctags-args=<args>             = ctags arguments (default :$ctags_args)"
         echo "  -w, --wait                          = don't exit the script after finishing,"
         echo "                                        this allows 'xterm -e ./easy_e17.sh -i'"
         echo "                                        without closing the xterm"
@@ -417,7 +424,9 @@ function parse_args ()
             -w|--wait)                      wait=1 ;;
             -n|--disable-notification)      notification_disabled=1 ;;
             -k|--keep)                      keep=1 ;;
-
+            -t|--ctags-enabled)             ctags_enabled=1 ;;
+            --ctags-file)                   ctags_file=$value;;
+            --ctags-args)                   ctags_args=$value;;
             -l|--low)                       nice_level=19 ;;
             --normal) ;;
             -h|--high)                      nice_level=-20 ;;
@@ -1422,6 +1431,12 @@ if [ "$packages_failed" ]; then
     set_notification "critical" "Script finished with build errors"
 else
     set_notification "normal" "Script finished successful"
+fi
+
+if [ $ctags_enabled -eq 1 ]; then
+    open_header " generate ctags"
+    ctags $ctags_args -o $ctags_file $install_path/include
+    echo "- $ctags_file"
 fi
 
 open_header " YEAHAÏY !!"
