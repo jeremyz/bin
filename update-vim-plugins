@@ -1,6 +1,0 @@
-#! /bin/bash
-
-curl -so ~/.vim/autoload/pathogen.vim https://raw.github.com/tpope/vim-pathogen/HEAD/autoload/pathogen.vim
-for f in $HOME/.vim/bundle/*; do
-    echo -en " ${f##*/}\n  " && cd $f && git pull
-done
