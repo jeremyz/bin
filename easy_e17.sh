@@ -55,7 +55,7 @@ bin_basic="exchange e"
 e_modules_bin="emprint exalt"
 e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eenvader.fractal empris engage eooorg e-tiling \
 everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
-eweather exalt-client exebuf execwatch flame forecasts iiirk language mail mem moon mpdule net news penguins photo places quickaccess \
+eweather exalt-client exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news penguins photo places quickaccess \
 rain screenshot skel slideshow snow taskbar tclock tiling uptime weather winselector wlan xkbswitch"
 bin_extra="calculator clouseau converter e_phys ecrire editje edje_viewer elfe elmdentica elsa emote empower enjoy enki epdf envision \
     ephoto espionnage Eterm eve excessive exotic expedite eyelight phonebook rage sticky-notes"
