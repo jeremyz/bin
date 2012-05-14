@@ -49,7 +49,7 @@ echo
 
 function build () {
     if [ $FORCE_AUTOGEN -eq 1 -o ! -e Makefile ]; then
-        say " * autogen --prefix=$WLD $my_configure_opts" && ./autogen.sh --prefix=$WLD $my_configure_opts
+        say " * autogen.sh --prefix=$WLD $my_configure_opts" && ./autogen.sh --prefix=$WLD $my_configure_opts
     fi
     if [ $FORCE_DISTCLEAN -eq 1 ]; then
         say " * make distclean" && make distclean >/dev/null
@@ -74,7 +74,7 @@ function do_your_job () {
     if [ -d "$my_dir" ]; then
         cd "$my_dir" && update && cd .. || error
     else
-        say " * clone $my_src" && git clone "$my_src" "$my_dir" && cd "$my_dir" && autogen && cd .. || error
+        say " * clone $my_src" && git clone "$my_src" "$my_dir" && cd "$my_dir" && build && cd .. || error
     fi
 }
 
@@ -84,6 +84,13 @@ cd $BUILD_DIR || exit 1
 say "wayland"
 my_dir=wayland
 my_src=git://anongit.freedesktop.org/wayland/wayland
+my_configure_opts=
+do_your_job
+
+# WESTON
+say "weston"
+my_dir=weston
+my_src=git://anongit.freedesktop.org/wayland/weston
 my_configure_opts=
 do_your_job
 
