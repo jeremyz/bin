@@ -49,7 +49,7 @@ cmake_build_dir="build"
 cmake_options=""
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas_generic_loaders emotion ethumb emap ewebkit elementary"
-efl_extra="imlib2 azy libeweather elev8 enlil ensure esskyuehl libast \
+efl_extra="imlib2 azy libeweather efx elev8 enlil ensure eobj esskyuehl libast \
     python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary shellementary vala"
 bin_basic="exchange e"
 e_modules_bin="emprint exalt"
