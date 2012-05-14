@@ -32,14 +32,16 @@ GREEN="\033[0;32m"
 
 function say () { echo -e "$GREEN$1$RESET"; }
 
-function error () { echo -e "${RED}FAILURE${RESET} $1" && exit 1; }
+function abort () { echo -e "${RED}ABORT${RESET} $1" && exit 1; }
+
+function error () { echo -e "${RED}FAILURE${RESET} $1"; }
 
 sudo -K
 TMP=/tmp/sudo.test
 [ -e "$TMP" ] && rm -f "$TMP"
 echo "$SUDO_PASSWD" | sudo -S touch "$TMP" &>/dev/null
 if [ ! -e "$TMP" ]; then
-    error "cmdline provided sudo password failed!"
+    abort "cmdline provided sudo password failed!"
 else
     echo "$SUDO_PASSWD" | sudo -S rm -f "$TMP"
 fi
@@ -74,7 +76,6 @@ function do_your_job () {
     else
         say " * clone $my_src" && git clone "$my_src" "$my_dir" && cd "$my_dir" && autogen && cd .. || error
     fi
-    say " * SUCCESS\n"
 }
 
 cd $BUILD_DIR || exit 1
