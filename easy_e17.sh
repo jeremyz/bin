@@ -1070,7 +1070,6 @@ function compile ()
                         return
                     fi
                 fi
-                cd "$path"
             elif [ $package_clean -ge 2 ]; then
                 [ -d $ewk_build_dir ] && run_command "$name" "path" "purge" "purge  : " "$mode" "rm -fr $ewk_build_dir"
             fi
@@ -1446,6 +1445,7 @@ echo " and feed /etc/profile.d/e17.sh with:"
 echo "    export E17DIR=$install_path"
 echo "    export PATH=\$PATH:\$E17DIR/bin"
 echo "    export PKG_CONFIG_PATH=\$PKG_CONFIG_PATH:\$E17DIR/lib/pkgconfig"
+echo "    export XDG_DATA_DIRS=\$XDG_DATA_DIRS:\$E17_DIR/share"
 echo
 echo " and type $ chmod a+x /etc/profile.d/e17.sh"
 echo
