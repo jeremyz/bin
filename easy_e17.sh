@@ -53,10 +53,10 @@ efl_extra="imlib2 azy libeweather efx elev8 enlil ensure eobj esskyuehl libast \
     python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary shellementary vala"
 bin_basic="exchange e"
 e_modules_bin="emprint exalt"
-e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eenvader.fractal empris engage eooorg e-tiling \
+e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eenvader.fractal empris engage eooorg \
 everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
 eweather exalt-client exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news penguins photo places quickaccess \
-rain screenshot skel slideshow snow taskbar tclock tiling uptime weather winselector wlan"
+rain screenshot skel slideshow snow taskbar tclock uptime weather winselector wlan"
 bin_extra="calculator clouseau converter ephysics ecrire editje edje_viewer elfe elmdentica elsa emote empower enjoy enki epdf envision \
     ephoto espionnage Eterm eve excessive exotic expedite eyelight phonebook rage sticky-notes terminology"
 bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
