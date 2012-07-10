@@ -1438,7 +1438,7 @@ if [ $ctags_enabled -eq 1 ]; then
     echo "- $ctags_file"
 fi
 
-open_header " YEAHAÏY !!"
+open_header "  YEAAAH  !!"
 echo
 echo " you might like to type $ sudo ln -s $install_path/share/xsessions/enlightenment.desktop /usr/share/xsessions/"
 echo " and feed /etc/profile.d/e17.sh with:"
