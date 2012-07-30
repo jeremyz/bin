@@ -48,22 +48,22 @@ cmd_svn_update_conflicts_ask="svn update -r"
 cmake_build_dir="build"
 cmake_options=""
 
-efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas_generic_loaders emotion ethumb emap ewebkit elementary"
-efl_extra="imlib2 azy libeweather efx elev8 enlil ensure eobj esskyuehl etam libast \
-    python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary shellementary vala"
-bin_basic="exchange e"
-e_modules_bin="emprint exalt"
-e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eenvader.fractal empris engage eooorg \
+efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas_generic_loaders emotion ethumb emap libeweather elementary"
+efl_extra="azy clouseau efx enlil ensure eobj ephysics epulse esskyuehl etam exactness libast shellementary"
+efl_bindings="elev8 python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary vala"
+bin_basic="e terminology"
+e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eektool eenvader.fractal empris engage eooorg \
 everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
-eweather exalt-client exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news penguins photo places quickaccess \
-rain screenshot skel slideshow snow taskbar tclock uptime weather winselector wlan"
-bin_extra="calculator clouseau converter ephysics ecrire editje edje_viewer elfe elmdentica elsa emote empower enjoy enki epdf envision \
-    ephoto espionnage Eterm eve excessive exotic expedite eyelight phonebook rage sticky-notes terminology"
-bin_games="eblock e_cho econcentration eskiss e-type minesweeper ninestime"
+eweather exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news penguins photo places quickaccess \
+rain rmb screenshot skel slideshow snow taskbar tclock uptime weather winlist-ng winselector wlan"
+# itask itask-ng
+bin_proto="ardy calculator converter ecrire econnman editje edje_viewer edvi ekbd elfe elmdentica elsa email emote empower emprint enjoy enki envision \
+epdf eps ephoto equate espionnage Eterm eve exactness exalt exalt-client exchange expedite eyelight eyesight phonebook rage sticky-notes vigrid"
+bin_games="eblock e_cho econcentration ehidden_ninjas eskiss e-type"
 
 packages_basic="$efl_basic $bin_basic"
-packages_half="$efl_basic $efl_extra $bin_basic $e_modules_bin"
-packages_full="$efl_basic $efl_extra $bin_basic $e_modules_bin $e_modules_extra $bin_extra $bin_games"
+packages_half="$efl_basic $efl_extra $bin_basic"
+packages_full="$efl_basic $efl_extra $efl_bindings $bin_basic $e_modules_extra $bin_proto $bin_games"
 packages=$packages_basic    # default
 src_mode="packages"
 
