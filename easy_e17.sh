@@ -50,7 +50,7 @@ cmake_options=""
 
 efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas_generic_loaders emotion ethumb emap libeweather elementary"
 efl_extra="azy clouseau efx enlil ensure eobj ephysics epulse esskyuehl etam exactness libast shellementary"
-efl_bindings="elev8 python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary vala"
+efl_bindings="elev8 python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary vala eflxx einaxx eetxx evasxx ecorexx edjexx emotionxx elementaryxx"
 bin_basic="e terminology"
 e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eektool eenvader.fractal empris engage eooorg \
 everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
