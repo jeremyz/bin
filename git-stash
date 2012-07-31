@@ -1,0 +1,25 @@
+#! /bin/bash
+#
+# very clever trick found there https://github.com/sitaramc/git-notes/blob/master/2-command-line-usage/git-tasks.mkd
+#
+# initial values: R (repo), I (index), C (changed), and U (untracked)
+# notation: repo contents/index contents/work tree contents
+#
+option=${1:-""}
+if [ "$option" = "-u" ] ; then
+    echo -e "\033[0;31mgit un-stash\033[0m"
+    # now RICU/RICU/RICU
+    git reset --mixed HEAD^ # repo=index=R+I
+    # now RI/RI/RICU; moved HEAD and index back one step
+    git reset --soft HEAD^
+    # now R/RI/RICU; moved HEAD back one more step
+else
+    echo -e "\033[0;31mgit stash\033[0m"
+    # R/RI/RICU; start
+    git commit --allow-empty -m wip-index-state
+    # now RI/RI/RICU; pushed index onto repo
+    git add -A && git commit --allow-empty -m wip-worktree-state
+    # now RICU/RICU/RICU; pushed C/U files onto repo
+    #   ... switch branch, work work work, commit ...
+    #   now you want to get back to the saved state
+fi
