@@ -72,6 +72,7 @@ ignore_dirs_re="^(devs|packaging|plugins|src|web|DOCS|E16|FORMATTING|MARKETING|T
 ignore_dirs="devs packaging web DOCS E16 FORMATTING MARKETING THEMES TEST"
 package_args=""         # evas:make_only,emotion:clean
 autogen_args=""         # evas:--enable-gl-x11
+autogen_global=""       # --disable-doc
 linux_distri=""         # if your distribution is wrongly detected, define it here
 nice_level=0            # nice level (19 == low, -20 == high)
 os=$(uname)             # operating system
@@ -241,6 +242,8 @@ function help ()
         echo "                                        ccache if available"
         echo "      --threads=<int>                 = 'make' can use threads, recommended on"
         echo "                                        smp systems (default: 2 threads)"
+        echo "      --autogen_global=<o1>+<o2>,.    = pass some options to autogen:"
+        echo "                                        <opt1>+<opt2>"
         echo "      --autogen_args=<n1>:<o1>+<o2>,. = pass some options to autogen:"
         echo "                                        <name1>:<opt1>+<opt2>,<name2>:<opt1>+..."
         echo "      --package_args=<n1>:<o1>+<o2>,. = pass package specific options:"
@@ -450,6 +453,12 @@ function parse_args ()
                     wrong "Missing value for argument '$option'!"
                 fi
                 autogen_args="$value"
+                ;;
+            --autogen_global)
+                if [ -z "$value" ]; then
+                    wrong "Missing value for argument '$option'!"
+                fi
+                autogen_global="$value"
                 ;;
             --package_args)
                 if [ -z "$value" ]; then
@@ -1129,6 +1138,7 @@ function compile ()
             args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
         fi
     done
+    args="$args $autogen_global"
     if [ "$name" == "ewebkit" ]; then
         if [ $package_make_only != 1 ] || [ $package_clean -gt 1 ] || [ ! -e "$ewk_build_dir/Makefile" ]; then
             run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
