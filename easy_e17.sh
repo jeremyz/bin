@@ -1308,6 +1308,8 @@ if [ ! "$action"  == "srcupdate" ]; then
     check_ld_path
 fi
 
+start_time=$(date '+%s')
+
 # sources
 open_header "Source checkout/update"
 if [ -z "$skip_srcupdate" ]; then
@@ -1449,7 +1451,15 @@ if [ $ctags_enabled -eq 1 ]; then
     echo "- $ctags_file"
 fi
 
+end_time=$(date '+%s')
+dt=$((end_time - start_time))
+ds=$((dt % 60))
+dm=$(((dt / 60) % 60))
+dh=$((dt / 3600))
+
 open_header "  YEAAAH  !!"
+echo
+printf ' job accomplished in %d:%02d:%02d\n' $dh $dm $ds
 echo
 echo " you might like to type $ sudo ln -s $install_path/share/xsessions/enlightenment.desktop /usr/share/xsessions/"
 echo " and feed /etc/profile.d/e17.sh with:"
