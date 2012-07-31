@@ -58,7 +58,8 @@ eweather exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news pe
 rain rmb screenshot skel slideshow snow taskbar tclock uptime weather winlist-ng winselector wlan"
 # itask itask-ng
 bin_proto="ardy calculator converter ecrire econnman editje edje_viewer edvi ekbd elfe elmdentica elsa email emote empower emprint enjoy enki envision \
-epdf eps ephoto equate espionnage Eterm eve exactness exalt exalt-client exchange expedite eyelight eyesight phonebook rage sticky-notes vigrid"
+epdf eps ephoto equate espionnage eve exactness exalt exalt-client exchange expedite eyelight eyesight phonebook rage sticky-notes vigrid"
+# Eterm
 bin_games="eblock e_cho econcentration ehidden_ninjas eskiss e-type"
 
 packages_basic="$efl_basic $bin_basic"
