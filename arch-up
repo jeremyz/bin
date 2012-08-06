@@ -1,0 +1,81 @@
+#! /bin/bash
+RESET="\033[0m"
+RED="\033[0;31m"
+CYAN="\033[0;36m"
+
+test $# -gt 0  || exit 1
+
+PASSWD=$1
+shift
+ARGS=$@
+
+function run() {
+    echo -e "$CYAN $1 $RESET" && $1
+}
+
+function sudo_run() {
+    echo -e "$RED sudo$CYAN $1 $RESET" && sudo $1
+}
+
+function update_gem() {
+    run "/usr/bin/gem update"
+    run "/usr/bin/gem clean"
+    run "/opt/ruby1.8/bin/gem update"
+    run "/opt/ruby1.8/bin/gem clean"
+}
+
+function update_pacman() {
+    sudo_run "pacman -Syu"
+    sudo_run "pacman -Scc --noconfirm"
+    run "du -sh /var/cache/pacman/pkg"
+    run "aurget -Syu"
+}
+
+function update_makepkg () {
+    pkg=$1
+    src_dir=$2
+    base=~/local
+    if [ -d $base/$pkg/src/$src_dir ]; then
+        echo -e "$CYAN update $pkg $RESET"
+        cd $base/$pkg/src/$src_dir
+        if [ $(git pull | grep Already | wc -l) -ne 0 ]; then
+            echo "$pkg is Already up-to-date"
+        else
+            cd $base/$pkg/
+            rm *.pkg.tar.xz 2>/dev/null
+            makepkg && sudo_run "pacman -Uf --noconfirm $pkg*.pkg.tar.xz"
+        fi
+    else
+        echo "~/local/$pkg/src/$src_dir does not exists"
+    fi
+}
+
+function update_e17() {
+    run "e17_build.sh -u -m --sudopwd=$PASSWD $@"
+    sudo_run "find /opt/e17 -mtime +30 ! -type d -exec rm '{}' \;"
+    if [ -e ~/local/eperiodique ]; then
+        cd ~/local/eperiodique
+        if [ $(git pull | grep Already | wc -l) -ne 1 ]; then
+            echo "update eperiodique" && ./autogen.sh --prefix=/usr >/dev/null && make >/dev/null && sudo make install >/dev/null
+        fi
+    fi
+    echo "push e17 to HMSA"
+    cd ~/local/e17_src && git push hmsa
+}
+
+function check_etc_git() {
+    [ -e /etc/.git ] || return
+    run "cd /etc"
+    sudo_run "git status"
+}
+
+update_pacman
+update_gem
+update_makepkg "libxkbcommon-git" "libxkbcommon"
+update_makepkg "pixman-git" "pixman"
+update_makepkg "cairo-gl-git" "cairo"
+update_makepkg "wayland-git" "wayland"
+update_makepkg "weston-git" "weston"
+update_e17
+check_etc_git
+
