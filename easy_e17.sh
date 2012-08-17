@@ -48,7 +48,7 @@ cmd_svn_update_conflicts_ask="svn update -r"
 cmake_build_dir="build"
 cmake_options=""
 
-efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas_generic_loaders emotion ethumb emap libeweather elementary"
+efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas_generic_loaders emotion ethumb emap libeweather elementary expedite"
 efl_extra="azy clouseau efx enlil ensure eobj ephysics epulse esskyuehl etam exactness libast shellementary"
 efl_bindings="elev8 python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary vala eflxx einaxx eetxx evasxx ecorexx edjexx emotionxx elementaryxx"
 bin_basic="e terminology"
@@ -58,7 +58,7 @@ eweather exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news pe
 rain rmb screenshot skel slideshow snow taskbar tclock uptime weather winlist-ng winselector wlan"
 # itask itask-ng
 bin_proto="ardy calculator converter ecrire econnman editje edje_viewer edvi ekbd elfe elmdentica email emote empower emprint enjoy enki entrance envision \
-epdf eps ephoto equate espionnage eve exactness exalt exalt-client exchange expedite eyelight eyesight phonebook rage shotgun sticky-notes vigrid"
+epdf eps ephoto equate espionnage eve exactness exalt exalt-client exchange eyelight eyesight phonebook rage shotgun sticky-notes vigrid"
 # Eterm
 bin_games="eblock e_cho econcentration ehidden_ninjas eskiss e-type"
 
