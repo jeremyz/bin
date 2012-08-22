@@ -19,6 +19,7 @@ logs_path="$tmp_path/install_logs"
 status_path="$tmp_path/status"
 src_cache_path="$tmp_path/src_cache"
 src_path="$HOME/e17_src"
+src_patch_path="local_patches"
 conf_files="/etc/easy_e17.conf $HOME/.easy_e17.conf $PWD/.easy_e17.conf"
 
 ctags_enabled=0
@@ -1360,6 +1361,13 @@ elif [ "$action" == "install" ]; then
     updated_packages=$effective_packages
 fi
 pkg_total=`echo "$updated_packages" | wc -w`
+
+# patches
+open_header "Apply local patches"
+cd $src_path
+for patch in $(ls -1 $src_patch_path); do
+    echo " - apply $patch" && patch -p 1 < $src_patch_path/$patch
+done
 
 # build/install
 open_header "Compilation & installation"
