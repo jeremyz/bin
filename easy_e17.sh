@@ -1366,7 +1366,7 @@ pkg_total=`echo "$updated_packages" | wc -w`
 open_header "Apply local patches"
 cd $src_path
 for patch in $(ls -1 $src_patch_path); do
-    echo " - apply $patch" && patch -p 1 < $src_patch_path/$patch
+    echo " - apply $patch" && patch -p 1 -N -r - < $src_patch_path/$patch
 done
 
 # build/install
