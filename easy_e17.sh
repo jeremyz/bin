@@ -35,7 +35,7 @@ ewk_build_cmd="./Tools/Scripts/build-webkit --efl --only-webkit --prefix=/opt/ew
 ewk_build_dir="./WebKitBuild/Release"
 
 git=0
-git_url="git@asynk.ch:e"
+git_url="git://asynk.ch/e.git"
 git_branch="master"
 src_url="http://svn.enlightenment.org/svn/e/trunk"
 src_rev="HEAD"
