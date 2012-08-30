@@ -52,7 +52,7 @@ function update_makepkg () {
 
 function update_e17() {
     run "easy_e17.sh -u -m --sudopwd=$PASSWD $@"
-    sudo_run "find /opt/e17 -mtime +30 ! -type d -exec rm '{}' \;"
+    # sudo_run "find /opt/e17 -mtime +30 ! -type d -exec rm '{}' \;"
     if [ -e ~/local/eperiodique ]; then
         cd ~/local/eperiodique
         if [ $(git pull | grep Already | wc -l) -ne 1 ]; then
