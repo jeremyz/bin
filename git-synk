@@ -67,7 +67,7 @@ for gitdir in ${GIT_DIR}; do
             fail "KO" && continue
         fi
         # GC + CLEAN
-        echo -ne "    ${CYAN}clean$RESET ... " && git prune && git gc --quiet && git repack >/dev/null && git diff --quiet && success
+        echo -ne "    ${CYAN}clean$RESET ... " && git gc --prune --quiet && git repack >/dev/null && git diff --quiet && success
         if [ $? -ne 0 ]; then
             if [ "$action" = "push" ]; then
                 success "dirty but "
