@@ -87,7 +87,7 @@ for gitdir in ${GIT_DIR}; do
             fi
         fi
         # PUSH
-        if [ "$action" != "pull" ] ; then
+        if [ "${GIT_REMOTE}" != "origin" -a "$action" != "pull" ] ; then
             echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
                 git push ${GIT_REMOTE} ${GIT_BRANCH} 2>/dev/null && success
             if [ $? -ne 0 ]; then
