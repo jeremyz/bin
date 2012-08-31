@@ -65,7 +65,7 @@ function check_etc_git() {
     [ -e /etc/.git ] || return
     run "cd /etc"
     sudo_run "git status"
-    find . -name *.pacnew
+    sudo_run "find . -name *.pacnew"
 }
 
 update_pacman
