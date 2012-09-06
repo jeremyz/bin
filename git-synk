@@ -6,6 +6,7 @@ function help() {
     echo -e "-r --git-remote    set GIT_REMOTE"
     echo -e "-b --git-branch    set GIT_BRANCH"
     echo -e "-s --use-stash     set USE_STASH"
+    echo -e "-c --clean         set USE_GC"
     exit 0
 }
 
@@ -29,6 +30,8 @@ GIT_DIR=${GIT_DIR:-$HOME/usr/git}
 GIT_REMOTE=${GIT_REMOTE:-origin}
 GIT_BRANCH=${GIT_BRANCH:-master}
 USE_STASH=${USE_STASH:-0}
+STASH=0
+USE_GC=${USE_GC:-0}
 
 RESET="\033[0m"
 RED="\033[0;31m"
@@ -46,58 +49,62 @@ function fail() {
     echo -e "${RED}$1 ${RESET}${CYAN}leave${RESET}\n" && cd ..
 }
 
+function search_remote() {
+    echo -ne "    ${CYAN}search remote${RESET}: ${YELLOW}${GIT_REMOTE}${RESET} ... " && \
+        git remote show ${GIT_REMOTE} >/dev/null 2>&1 && success && return 0
+    [ $? -ne 0 ] && fail "remote not found" && return 1
+}
+
+function checkout_branch() {
+    echo -ne "    ${CYAN}checkout branch ${YELLOW}${GIT_BRANCH}${RESET} ... " && \
+        git branch | grep -q -e " ${GIT_BRANCH}\$" && git checkout -q ${GIT_BRANCH} 2>/dev/null && success && return 0
+    [ $? -ne 0 ] && fail "KO" && return 1
+}
+
+function gc() {
+    [ $USE_GC -eq 0 ] && return 0
+    echo -ne "    ${CYAN}clean$RESET ... " && git gc --prune --quiet && git repack >/dev/null && git diff --quiet && success
+    [ $? -eq 0 ] && return 0
+    if [ "$action" = "push" ]; then
+        success "dirty but "
+    elif [ $USE_STASH -eq 1 ]; then
+        STASH=1
+        echo -e "${RED}head is not clean, ${CYAN}git stash save${RESET}" && git stash save -q
+    else
+        fail "head is not clean, use -s flag to use stash ... " && return 1
+    fi
+    return 0
+}
+
+function pull() {
+    [ "$action" = "push" ] && return 0
+    echo -ne "    ${CYAN}pull${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
+        git pull -q ${GIT_REMOTE} ${GIT_BRANCH} && success && return 0
+    [ $? -ne 0 ] && fail "KO" && return 1
+}
+
+function push() {
+    [ "${GIT_REMOTE}" = "origin" -o "$action" = "pull" ] && return 0
+    echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
+        git push ${GIT_REMOTE} ${GIT_BRANCH} 2>/dev/null && success
+    [ $? -ne 0 ] && fail "KO" && return 1
+    [ $STASH -eq 1 ] && echo -e "    ${RED}was not clean, ${CYAN}git stash pop${RESET}" && git stash pop -q
+    # TODO check success
+}
+
 echo -e "remote:${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} USE_STASH=${RED}${USE_STASH}${RESET}"
 for gitdir in ${GIT_DIR}; do
     echo -e "enter ${BROWN}${gitdir}${RESET}" && cd ${gitdir} || return 1
     for dir in $(ls -1); do
         STASH=0
         [ -d ${dir} ] && [ -e ${dir}/.git/config ] || continue
-        # SEARCH REMOTE
         echo -e "  enter ${BROWN}${dir}${RESET}" && cd $dir || exit 1
-        echo -ne "    ${CYAN}search remote${RESET}: ${YELLOW}${GIT_REMOTE}${RESET} ... " && \
-            git remote show ${GIT_REMOTE} >/dev/null 2>&1
-        if [ $? -ne 0 ]; then
-            fail "remote not found" && continue
-        fi
-        success
-        # CHECKOUT
-        echo -ne "    ${CYAN}checkout branch $YELLOW$GIT_BRANCH$RESET ... " && \
-            git branch | grep -q -e " ${GIT_BRANCH}\$" && git checkout -q ${GIT_BRANCH} 2>/dev/null && success
-        if [ $? -ne 0 ]; then
-            fail "KO" && continue
-        fi
-        # GC + CLEAN
-        echo -ne "    ${CYAN}clean$RESET ... " && git gc --prune --quiet && git repack >/dev/null && git diff --quiet && success
-        if [ $? -ne 0 ]; then
-            if [ "$action" = "push" ]; then
-                success "dirty but "
-            elif [ $USE_STASH -eq 1 ]; then
-                STASH=1
-                echo -e "${RED}head is not clean, ${CYAN}git stash save${RESET}" && git stash save -q
-            else
-                fail "head is not clean, use -s flag to use stash ... " && continue
-            fi
-        fi
-        # PULL
-        if [ "$action" != "push" ] ; then
-            echo -ne "    ${CYAN}pull${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
-                git pull -q ${GIT_REMOTE} ${GIT_BRANCH} && success
-            if [ $? -ne 0 ]; then
-                fail "KO" && continue
-            fi
-        fi
-        # PUSH
-        if [ "${GIT_REMOTE}" != "origin" -a "$action" != "pull" ] ; then
-            echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
-                git push ${GIT_REMOTE} ${GIT_BRANCH} 2>/dev/null && success
-            if [ $? -ne 0 ]; then
-                fail "KO" && continue
-            fi
-        fi
-        if [ $STASH -eq 1 ]; then
-            echo -e "    ${RED}was not clean, ${CYAN}git stash pop${RESET}" && git stash pop -q
-        fi
-        echo -e "  leave ${BROWN}${dir}${RESET}\n" && cd .. || exit 1
+        search_remote || continue
+        checkout_branch || continue
+        gc || continue
+        pull || continue
+        push || continue
+        echo -e "  leave ${BROWN}${dir}${RESET}\n" && cd ..
     done
     echo -e "leave ${BROWN}${gitdir}${RESET}"
 done
