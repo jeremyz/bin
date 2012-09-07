@@ -3,12 +3,6 @@ RESET="\033[0m"
 RED="\033[0;31m"
 CYAN="\033[0;36m"
 
-test $# -gt 0  || exit 1
-
-PASSWD=$1
-shift
-ARGS=$@
-
 function run() {
     echo -e "$CYAN $1 $RESET" && $1
 }
@@ -20,14 +14,14 @@ function sudo_run() {
 function update_gem() {
     run "/usr/bin/gem update"
     run "/usr/bin/gem clean"
-    run "/opt/ruby1.8/bin/gem update"
-    run "/opt/ruby1.8/bin/gem clean"
+    # run "/opt/ruby1.8/bin/gem update"
+    # run "/opt/ruby1.8/bin/gem clean"
 }
 
-function update_pacman() {
+function update_pkgs() {
     sudo_run "pacman -Syu"
     sudo_run "pacman -Scc --noconfirm"
-    run "du -sh /var/cache/pacman/pkg"
+    sudo_run "rm /var/cache/pacman/pkg/*"
     run "aurget -Syu"
 }
 
@@ -64,17 +58,7 @@ function update_e17() {
 function check_etc_git() {
     [ -e /etc/.git ] || return
     run "cd /etc"
-    sudo_run "git status"
     sudo_run "find . -name *.pacnew"
+    sudo_run "git status"
 }
-
-update_pacman
-update_gem
-update_makepkg "libxkbcommon-git" "libxkbcommon"
-update_makepkg "pixman-git" "pixman"
-update_makepkg "cairo-gl-git" "cairo"
-update_makepkg "wayland-git" "wayland"
-update_makepkg "weston-git" "weston"
-update_e17
-check_etc_git
 
