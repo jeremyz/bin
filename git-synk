@@ -46,7 +46,7 @@ function success() {
 }
 
 function fail() {
-    echo -e "${RED}$1 ${RESET}${CYAN}leave${RESET}\n" && cd ..
+    echo -e "${RED}$1 ${RESET}${CYAN}leave${RESET}\n"
 }
 
 function search_remote() {
@@ -96,6 +96,7 @@ echo -e "remote:${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} US
 for gitdir in ${GIT_DIR}; do
     echo -e "enter ${BROWN}${gitdir}${RESET}" && cd ${gitdir} || return 1
     for dir in $(ls -1); do
+        cd ${gitdir}
         STASH=0
         [ -d ${dir} ] && [ -e ${dir}/.git/config ] || continue
         echo -e "  enter ${BROWN}${dir}${RESET}" && cd $dir || exit 1
@@ -104,7 +105,7 @@ for gitdir in ${GIT_DIR}; do
         gc || continue
         pull || continue
         push || continue
-        echo -e "  leave ${BROWN}${dir}${RESET}\n" && cd ..
+        echo -e "  leave ${BROWN}${dir}${RESET}\n"
     done
     echo -e "leave ${BROWN}${gitdir}${RESET}"
 done
