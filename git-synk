@@ -2,7 +2,7 @@
 
 function help() {
     echo "${0##*/} [drbs] [push|pull] [remote]"
-    echo -e "-d --git-dir       set GIT_DIR"
+    echo -e "-p --repos-paths    set REPOS_PATHS"
     echo -e "-r --git-remote    set GIT_REMOTE"
     echo -e "-b --git-branch    set GIT_BRANCH"
     echo -e "-s --use-stash     set USE_STASH"
@@ -17,7 +17,7 @@ for arg in $@; do
     case "$option" in
         pull) action="pull";;
         push) action="push";;
-        -d|--git-dir) GIT_DIR=$value;;
+        -p|--repos-paths) REPOS_PATHS=$value;;
         -r|--git-remote) GIT_REMOTE=$value;;
         -b|--git-branch) GIT_BRANCH=$value;;
         -s|--use-stash) USE_STASH=1;;
@@ -26,7 +26,7 @@ for arg in $@; do
     esac
 done
 
-GIT_DIR=${GIT_DIR:-$HOME/usr/git}
+REPOS_PATHS=${REPOS_PATHS:-$HOME/usr/git}
 GIT_REMOTE=${GIT_REMOTE:-origin}
 GIT_BRANCH=${GIT_BRANCH:-master}
 USE_STASH=${USE_STASH:-0}
@@ -93,10 +93,10 @@ function push() {
 }
 
 echo -e "remote:${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} USE_STASH=${RED}${USE_STASH}${RESET}"
-for gitdir in ${GIT_DIR}; do
-    echo -e "enter ${BROWN}${gitdir}${RESET}" && cd ${gitdir} || return 1
+for path in ${REPOS_PATHS}; do
+    echo -e "enter ${BROWN}${path}${RESET}" && cd ${path} || return 1
     for dir in $(ls -1); do
-        cd ${gitdir}
+        cd ${path}
         STASH=0
         [ -d ${dir} ] && [ -e ${dir}/.git/config ] || continue
         echo -e "  enter ${BROWN}${dir}${RESET}" && cd $dir || exit 1
@@ -107,5 +107,5 @@ for gitdir in ${GIT_DIR}; do
         push || continue
         echo -e "  leave ${BROWN}${dir}${RESET}\n"
     done
-    echo -e "leave ${BROWN}${gitdir}${RESET}"
+    echo -e "leave ${BROWN}${path}${RESET}"
 done
