@@ -46,7 +46,7 @@ function success() {
 }
 
 function fail() {
-    echo -e "${RED}$1 ${RESET}${CYAN}leave${RESET}\n"
+    echo -e "${RED}$1 ${RESET}${CYAN}leave${RESET}"
 }
 
 function search_remote() {
@@ -105,7 +105,5 @@ for path in ${REPOS_PATHS}; do
         gc || continue
         pull || continue
         push || continue
-        echo -e "  leave ${BROWN}${dir}${RESET}\n"
     done
-    echo -e "leave ${BROWN}${path}${RESET}"
 done
