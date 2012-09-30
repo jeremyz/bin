@@ -53,11 +53,11 @@ efl_basic="eina eet evas ecore efreet eio eeze e_dbus embryo edje exquisite evas
 efl_extra="azy clouseau efx enlil ensure eobj ephysics epulse esskyuehl etam exactness libast shellementary"
 efl_bindings="elev8 python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary vala eflxx einaxx eetxx evasxx ecorexx edjexx emotionxx elementaryxx"
 bin_basic="e terminology"
-e_modules_extra="alarm calendar comp-scale cpu deskshow diskio drawer eektool eenvader.fractal empris engage eooorg \
+e_modules_extra="alarm comp-scale cpu deskshow diskio eektool eenvader.fractal empris engage eooorg \
 everything-aspell everything-mpris everything-pidgin everything-places everything-shotgun everything-skeleton everything-tracker everything-wallpaper everything-websearch \
-eweather exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news penguins photo places quickaccess \
+eweather exebuf execwatch flame forecasts iiirk mail mem moon mpdule net news penguins photo places \
 rain rmb screenshot skel slideshow snow taskbar tclock uptime weather winlist-ng winselector wlan"
-# itask itask-ng
+# calendar drawer itask itask-ng
 bin_proto="ardy calculator converter ecrire econnman editje edje_viewer edvi ekbd elfe elmdentica email emote empower emprint enjoy enki entrance envision \
 epdf eps ephoto equate etrophy espionnage eve exactness exalt exalt-client exchange eyelight eyesight phonebook rage shotgun sticky-notes vigrid"
 # Eterm
