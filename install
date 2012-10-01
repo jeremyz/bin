@@ -2,14 +2,27 @@
 
 DEST_DIR=$HOME/bin
 
-rm *~
+rm *~ 2>/dev/null
 for f in *; do
-    [ "$f" == "install" ] && continue
+    # TODO check within a list with grep
+    [ "$f" == "install" -o "$f" == "bashrc" ] && continue
     ff=$(readlink -f $f)
     if [ ! -e $DEST_DIR/$f ]; then
         echo "symlink $DEST_DIR/$f" && ln -s $ff $DEST_DIR/$f
     else
         bf=$(readlink -e $DEST_DIR/$f)
+        if [ "$bf" != "$ff" ]; then
+            echo "$bf is not OK"
+        fi
+    fi
+done
+
+for f in "bashrc"; do
+    ff=$(readlink -f $f)
+    if [ ! -e $HOME/.$f ]; then
+        echo "symlink $HOME/$f" && ln -s $ff $HOME/.$f
+    else
+        bf=$(readlink -e $HOME/.$f)
         if [ "$bf" != "$ff" ]; then
             echo "$bf is not OK"
         fi
