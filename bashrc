@@ -92,6 +92,9 @@ set_if_not_in 'PATH' ${GEM_HOME}/bin
 # JAVA
 export CLASSPATH=${HOME_}/lib/java
 
+# PIDGIN
+export NSS_SSL_CBC_RANDOM_IV=0
+
 SHARE=${HOME_}/share
 
 # LATEX
