@@ -1,0 +1,23 @@
+#! /bin/bash
+
+function smb_rmfr() {
+    AUTH_FILE=$1
+    SHARE=$2
+    shift
+    shift
+    local SHARE_DIR=$@
+    local OUTFILE=$(mktemp)
+    # remove all files
+    smbclient $SHARE -D "$SHARE_DIR" --authentication-file="$AUTH_FILE" -c "rm *;" >/dev/null 2>&1
+    # list sub directories
+    smbclient $SHARE -D "$SHARE_DIR" --authentication-file="$AUTH_FILE" -c "ls;" >$OUTFILE 2>/dev/null
+    # keep only directory name
+    IFS=$'\n'
+    for dir in $(cat $OUTFILE | sed 's/^  //'  | sed '/^\./d' | sed '/^\s/d' | sed '$ d' | sed 's/\s\+D\s\+0\s\+.*$//'); do
+        smb_rmfr "$AUTH_FILE" "$SHARE" "${1}/$dir"
+    done
+    # local DIR=$(echo "$SHARE_DIR" | sed -e 's/\//\\/g')
+    smbclient $SHARE --authentication-file="$AUTH_FILE" -c "rmdir \"$(echo "$SHARE_DIR" | sed -e 's/\//\\/g')\";" >/dev/null 2>&1
+    rm $OUTFILE
+}
+
