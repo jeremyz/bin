@@ -1,8 +1,8 @@
 #! /bin/sh
 
 function help() {
-    echo "${0##*/} [drbs] [push|pull] [remote]"
-    echo -e "-p --repos-paths    set REPOS_PATHS"
+    echo "${0##*/} [prbsc] [push|pull]"
+    echo -e "-p --repos-paths   set REPOS_PATHS"
     echo -e "-r --git-remote    set GIT_REMOTE"
     echo -e "-b --git-branch    set GIT_BRANCH"
     echo -e "-s --use-stash     set USE_STASH"
@@ -12,7 +12,7 @@ function help() {
 
 for arg in $@; do
     option=`echo "'$arg'" | cut -d'=' -f1 | tr -d "'"`
-    value=`echo "'$arg'" | cut -d'=' -f2- | tr -d "'"`
+    value=`echo "'$arg'" | cut -d'=' -f2 | tr -d "'"`
     if [ "$value" == "$option" ]; then value=""; fi
     case "$option" in
         pull) action="pull";;
@@ -22,7 +22,6 @@ for arg in $@; do
         -b|--git-branch) GIT_BRANCH=$value;;
         -s|--use-stash) USE_STASH=1;;
         -h|--help) help;;
-        *) GIT_REMOTE=$arg;;
     esac
 done
 
@@ -50,13 +49,13 @@ function fail() {
 }
 
 function search_remote() {
-    echo -ne "    ${CYAN}search remote${RESET}: ${YELLOW}${GIT_REMOTE}${RESET} ... " && \
+    echo -ne "    ${CYAN}search remote${RESET}   : ${YELLOW}${GIT_REMOTE}${RESET} ... " && \
         git remote show ${GIT_REMOTE} >/dev/null 2>&1 && success && return 0
     [ $? -ne 0 ] && fail "remote not found" && return 1
 }
 
 function checkout_branch() {
-    echo -ne "    ${CYAN}checkout branch ${YELLOW}${GIT_BRANCH}${RESET} ... " && \
+    echo -ne "    ${CYAN}checkout branch${RESET} : ${YELLOW}${GIT_BRANCH}${RESET} ... " && \
         git branch | grep -q -e " ${GIT_BRANCH}\$" && git checkout -q ${GIT_BRANCH} 2>/dev/null && success && return 0
     [ $? -ne 0 ] && fail "KO" && return 1
 }
@@ -78,14 +77,14 @@ function gc() {
 
 function pull() {
     [ "$action" = "push" ] && return 0
-    echo -ne "    ${CYAN}pull${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
+    echo -ne "    ${CYAN}pull${RESET}            : ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
         git pull -q ${GIT_REMOTE} ${GIT_BRANCH} && success && return 0
     [ $? -ne 0 ] && fail "KO" && return 1
 }
 
 function push() {
     [ "${GIT_REMOTE}" = "origin" -o "$action" = "pull" ] && return 0
-    echo -ne "    ${CYAN}push${RESET}: ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
+    echo -ne "    ${CYAN}push${RESET}            : ${YELLOW}${GIT_REMOTE}${RESET}:${PURPLE}${GIT_BRANCH}${RESET} ... " && \
         git push ${GIT_REMOTE} ${GIT_BRANCH} 2>/dev/null && success
     [ $? -ne 0 ] && fail "KO" && return 1
     [ $STASH -eq 1 ] && echo -e "    ${RED}was not clean, ${CYAN}git stash pop${RESET}" && git stash pop -q
