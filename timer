@@ -31,6 +31,21 @@ function timer()
     fi
 }
 
+function timer_dt()
+{
+    if [[ $# -eq 0 ]]; then
+        echo $(date '+%s')
+    else
+        local  stime=$1
+        etime=$(date '+%s')
+
+        if [[ -z "$stime" ]]; then stime=$etime; fi
+
+        dt=$((etime - stime))
+        printf '%d' $dt
+    fi
+}
+
 # If invoked directly run test code.
 if [[ $(basename $0 .sh) == 'timer' ]]; then
     t=$(timer)
