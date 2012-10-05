@@ -144,7 +144,7 @@ function start_agent {
     /usr/bin/ssh-agent | sed 's/^echo/#echo/' > ${SSH_ENV}
     chmod 600 ${SSH_ENV}
     . ${SSH_ENV} > /dev/null
-    /usr/bin/ssh-add ~/.ssh/id_dsa ~/.ssh/id_ecdsa ~/.ssh/id_rsa ~/.ssh/gitadm ~/.ssh/asynk_dev
+    /usr/bin/ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
 }
 #
 if [ -e "${SSH_ENV}" ]; then
