@@ -85,7 +85,7 @@ export PERL5LIB=${LIBS}/perl/lib
 # RUBY
 # export RB_USER_INSTALL=1    # see /usr/local/lib/ruby/1.8/i386-freebsd7/rbconfig.rb
 export RUBYOPT=rubygems
-export GEM_HOME="~/.gem/ruby/1.9.1"
+export GEM_HOME="$HOME/.gem/ruby/1.9.1"
 export RUBYLIB=${LOCALLIB}/ruby/
 set_if_not_in 'PATH' ${GEM_HOME}/bin
 
