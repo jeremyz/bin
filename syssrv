@@ -1,0 +1,12 @@
+#! /bin/sh
+
+if [ $# -lt 2 ]; then
+    echo "usage: $0 on|off service" && exit 1
+fi
+if [ "$1" = "on" ]; then
+    systemctl start $2.service
+elif [ "$1" = "off" ]; then
+    systemctl stop $2.service
+else
+    echo "usage: $0 on|off service" && exit 1
+fi
