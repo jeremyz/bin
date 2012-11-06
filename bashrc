@@ -21,6 +21,7 @@ if [ -r /usr/share/terminfo/x/xterm-256color ]; then
 else
     export TERM='xterm-color'
 fi
+eval $(dircolors ~/.dir_colors)
 
 # BELL
 if [ ! -z $DISPLAY ]; then
