@@ -122,7 +122,7 @@ my_export()
 }
 
 # PAGER
-my_export 'PAGER' 'most' '/bin/less'
+my_export 'PAGER' 'less' '/bin/more'
 my_export 'EDITOR' 'vim' '/usr/bin/vi'
 
 # catch and eval dmalloc output
