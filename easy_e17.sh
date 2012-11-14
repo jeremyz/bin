@@ -49,8 +49,8 @@ cmd_svn_update_conflicts_ask="svn update -r"
 cmake_build_dir="build"
 cmake_options=""
 
-efl_basic="eina eet eobj evas ecore edbus e_dbus efreet eio eeze embryo edje exquisite evas_generic_loaders emotion ethumb emap libeweather elementary expedite"
-efl_extra="azy clouseau efx enlil ensure ephysics epulse esskyuehl etam exactness libast shellementary"
+efl_basic="efl ecore edbus e_dbus efreet eio eeze edje exquisite evas_generic_loaders emotion ethumb emap libeweather elementary expedite"
+efl_extra="azy clouseau efx enlil ensure ephysics esskyuehl etam exactness libast shellementary"
 efl_bindings="elev8 python-evas python-ecore python-e_dbus python-edje python-emotion python-elementary vala eflxx einaxx eetxx evasxx ecorexx edjexx emotionxx elementaryxx"
 bin_basic="e terminology"
 e_modules_extra="alarm comp-scale cpu deskshow diskio eektool eenvader.fractal empris engage eooorg \
