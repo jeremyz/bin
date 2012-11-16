@@ -54,7 +54,7 @@ case $OSNAME in
         export PKG_PATH="ftp://mirror.switch.ch/mirror/OpenBSD/4.0/packages/i386/"
         ;;
 esac
-HOME_=${HOME%/}
+HOME_=$(readlink -f ${HOME%/})
 
 set_if_not_in( ) {
     env_var=$1
@@ -86,7 +86,7 @@ export PERL5LIB=${LIBS}/perl/lib
 # RUBY
 # export RB_USER_INSTALL=1    # see /usr/local/lib/ruby/1.8/i386-freebsd7/rbconfig.rb
 export RUBYOPT=rubygems
-export GEM_HOME="$HOME/.gem/ruby/1.9.1"
+export GEM_HOME="${HOME_}/.gem/ruby/1.9.1"
 export RUBYLIB=${LOCALLIB}/ruby/
 set_if_not_in 'PATH' ${GEM_HOME}/bin
 
@@ -107,7 +107,7 @@ export TEXMFCONFIG=${TEXBASE}/texmf-config
 # export MFINPUTS=${TEXBASE}/texmf/fonts
 
 # prepend ~/bin to path if not already there
-export PATH=${HOME}/bin:${PATH#${HOME}/bin:}
+export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 
 export PKG_PATH=`which pkg-config 2>/dev/null`
 export LOCATEDB=$HOME/etc/locate.`hostname`.db
