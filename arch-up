@@ -45,7 +45,7 @@ function update_makepkg () {
 }
 
 function update_e17() {
-    run "easy_e17.sh -u -m --sudopwd=$PASSWD $@"
+    run "easy_e17.sh -u --sudopwd=$PASSWD $@"
     # sudo_run "find /opt/e17 -mtime +30 ! -type d -exec rm '{}' \;"
     if [ -e ~/local/eperiodique ]; then
         cd ~/local/eperiodique
