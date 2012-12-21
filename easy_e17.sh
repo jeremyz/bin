@@ -1366,8 +1366,8 @@ pkg_total=`echo "$updated_packages" | wc -w`
 open_header "Apply local patches"
 cd $src_path
 if [ -d $src_patch_path ]; then
-    for patch in $(ls -1 $src_patch_path); do
-        echo " - apply $patch" && patch -p 1 -N -r - < $src_patch_path/$patch
+    for patch in $(ls -1 $src_patch_path/*.patch); do
+        echo " - apply $patch" && patch -p 1 -N -r - < $patch
     done
 else
     echo " - no $src_patch_path directory"
