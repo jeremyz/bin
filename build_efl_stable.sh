@@ -1,7 +1,7 @@
 #! /bin/bash
 
-EFL_VER=1.7.3
-E_VER=0.17.0-omega
+EFL_VER=1.7.4
+E_VER=0.17.0
 PREFIX=/opt/efl
 OPTIONS="--disable-doc"
 SUDO_PASSWD=""
@@ -12,11 +12,11 @@ EFL_PKGS="eina eet evas ecore eio embryo edje efreet e_dbus eeze emotion ethumb 
 function e_get() {
     echo "fetch archives"
     for pkg in $EFL_PKGS; do
-        arch=${pkg}-${EFL_VER}.tar.gz
+        arch=${pkg}-${EFL_VER}.tar.bz2
         echo "  - $arch"
         [ -f $arch ] || curl http://download.enlightenment.org/releases/$arch -o $arch || exit 1
     done
-    e_arch=enlightenment-${E_VER}.tar.gz
+    e_arch=enlightenment-${E_VER}.tar.bz2
     echo "  - $e_arch"
     [ -f $e_arch ] || curl http://download.enlightenment.org/releases/$e_arch -o $e_arch || exit 1
 }
@@ -26,13 +26,13 @@ function e_extract() {
     for pkg in $EFL_PKGS; do
         echo "  - $arch"
         [ -d $pkg-${EFL_VER} ] && rm -rf $pkg-${EFL_VER}
-        arch=${pkg}-${EFL_VER}.tar.gz
-        tar -xzf $arch || exit 1
+        arch=${pkg}-${EFL_VER}.tar.bz2
+        tar -xjf $arch || exit 1
     done
     echo "  - $e_arch"
     [ -d enlightenment-${E_VER} ] && rm -rf enlightenment-${E_VER}
-    e_arch=enlightenment-${E_VER}.tar.gz
-    tar -xzf $e_arch || exit 1
+    e_arch=enlightenment-${E_VER}.tar.bz2
+    tar -xjf $e_arch || exit 1
 }
 
 function e_build() {
