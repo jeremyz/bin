@@ -5,6 +5,7 @@ E_VER=0.17.0
 PREFIX=/opt/efl
 OPTIONS="--disable-doc"
 SUDO_PASSWD=""
+BASE_URL="http://download.enlightenment.fr/releases"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
 
 EFL_PKGS="eina eet evas ecore eio embryo edje efreet e_dbus eeze emotion ethumb elementary"
@@ -14,11 +15,11 @@ function e_get() {
     for pkg in $EFL_PKGS; do
         arch=${pkg}-${EFL_VER}.tar.bz2
         echo "  - $arch"
-        [ -f $arch ] || curl http://download.enlightenment.org/releases/$arch -o $arch || exit 1
+        [ -f $arch ] || curl "$BASE_URL/$arch" -o $arch || exit 1
     done
     e_arch=enlightenment-${E_VER}.tar.bz2
     echo "  - $e_arch"
-    [ -f $e_arch ] || curl http://download.enlightenment.org/releases/$e_arch -o $e_arch || exit 1
+    [ -f $e_arch ] || curl "$BASE_URL/$e_arch" -o $e_arch || exit 1
 }
 
 function e_extract() {
