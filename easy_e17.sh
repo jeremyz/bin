@@ -1139,7 +1139,7 @@ function compile ()
             args="$args `echo $app_arg | cut -d':' -f2- | tr -s '+' ' '`"
         fi
     done
-    args="$args $autogen_global"
+    args=$(echo "$args $autogen_global" | tr -s '+' ' ')
     if [ "$name" == "ewebkit" ]; then
         if [ $package_make_only != 1 ] || [ $package_clean -gt 1 ] || [ ! -e "$ewk_build_dir/Makefile" ]; then
             run_command "$name" "$path" "cmake" "cmake  : " "$mode" "$ewk_build_cmd"
