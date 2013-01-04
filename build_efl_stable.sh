@@ -1,11 +1,12 @@
 #! /bin/bash
 
-EFL_VER=1.7.4
+EFL_VER=1.7.5
 E_VER=0.17.0
-PREFIX=/opt/efl
-OPTIONS="--disable-doc"
+PREFIX=/opt/efl-stable
+OPTIONS="--disable-doc --disable-static"
 SUDO_PASSWD=""
 BASE_URL="http://download.enlightenment.fr/releases"
+export LD_LIBRARY_PATH=""
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
 
 EFL_PKGS="eina eet evas ecore eio embryo edje efreet e_dbus eeze emotion ethumb elementary"
@@ -40,7 +41,13 @@ function e_build() {
     echo "build and install"
     for pkg in $EFL_PKGS; do
         echo "  - $pkg"
-        cd $pkg-${EFL_VER} && ./autogen.sh --prefix=$PREFIX $OPTIONS && make && echo "$PASSWD" | sudo -S make install && cd .. || exit 1
+        cd $pkg-${EFL_VER} || exit 1
+        ./autogen.sh --prefix=$PREFIX $OPTIONS
+        if [ $? -ne 0 ]; then
+            echo " - FIX configure.ac" && sed -i 's/AM_PROG_CC_STDC/AC_PROG_CC/g' configure.ac && sed -i 's/AM_CONFIG_HEADER/AC_CONFIG_HEADERS/g' configure.ac || exit 1
+            ./autogen.sh --prefix=$PREFIX $OPTIONS || exit 1
+        fi
+        make && echo "$PASSWD" | sudo -S make install && cd .. || exit 1
     done
     echo "  - $e_arch"
     cd enlightenment-${E_VER} && ./configure --prefix=$PREFIX $OPTIONS && make && echo "$PASSWD" | sudo -S make install && cd .. || exit 1
