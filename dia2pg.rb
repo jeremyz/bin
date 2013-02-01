@@ -190,9 +190,7 @@ class Attribute
     end
     #
     def real_name
-        if no_rename?
-            @name
-        elsif foreign?
+        if not no_rename? and foreign?
             rl = RELATIONS.find { |r| r.tbl_to==@tbl and r.attr_to.name==@name }
             if rl.nil?
                 $stderr << "MISSING RELATION FOR FOREIGN KEY table:#{@tbl.name} attribute:#{@name}\n"
