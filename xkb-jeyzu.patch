@@ -1,0 +1,111 @@
+diff -Naur /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
+--- /usr/share/X11/xkb/geometry/typematrix	2013-01-30 21:32:10.000000000 +0100
++++ xkb/geometry/typematrix	2013-02-01 22:21:59.809518613 +0100
+@@ -743,3 +743,15 @@
+         };
+     };
+ }; // geometry tm2030USB-106
++
++xkb_geometry "tm2030USB-jeyzu" {
++    include "typematrix(tm2030_shape)"
++    include "typematrix(tm2030_MiscDiod_102)"
++    include "typematrix(tm2030_MiscDiod_off)"
++
++    description = "TypeMatrix EZ-Reach 2030 USB";
++
++    include "typematrix(tm2030USB_func)"
++    include "typematrix(tm2030USB_alpha)"
++    include "typematrix(tm2030USB_ctrl)"
++}; // geometry tm2030USB-jeyzu
+diff -Naur /usr/share/X11/xkb/rules/base xkb/rules/base
+--- /usr/share/X11/xkb/rules/base	2013-01-30 21:32:11.000000000 +0100
++++ xkb/rules/base	2013-02-01 22:18:17.170724751 +0100
+@@ -25,7 +25,7 @@
+ ! $pcgeometries = latitude
+ 
+ // TypeMatrix geometries
+-! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
++! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-jeyzu tm2030USB-102 tm2030USB-106
+ 
+ // Layouts that provide further specializations for the OLPC
+ ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
+diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
+--- /usr/share/X11/xkb/rules/base.lst	2013-01-30 21:32:11.000000000 +0100
++++ xkb/rules/base.lst	2013-02-01 22:18:17.174058067 +0100
+@@ -147,6 +147,7 @@
+   tm2030USB       TypeMatrix EZ-Reach 2030 USB
+   tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
+   tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
++  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
+   yahoo           Yahoo! Internet Keyboard
+   macbook78       MacBook/MacBook Pro
+   macbook79       MacBook/MacBook Pro (Intl)
+@@ -504,6 +505,7 @@
+   OADG109A        jp: Japanese (OADG 109A)
+   mac             jp: Japanese (Macintosh)
+   dvorak          jp: Japanese (Dvorak)
++  jeyzu           jp: Japanese (Bepo)
+   phonetic        kg: Kyrgyz (phonetic)
+   ruskaz          kz: Russian (Kazakhstan, with Kazakh)
+   kazrus          kz: Kazakh (with Russian)
+diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
+--- /usr/share/X11/xkb/rules/evdev	2013-01-30 21:32:11.000000000 +0100
++++ xkb/rules/evdev	2013-02-01 22:18:17.147391544 +0100
+@@ -25,7 +25,7 @@
+ ! $pcgeometries = latitude
+ 
+ // TypeMatrix geometries
+-! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
++! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-jeyzu tm2030USB-102 tm2030USB-106
+ 
+ // Layouts that provide further specializations for the OLPC
+ ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
+diff -Naur /usr/share/X11/xkb/rules/xorg xkb/rules/xorg
+--- /usr/share/X11/xkb/rules/xorg	2013-01-30 21:32:11.000000000 +0100
++++ xkb/rules/xorg	2013-02-01 22:18:17.170724751 +0100
+@@ -25,7 +25,7 @@
+ ! $pcgeometries = latitude
+ 
+ // TypeMatrix geometries
+-! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
++! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-jeyzu tm2030USB-102 tm2030USB-106
+ 
+ // Layouts that provide further specializations for the OLPC
+ ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
+diff -Naur /usr/share/X11/xkb/rules/xorg.lst xkb/rules/xorg.lst
+--- /usr/share/X11/xkb/rules/xorg.lst	2013-01-30 21:32:11.000000000 +0100
++++ xkb/rules/xorg.lst	2013-02-01 22:18:17.174058067 +0100
+@@ -147,6 +147,7 @@
+   tm2030USB       TypeMatrix EZ-Reach 2030 USB
+   tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
+   tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
++  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
+   yahoo           Yahoo! Internet Keyboard
+   macbook78       MacBook/MacBook Pro
+   macbook79       MacBook/MacBook Pro (Intl)
+@@ -504,6 +505,7 @@
+   OADG109A        jp: Japanese (OADG 109A)
+   mac             jp: Japanese (Macintosh)
+   dvorak          jp: Japanese (Dvorak)
++  jeyzu           jp: Japanese (Bepo)
+   phonetic        kg: Kyrgyz (phonetic)
+   ruskaz          kz: Russian (Kazakhstan, with Kazakh)
+   kazrus          kz: Kazakh (with Russian)
+diff -Naur /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
+--- /usr/share/X11/xkb/symbols/jp	2013-01-30 21:32:11.000000000 +0100
++++ xkb/symbols/jp	2013-02-01 22:20:47.363244422 +0100
+@@ -319,3 +319,14 @@
+ 	xkb_symbols "sun_type7" {
+ 	include "sun_vndr/jp(sun_type7)"
+ };
++
++partial alphanumeric_keys
++    xkb_symbols "jeyzu" {
++    include "fr(bepo)"
++    name[Group1]="French (Bepo, ergonomic, Dvorak way, jeyzu)";
++    // First row
++    key <AE02> { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC", [     less,            2,         guillemotleft,  leftdoublequotemark ] }; // < 2 « “
++    key <AE03> { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC", [  greater,            3,        guillemotright, rightdoublequotemark ] }; // < 3 » ”
++    key <AE06> { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC", [    equal,            6,              notequal                       ] }; // = 6 ^
++    key <AE11> {                                             [       at,       degree,           asciicircum,              minutes ] }; // @ ° ^ ′
++};
