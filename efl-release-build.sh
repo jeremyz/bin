@@ -1,7 +1,7 @@
 #! /bin/bash
 
 EFL_VER=1.7.5
-E_VER=0.17.0
+E_VER=0.17.1
 PREFIX=/opt/efl-stable
 OPTIONS="--disable-doc --disable-static"
 SUDO_PASSWD=""
