@@ -2,8 +2,8 @@
 
 SUDO_PASSWD=""
 
-EFL_VER=1.7.5
-E_VER=0.17.1
+EFL_VER=1.7.6
+E_VER=0.17.2
 BASE_URL="http://download.enlightenment.fr/releases"
 DBUS_SRV_PATH="/usr/share/dbus-1/services"
 
