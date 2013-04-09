@@ -18,7 +18,7 @@ else
     # R/RI/RICU; start
     git commit --allow-empty -m wip-index-state
     # now RI/RI/RICU; pushed index onto repo
-    git add -A && git commit --allow-empty -m wip-worktree-state
+    git add -A :/ && git commit --allow-empty -m wip-worktree-state
     # now RICU/RICU/RICU; pushed C/U files onto repo
     #   ... switch branch, work work work, commit ...
     #   now you want to get back to the saved state
