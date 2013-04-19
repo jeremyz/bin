@@ -55,7 +55,7 @@ function e_extract()
 {
     echo "extract archives"
     for pkg in $EFL_PKGS; do
-        rm -rf $pkg-${EFL_VER}.${MINOR}*[^bz2] 2>/dev/null
+        rm -rf $pkg*[^bz2] 2>/dev/null
         arch_minor=${pkg}-${EFL_VER}.${EFL_MINOR}.tar.bz2
         arch=${pkg}-${EFL_VER}.tar.bz2
         if [ -e $arch_minor ]; then
@@ -78,8 +78,8 @@ function e_build()
 {
     echo "build and install"
     for pkg in $EFL_PKGS; do
-        echo "  - $pkg"
-        cd $pkg-${EFL_VER}.${MINOR} 2>/dev/null || cd $pkg-${EFL_VER} 2>/dev/null
+        cd "$pkg-${EFL_VER}.${EFL_MINOR}" 2>/dev/null || cd "$pkg-${EFL_VER}" 2>/dev/null
+        echo -n "  - $pkg" && pwd
         ./autogen.sh --prefix=$PREFIX $EFL_FLAGS
         if [ $? -ne 0 ]; then
             echo " - FIX configure.ac" && sed -i 's/AM_PROG_CC_STDC/AC_PROG_CC/g' configure.ac && sed -i 's/AM_CONFIG_HEADER/AC_CONFIG_HEADERS/g' configure.ac || exit 1
@@ -90,7 +90,7 @@ function e_build()
     echo "  - $e_arch"
     cd enlightenment-${E_VER} && ./configure --prefix=$PREFIX --libexecdir=$PREFIX/lib/enlightenment $E_FLAGS && make && echo "$SUDO_PASSWD" | sudo -S make install && cd .. || exit 1
     cd $DBUS_SRV_PATH || exit 1
-    for $srv in $PREFIX/share/dbus-1/services/*; do
+    for srv in $PREFIX/share/dbus-1/services/*; do
        echo "$SUDO_PASSWD" | sudo -S ln -s $srv
     done
 
@@ -109,6 +109,7 @@ function get_sudopwd()
 }
 
 get_sudopwd
+echo
 e_get
 e_extract
 e_build
