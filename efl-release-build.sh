@@ -2,9 +2,9 @@
 
 SUDO_PASSWD=""
 
-EFL_MINOR=1
-EFL_VER=1.7.6
-E_VER=0.17.2.1
+EFL_MINOR="1"
+EFL_VER="1.7.6"
+E_VER="0.17.2.1"
 BASE_URL="http://download.enlightenment.fr/releases"
 DBUS_SRV_PATH="/usr/share/dbus-1/services"
 
@@ -13,7 +13,7 @@ export CFLAGS="-O2 -march=native -ffast-math"
 export CC="ccache gcc"
 alias make='make -j4'
 
-PREFIX=/opt/efl-release
+PREFIX="/opt/efl-release"
 export PATH="$PREFIX/bin:$PATH"
 export LD_LIBRARY_PATH="$PREFIX/lib"
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
@@ -55,14 +55,17 @@ function e_extract()
 {
     echo "extract archives"
     for pkg in $EFL_PKGS; do
-        echo "  - $pkg"
         rm -rf $pkg-${EFL_VER}.${MINOR}*[^bz2] 2>/dev/null
         arch_minor=${pkg}-${EFL_VER}.${EFL_MINOR}.tar.bz2
         arch=${pkg}-${EFL_VER}.tar.bz2
         if [ -e $arch_minor ]; then
+            echo "  - $arch_minor"
             tar -xjf $arch_minor|| exit 1
         elif [ -e $arch ]; then
+            echo "  - $arch"
             tar -xjf $arch || exit 1
+        else
+            echo "$pkg arch missing" && exit 1
         fi
     done
     echo "  - $e_arch"
@@ -82,13 +85,13 @@ function e_build()
             echo " - FIX configure.ac" && sed -i 's/AM_PROG_CC_STDC/AC_PROG_CC/g' configure.ac && sed -i 's/AM_CONFIG_HEADER/AC_CONFIG_HEADERS/g' configure.ac || exit 1
             ./autogen.sh --prefix=$PREFIX $EFL_FLAGS || exit 1
         fi
-        make && echo "$PASSWD" | sudo -S make install && cd .. || exit 1
+        make && echo "$SUDO_PASSWD" | sudo -S make install && cd .. || exit 1
     done
     echo "  - $e_arch"
-    cd enlightenment-${E_VER} && ./configure --prefix=$PREFIX --libexecdir=$PREFIX/lib/enlightenment $E_FLAGS && make && echo "$PASSWD" | sudo -S make install && cd .. || exit 1
+    cd enlightenment-${E_VER} && ./configure --prefix=$PREFIX --libexecdir=$PREFIX/lib/enlightenment $E_FLAGS && make && echo "$SUDO_PASSWD" | sudo -S make install && cd .. || exit 1
     cd $DBUS_SRV_PATH || exit 1
     for $srv in $PREFIX/share/dbus-1/services/*; do
-       echo "$PASSWD" | sudo -S ln -s $srv
+       echo "$SUDO_PASSWD" | sudo -S ln -s $srv
     done
 
 }
@@ -97,7 +100,7 @@ function get_sudopwd()
 {
     sudo_test=/tmp/_sudo.test
     echo -n "enter sudo-password: " && stty -echo && read SUDO_PASSWD && stty echo || exit 1
-    [ -e $sudo_test ] && rm -f $sudo_test
+    [ -e $sudo_test ] && sudo rm -f $sudo_test
     echo "$SUDO_PASSWD" | sudo -S touch $sudo_test
     if [ ! -e $sudo_test ]; then
         echo "cmdline provided sudo password failed!"
