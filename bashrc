@@ -10,7 +10,8 @@ if [ `whoami` = "root" ]; then	# effective uid
     export PS1='\[\033[01;47;31m\]\h\[\033[40;31m\] \u \[\033[37m\]\W \$ \[\033[00m\]'
 else
     # export PS1='\[\033[01;47;31m\]\h\[\033[40;34m\] \u \[\033[37m\]\W $(parse_git_branch) \$ \[\033[00m\]'
-    export PS1='\033[01;33m\u\033[01;35m@\033[00;31m\h\033[00m:\033[0;33m \w $(parse_git_branch) \033[0m\$ '
+    # export PS1='\033[01;33m\u\033[01;35m@\033[00;31m\h\033[00m:\033[0;33m \w $(parse_git_branch) \033[0m\$ '
+    export PS1='\033[01;33m\u\033[01;35m@\033[00;31m\h\033[00m:\033[0;33m \W $(parse_git_branch) \033[0m\$ '
 fi
 PS2='> '
 unset PROMPT_COMMAND
