@@ -77,21 +77,21 @@ export GREP_OPTIONS=--color
 # export GIT_BASE=${LOCALGIT}
 
 # PYTHON
-export PYTHONPATH=${HOME_}/lib/python:/opt/efl/lib/python2.7/site-packages/
+# export PYTHONPATH=${LOCALLIB}/python:/opt/efl/lib/python2.7/site-packages/
 
 # PERL
-export PERL5LIB=${LIBS}/perl/lib
+# export PERL5LIB=${LIBS}/perl/lib
 # set_if_not_in "PATH" "${LIBS}/perl/bin"
 
 # RUBY
 # export RB_USER_INSTALL=1    # see /usr/local/lib/ruby/1.8/i386-freebsd7/rbconfig.rb
 export RUBYOPT=rubygems
 export GEM_HOME="${HOME_}/.gem/ruby/2.0.0"
-export RUBYLIB=${LOCALLIB}/ruby/
+export RUBYLIB=${LOCALLIB}/ruby
 set_if_not_in 'PATH' ${GEM_HOME}/bin
 
 # JAVA
-export CLASSPATH=${HOME_}/lib/java
+# export CLASSPATH=${LOCALLIB}/java
 
 # PIDGIN
 export NSS_SSL_CBC_RANDOM_IV=0
