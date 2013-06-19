@@ -1,3 +1,4 @@
+#  patch -p 1 -N -r -  < %
 diff -Naur /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
 --- /usr/share/X11/xkb/geometry/typematrix	2013-01-30 21:32:10.000000000 +0100
 +++ xkb/geometry/typematrix	2013-02-01 22:21:59.809518613 +0100
@@ -60,37 +61,6 @@ diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
  
  // Layouts that provide further specializations for the OLPC
  ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
-diff -Naur /usr/share/X11/xkb/rules/xorg xkb/rules/xorg
---- /usr/share/X11/xkb/rules/xorg	2013-01-30 21:32:11.000000000 +0100
-+++ xkb/rules/xorg	2013-02-01 22:18:17.170724751 +0100
-@@ -25,7 +25,7 @@
- ! $pcgeometries = latitude
- 
- // TypeMatrix geometries
--! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
-+! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-jeyzu tm2030USB-102 tm2030USB-106
- 
- // Layouts that provide further specializations for the OLPC
- ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
-diff -Naur /usr/share/X11/xkb/rules/xorg.lst xkb/rules/xorg.lst
---- /usr/share/X11/xkb/rules/xorg.lst	2013-01-30 21:32:11.000000000 +0100
-+++ xkb/rules/xorg.lst	2013-02-01 22:18:17.174058067 +0100
-@@ -147,6 +147,7 @@
-   tm2030USB       TypeMatrix EZ-Reach 2030 USB
-   tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
-   tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
-+  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
-   yahoo           Yahoo! Internet Keyboard
-   macbook78       MacBook/MacBook Pro
-   macbook79       MacBook/MacBook Pro (Intl)
-@@ -504,6 +505,7 @@
-   OADG109A        jp: Japanese (OADG 109A)
-   mac             jp: Japanese (Macintosh)
-   dvorak          jp: Japanese (Dvorak)
-+  jeyzu           jp: Japanese (Bepo)
-   phonetic        kg: Kyrgyz (phonetic)
-   ruskaz          kz: Russian (Kazakhstan, with Kazakh)
-   kazrus          kz: Kazakh (with Russian)
 diff -Naur /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
 --- /usr/share/X11/xkb/symbols/jp	2013-01-30 21:32:11.000000000 +0100
 +++ xkb/symbols/jp	2013-02-01 22:20:47.363244422 +0100
