@@ -64,7 +64,7 @@ diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
 diff -Naur /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
 --- /usr/share/X11/xkb/symbols/jp	2013-01-30 21:32:11.000000000 +0100
 +++ xkb/symbols/jp	2013-02-01 22:20:47.363244422 +0100
-@@ -319,3 +319,14 @@
+@@ -319,3 +319,15 @@
  	xkb_symbols "sun_type7" {
  	include "sun_vndr/jp(sun_type7)"
  };
@@ -78,4 +78,5 @@ diff -Naur /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
 +    key <AE03> { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC", [  greater,            3,        guillemotright, rightdoublequotemark ] }; // < 3 » ”
 +    key <AE06> { type[group1] = "FOUR_LEVEL_SEMIALPHABETIC", [    equal,            6,              notequal                       ] }; // = 6 ^
 +    key <AE11> {                                             [       at,       degree,           asciicircum,              minutes ] }; // @ ° ^ ′
++    key <SPCE> {                                             [    space,       Escape,            underscore,                U202F ] }; // ␣ escape _ (espace insécable fin)
 +};
