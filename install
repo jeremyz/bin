@@ -2,10 +2,12 @@
 
 DEST_DIR=$HOME/bin
 
+DONOTDO="install bashrc solarized xkb-jeyzu.patch"
+
 rm *~ 2>/dev/null
 for f in *; do
-    # TODO check within a list with grep
-    [ "$f" == "install" -o "$f" == "bashrc" ] && continue
+    echo $DONOTDO | grep -q $f 2>/dev/null
+    [ $? -eq 0 ] && continue
     ff=$(readlink -f $f)
     if [ ! -e $DEST_DIR/$f ]; then
         echo "symlink $DEST_DIR/$f" && ln -s $ff $DEST_DIR/$f
@@ -17,14 +19,26 @@ for f in *; do
     fi
 done
 
-for f in "bashrc"; do
+for f in bashrc; do
     ff=$(readlink -f $f)
-    if [ ! -e $HOME/.$f ]; then
-        echo "symlink $HOME/$f" && ln -s $ff $HOME/.$f
+    dst="$HOME/.$f"
+    if [ ! -e "$dst" ]; then
+        echo "symlink $dst" && ln -s "$ff" "$dst"
     else
-        bf=$(readlink -e $HOME/.$f)
+        bf=$(readlink -e "$dst")
         if [ "$bf" != "$ff" ]; then
             echo "$bf is not OK"
         fi
     fi
 done
+
+ff=$(readlink -f solarized/dircolors.ansi-dark)
+dst=$HOME/.dir_colors
+if [ ! -e "$dst" ]; then
+    echo "symlink $dst" && ln -s "$ff" "$dst"
+else
+    bf=$(readlink -e "$dst")
+    if [ "$bf" != "$ff" ]; then
+        echo "$bf is not OK"
+    fi
+fi
