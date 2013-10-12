@@ -1,0 +1,19 @@
+#!/bin/bash
+
+case "$1" in
+  start)
+    find -L /lib/modules/`uname -r` -name "vbox*" | while read module; do
+      modprobe $(basename $module ".ko.gz")
+    done
+    ;;
+  stop)
+    find -L /lib/modules/`uname -r` -name "vbox*" | while read module; do
+      rmmod $(basename $module ".ko") 2>/dev/null
+    done
+    find -L /lib/modules/`uname -r` -name "vbox*" | while read module; do
+      rmmod $(basename $module ".ko") 2>/dev/null
+    done
+    ;;
+  *)
+    echo "usage: $0 {start|stop}"
+esac
