@@ -19,7 +19,7 @@ function update_gem() {
 }
 
 function update_pkgs() {
-    sudo_run "pacman -Syu"
+    sudo_run "pacman -Syu" || return
     sudo_run "pacman -Scc --noconfirm"
     sudo_run "rm /var/cache/pacman/pkg/*"
     run "aurget -Syu"
