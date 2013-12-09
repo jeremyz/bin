@@ -1,0 +1,14 @@
+#! /bin/bash
+
+[ $# -lt 1 ] && echo "missing dstination" && exit 1
+DST=$1
+
+tar \
+    --exclude "$HOME/local" \
+    --exclude "$HOME/usr/git" \
+    --exclude "$HOME/usr/media" \
+    --exclude "$HOME/.ccache" \
+    --exclude "$HOME/.gems" \
+    --exclude "$HOME/.local/share/Trash" \
+    --exclude "$HOME/.local/share/Steam" \
+    -cvzf $DST $HOME/
