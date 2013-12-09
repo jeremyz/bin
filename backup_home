@@ -8,7 +8,11 @@ tar \
     --exclude "$HOME/usr/git" \
     --exclude "$HOME/usr/media" \
     --exclude "$HOME/.ccache" \
-    --exclude "$HOME/.gems" \
+    --exclude "$HOME/.gem" \
     --exclude "$HOME/.local/share/Trash" \
     --exclude "$HOME/.local/share/Steam" \
+    --exclude "$HOME/_wip" \
+    --exclude "$HOME/.cache/mozilla" \
+    --exclude "$HOME/.cache/winetricks" \
+    --exclude "$HOME/.thumbnails" \
     -cvzf $DST $HOME/
