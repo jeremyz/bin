@@ -111,6 +111,7 @@ export TEXMFCONFIG=${TEXBASE}/texmf-config
 export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 
 export PKG_PATH=`which pkg-config 2>/dev/null`
+export PKG_CONFIG_PATH=/opt/$USER/lib/pkgconfig:$PKG_CONFIG_PATH
 export LOCATEDB=$HOME/etc/locate.`hostname`.db
 
 my_export()
