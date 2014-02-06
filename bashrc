@@ -35,6 +35,13 @@ fi
 # VIMMODE
 set -o vi
 
+bind "set completion-display-width 1"
+bind "set completion-ignore-case off"
+bind "set completion-prefix-display-length 2"
+bind "set menu-complete-display-prefix on"
+bind "set show-all-if-ambiguous on"
+bind "Control-t: menu-complete"
+
 # ALIASES
 #alias vimb="vim -u $HOME/.vimrc-bepo"
 
