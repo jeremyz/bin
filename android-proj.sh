@@ -35,6 +35,7 @@ run "ant instrument install"
 #run "adb -s emulator-5554 install -r bin/${PNAME}Test-instrumented.apk"
 
 run "adb shell am instrument -e coverage true -w ${PKG}.tests/android.test.InstrumentationTestRunner"
+# run "adb shell am instrument -e coverage true -w -e class ${PKG}.${ANAME}Test ${PKG}.tests/android.test.InstrumentationTestRunner"
 
-run "adb shell pm uninstall ${PKG}"
-run "adb shell pm uninstall ${PKG}.tests"
+#run "adb shell pm uninstall ${PKG}"
+#run "adb shell pm uninstall ${PKG}.tests"
