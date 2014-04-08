@@ -35,7 +35,7 @@ fi
 # VIMMODE
 set -o vi
 
-bind "set completion-display-width 1"
+# bind "set completion-display-width 1"
 bind "set completion-ignore-case off"
 bind "set completion-prefix-display-length 2"
 bind "set menu-complete-display-prefix on"
