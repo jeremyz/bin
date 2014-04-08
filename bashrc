@@ -94,7 +94,7 @@ export GREP_OPTIONS=--color
 # RUBY
 # export RB_USER_INSTALL=1    # see /usr/local/lib/ruby/1.8/i386-freebsd7/rbconfig.rb
 export RUBYOPT=rubygems
-export GEM_HOME="${HOME_}/.gem/ruby/2.0.0"
+export GEM_HOME="${HOME_}/.gem/ruby/2.1.0"
 export RUBYLIB=${LOCALLIB}/ruby
 set_if_not_in 'PATH' ${GEM_HOME}/bin
 
