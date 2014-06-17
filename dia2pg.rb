@@ -189,6 +189,13 @@ class Attribute
         @comment=~/no_export=1/
     end
     #
+    def default
+        return '' if @comment.nil?
+        @comment=~/default=(.*)$/
+        return '' if $1.nil?
+        return " DEFAULT "+$1.to_s
+    end
+    #
     def real_name
         if not no_rename? and foreign?
             rl = RELATIONS.find { |r| r.tbl_to==@tbl and r.attr_to.name==@name }
@@ -227,6 +234,7 @@ class Attribute
         else
             r << "#{type} NOT NULL"
         end
+        r << default
         r << ",\n"
     end
     #
