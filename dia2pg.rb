@@ -128,13 +128,17 @@ class Table
         end
         r << "CREATE TABLE #{name}\n(\n"
         pk = []
-        idx = []
+        idx = {}
         uq = { :all=>[] }
         @attributes.each do |attr|
             sql = attr.to_sql
             next if sql.nil?
             r << sql
-            idx << attr.real_name if attr.index?
+            xi = attr.index
+            if xi
+                idx[xi] ||= []
+                idx[xi] << attr.real_name
+            end
             pk << attr.real_name if attr.primary_key
             if attr.unique and not attr.primary_key
                 if attr.comment=~/U./
@@ -150,7 +154,7 @@ class Table
         r.sub!(/,\n$/,"\n")
         r << ")\nWITH (\n    OIDS=#{@opts.oids ? 'TRUE' : 'FALSE'}\n);\n"
         r << "ALTER TABLE #{name} OWNER TO #{@opts.user};\n"
-        idx.each do |attr| r << "CREATE INDEX ON #{name} (#{attr});\n" end
+        idx.each do |k,v| r << "CREATE INDEX ON #{name} (#{v.join ','});\n" end
         r
     end
     #
@@ -177,9 +181,10 @@ class Attribute
         @type=~/foreign/
     end
     #
-    def index?
-        return false if @comment.nil?
-        @comment=~/index=1/
+    def index
+        return nil if @comment.nil?
+        return nil if not @comment=~/index=(\d)/
+        $1
     end
     #
     def no_rename?
