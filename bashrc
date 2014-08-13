@@ -28,9 +28,9 @@ eval $(dircolors ~/.dir_colors)
 if [ ! -z $DISPLAY ]; then
     xset b 0
 fi
-if [ ! -z `which setterm 2>/dev/null` ]; then
-    setterm -blength 0
-fi
+# if [ ! -z `which setterm 2>/dev/null` ]; then
+#     setterm -blength 0
+# fi
 
 # VIMMODE
 set -o vi
