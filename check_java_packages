@@ -1,0 +1,41 @@
+#! /bin/bash
+
+if [ $# -lt 1 ]; then
+    echo "missing PATH argument"
+    exit 1
+fi
+
+TOPDIR=$1
+ERRORS=.check_package.err
+
+RESET="\033[0m"
+RED="\033[0;31m"
+BROWN="\033[0;33m"
+GREEN="\033[0;32m"
+
+cd $TOPDIR
+find . -name *.java | while read file; do
+    CORRECT=$(echo $file | sed 's/\.\///; s/\/\+/\./g; s/\.\w\+.java//')
+    N=$(cat $file | grep package | wc -l)
+    if [ $N -gt 1 ]; then
+        echo -e "$file : $BROWN more then 1 package directive$RESET";
+        touch $ERRORS
+        continue
+    fi
+    PACKAGE=$(cat $file | grep package)
+    if [ -z "$PACKAGE" ]; then
+        echo -e "$file : $BROWN missing package directive$RESET";
+        touch $ERRORS
+        continue
+    fi
+    PACKAGE=$(echo "$PACKAGE" | sed 's/ *package *//; s/ *; *$//;')
+    if [ "$PACKAGE" != "${CORRECT}" ]; then
+        echo -e "$file : $RED$PACKAGE$RESET -> $GREEN$CORRECT$RESET";
+        touch $ERRORS
+    fi
+done
+
+if [ -r "$ERRORS" ]; then
+    rm $ERRORS
+    exit 1
+fi
