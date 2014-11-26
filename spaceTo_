@@ -3,15 +3,15 @@
 # /bin/sh : NEW=`ls | sed s/\ /_/g | sed s/_-_/_/g `
 
 sub proceed{
-	my $dir=shift;
-	my $prefix=shift;
-	opendir(DIRHANDLE,$dir) || die "Cannot open dir $dir";
-	while ($name=readdir(DIRHANDLE)){
+    my $dir=shift;
+    my $prefix=shift;
+    opendir(DIRHANDLE,$dir) || die "Cannot open dir $dir";
+    while ($name=readdir(DIRHANDLE)){
         if($name =~m/^\./){
             next;
         }
         my $ustring = "\x{b4}";
-		my $new = $name;
+        my $new = $name;
         $new =~ s/ /_/g;
         $new =~ s/'/_/g;
         $new =~ s/[\[\]]/_/g;
@@ -28,7 +28,7 @@ sub proceed{
             rename($name, $new) || die "Unable to rename $name in $new.";
         }
     }
-	closedir(DIRHANDLE);
+    closedir(DIRHANDLE);
 }
 
 proceed(".", shift);
