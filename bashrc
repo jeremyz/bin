@@ -77,9 +77,6 @@ LIBS=/var/lib
 LOCALGIT=${HOME_}/usr/git
 LOCALLIB=${HOME_}/lib
 
-# GREP
-export GREP_OPTIONS=--color
-
 # GIT
 # export GIT_PAGER=cat
 # export GIT_BASE=${LOCALGIT}
