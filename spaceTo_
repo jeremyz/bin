@@ -10,16 +10,15 @@ sub proceed{
         if($name =~m/^\./){
             next;
         }
-        my $ustring = "\x{b4}";
         my $new = $name;
+        my $ustring = "\x{b4}";
+        $new =~ s/$ustring/_/g;
         $new =~ s/ /_/g;
         $new =~ s/'/_/g;
         $new =~ s/[\[\]]/_/g;
-        $new =~ s/$ustring/_/g;
         $new =~ s/\._/_/g;
         $new =~ s/_+\./\./g;
         $new =~ s/[_-](-*_*)+/_/g;
-        $new =~ s/\\/-/g;
         $new =~ s/\\/-/g;
         if(defined($prefix)){
             $new =~ s/^$prefix//g;
