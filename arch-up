@@ -12,6 +12,7 @@ function sudo_run() {
 }
 
 function update_gem() {
+    sudo_run "rm -fr /usr/lib/ruby/gems/*"
     run "/usr/bin/gem update --no-document"
     run "/usr/bin/gem clean"
     # run "/opt/ruby1.8/bin/gem update"
