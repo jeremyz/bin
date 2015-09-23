@@ -36,11 +36,11 @@ fi
 set -o vi
 
 # bind "set completion-display-width 1"
-bind "set completion-ignore-case off"
-bind "set completion-prefix-display-length 2"
-bind "set menu-complete-display-prefix on"
-bind "set show-all-if-ambiguous on"
-bind "Control-t: menu-complete"
+#bind "set completion-ignore-case off"
+#bind "set completion-prefix-display-length 2"
+#bind "set menu-complete-display-prefix on"
+#bind "set show-all-if-ambiguous on"
+#bind "Control-t: menu-complete"
 
 # ALIASES
 #alias vimb="vim -u $HOME/.vimrc-bepo"
@@ -134,6 +134,8 @@ my_export 'EDITOR' 'vim' '/usr/bin/vi'
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
 #alias lss="ls -l"
+alias sct="systemctl"
+alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
 # MISC
 export SDL_AUDIODRIVER="pulse"
