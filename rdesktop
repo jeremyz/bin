@@ -5,7 +5,7 @@ if [ $# -eq 2 ]; then
     user=$1
 else
     host=$1
-    user="Administrator"
+    user="$1\Administrator"
 fi
-/usr/bin/rdesktop -0 -g 1280x1024  -u  $user $host
+/usr/bin/rdesktop -0 -g 1280x1024  -u $user $host
 
