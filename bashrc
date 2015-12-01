@@ -6,7 +6,7 @@ parse_git_branch() {
 }
 
 PS1='`hostname`:`pwd`# '
-if [ `whoami` = "root" ]; then	# effective uid
+if [ `whoami` = "root" ]; then # effective uid
     export PS1='\[\033[01;47;31m\]\h\[\033[40;31m\] \u \[\033[37m\]\W \$ \[\033[00m\]'
 else
     # export PS1='\[\033[01;47;31m\]\h\[\033[40;34m\] \u \[\033[37m\]\W $(parse_git_branch) \$ \[\033[00m\]'
