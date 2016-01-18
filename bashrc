@@ -134,7 +134,7 @@ my_export 'EDITOR' 'vim' '/usr/bin/vi'
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
 #alias lss="ls -l"
-alias vim="nvim"
+alias vim="nvim -u ~/.vimrc"
 alias sct="systemctl"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
