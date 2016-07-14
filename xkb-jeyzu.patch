@@ -1,8 +1,8 @@
 #  patch -p 1 -N -r -  < %
 diff -Naur /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
---- /usr/share/X11/xkb/geometry/typematrix	2013-01-30 21:32:10.000000000 +0100
-+++ xkb/geometry/typematrix	2013-02-01 22:21:59.809518613 +0100
-@@ -743,3 +743,15 @@
+--- /usr/share/X11/xkb/geometry/typematrix	2016-06-04 08:59:10.000000000 +0200
++++ xkb/geometry/typematrix	2016-06-15 08:58:08.874416583 +0200
+@@ -731,3 +731,15 @@
          };
      };
  }; // geometry tm2030USB-106
@@ -19,9 +19,9 @@ diff -Naur /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
 +    include "typematrix(tm2030USB_ctrl)"
 +}; // geometry tm2030USB-jeyzu
 diff -Naur /usr/share/X11/xkb/rules/base xkb/rules/base
---- /usr/share/X11/xkb/rules/base	2013-01-30 21:32:11.000000000 +0100
-+++ xkb/rules/base	2013-02-01 22:18:17.170724751 +0100
-@@ -25,7 +25,7 @@
+--- /usr/share/X11/xkb/rules/base.orig	2016-06-04 08:59:10.000000000 +0200
++++ /usr/share/X11/xkb/rules/base	2016-06-15 08:58:08.891083251 +0200
+@@ -28,7 +28,7 @@
  ! $pcgeometries = latitude
  
  // TypeMatrix geometries
@@ -31,8 +31,8 @@ diff -Naur /usr/share/X11/xkb/rules/base xkb/rules/base
  // Layouts that provide further specializations for the OLPC
  ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
 diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
---- /usr/share/X11/xkb/rules/base.lst	2013-01-30 21:32:11.000000000 +0100
-+++ xkb/rules/base.lst	2013-02-01 22:18:17.174058067 +0100
+--- /usr/share/X11/xkb/rules/base.lst.orig	2016-06-04 08:59:10.000000000 +0200
++++ /usr/share/X11/xkb/rules/base.lst	2016-06-15 08:58:08.897749918 +0200
 @@ -147,6 +147,7 @@
    tm2030USB       TypeMatrix EZ-Reach 2030 USB
    tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
@@ -41,7 +41,7 @@ diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
    yahoo           Yahoo! Internet Keyboard
    macbook78       MacBook/MacBook Pro
    macbook79       MacBook/MacBook Pro (Intl)
-@@ -504,6 +505,7 @@
+@@ -532,6 +533,7 @@
    OADG109A        jp: Japanese (OADG 109A)
    mac             jp: Japanese (Macintosh)
    dvorak          jp: Japanese (Dvorak)
@@ -50,9 +50,9 @@ diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
    ruskaz          kz: Russian (Kazakhstan, with Kazakh)
    kazrus          kz: Kazakh (with Russian)
 diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
---- /usr/share/X11/xkb/rules/evdev	2013-01-30 21:32:11.000000000 +0100
-+++ xkb/rules/evdev	2013-02-01 22:18:17.147391544 +0100
-@@ -25,7 +25,7 @@
+--- /usr/share/X11/xkb/rules/evdev.orig	2016-06-04 08:59:10.000000000 +0200
++++ /usr/share/X11/xkb/rules/evdev	2016-06-15 08:58:08.901083251 +0200
+@@ -28,7 +28,7 @@
  ! $pcgeometries = latitude
  
  // TypeMatrix geometries
@@ -62,9 +62,9 @@ diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
  // Layouts that provide further specializations for the OLPC
  ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
 diff -Naur /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
---- /usr/share/X11/xkb/symbols/jp	2013-01-30 21:32:11.000000000 +0100
-+++ xkb/symbols/jp	2013-02-01 22:20:47.363244422 +0100
-@@ -319,3 +319,15 @@
+--- /usr/share/X11/xkb/symbols/jp.orig	2016-06-04 08:59:10.000000000 +0200
++++ /usr/share/X11/xkb/symbols/jp	2016-06-15 08:58:08.904416585 +0200
+@@ -321,3 +321,15 @@
  	xkb_symbols "sun_type7" {
  	include "sun_vndr/jp(sun_type7)"
  };
