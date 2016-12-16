@@ -140,11 +140,12 @@ class Table
                 idx[xi] << attr.real_name
             end
             pk << attr.real_name if attr.primary_key
-            if attr.unique and not attr.primary_key
-                if attr.comment=~/U./
-                    uq[attr.comment] ||= []
-                    uq[attr.comment]<< attr.real_name
-                else
+            if attr.unique
+                ug = attr.unique_group
+                if not ug.nil?
+                    uq[ug] ||= []
+                    uq[ug]<< attr.real_name
+                elsif not attr.primary_key
                     uq[:all] << attr.real_name
                 end
             end
@@ -184,6 +185,12 @@ class Attribute
     def index
         return nil if @comment.nil?
         return nil if not @comment=~/index=(\d)/
+        $1
+    end
+    #
+    def unique_group
+        return nil if @comment.nil?
+        return nil if not @comment=~/unique=(\w+)/
         $1
     end
     #
