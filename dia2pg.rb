@@ -103,7 +103,7 @@ class Table
     #
     def no_export?
         return false if @comment.nil?
-        @comment=~/no_export=1/
+        @comment=~/no_export/
     end
     #
     def << a
@@ -189,17 +189,17 @@ class Attribute
     #
     def no_rename?
         return false if @comment.nil?
-        @comment=~/no_rename=1/
+        @comment=~/no_rename/
     end
     #
     def no_prefix?
         return false if @comment.nil?
-        @comment=~/no_prefix=1/
+        @comment=~/no_prefix/
     end
     #
     def no_export?
         return false if @comment.nil?
-        @comment=~/no_export=1/
+        @comment=~/no_export/
     end
     #
     def default
