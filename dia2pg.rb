@@ -42,7 +42,7 @@ options.verbose = false
 options.input = nil
 options.drop = false
 options.create = false
-options.odids = false
+options.oids = false
 options.user = 'postgres'
 options.tbl_prefix = nil
 #
@@ -152,8 +152,8 @@ class Table
         uq.each do |k,v| r << "    UNIQUE(#{v.join ','}),\n" unless v.empty? end
         r << "    CONSTRAINT pk_#{name} PRIMARY KEY (#{pk.join ','})\n" if pk.length>0
         r.sub!(/,\n$/,"\n")
-        r << ")\nWITH (\n    OIDS=#{@opts.oids ? 'TRUE' : 'FALSE'}\n);\n"
-        r << "ALTER TABLE #{name} OWNER TO #{@opts.user};\n"
+        r << ") WITH ( OIDS='FALSE' " if @opts.oids
+        r << ");\nALTER TABLE #{name} OWNER TO #{@opts.user};\n"
         idx.each do |k,v| r << "CREATE INDEX ON #{name} (#{v.join ','});\n" end
         r
     end
