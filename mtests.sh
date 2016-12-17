@@ -33,10 +33,10 @@ INIT_C="init.c"
 SHUTDOWN_C="shutdown.c"
 
 # output files
-TMP="/tmp"
-TEST_C="$TMP/__efl_test.c"
-TEST_O="$TMP/__efl_test.o"
-FAILED_F="$TMP/__efl_tests_failed"
+TMP="/tmp/__mtest"
+TEST_C="${TMP}.c"
+TEST_O="${TMP}.o"
+FAILED_F="${TMP}_failed"
 
 # local vars
 LD=""
@@ -72,13 +72,13 @@ function say_anyway
 
 while [ $# -ge 1 ]; do
    case "$1" in
-      -s*|--src*)
+      -s|--src)
          shift
          [ $# -lt 1 ] && fatal "option -s is missing directory argument"
          SRC_D=$1
          shift
          ;;
-      -b*|--build*)
+      -b|--build)
          shift
          [ $# -lt 1 ] && fatal "option -b is missing directory argument"
          BUILD_D=$1
