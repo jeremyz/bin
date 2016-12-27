@@ -1,4 +1,3 @@
 #! /bin/sh
 DIR=${1:-$HOME}
-echo "find $DIR \( -name '*~'  -o -name '__MACOSX' -o -name .DS_Store \) -exec rm -fr '{}' \;"
-find $DIR \( -name '*~' -o -name '__MACOSX' -o -name .DS_Store \) -exec rm -fr '{}' \;
+echo "clean $DIR" && find $DIR \( -name '*~' -o -name '*swp' -o -name '__MACOSX' -o -name .DS_Store \) -delete
