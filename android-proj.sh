@@ -2,6 +2,7 @@
 
 if [ $# -lt 5 ]; then
     echo "usage $0 ProjPath PackageName ProjName ActivityName TargetID"
+    echo "  ex: $0 ~/       domain.test Test     TestActivity android-23"
     exit 1
 fi
 
