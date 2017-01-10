@@ -27,15 +27,10 @@ CC="${CC:-"clang"}"
 CFLAGS="${CFLAGS:-"-O0 -ggdb -W -Wall -Wextra -Wshadow"}"
 
 # input files
-CONFIG_SH="config.sh"
-INIT_C="init.c"
-SHUTDOWN_C="shutdown.c"
+MAIN_C="main.c"
 
 # output files
-TMP="/tmp/__mtest"
-TEST_C="${TMP}.c"
-TEST_O="${TMP}.o"
-FAILED_F="${TMP}_failed"
+TEST_D="/tmp/__mtests"
 
 # local vars
 LD=""
@@ -111,10 +106,38 @@ done
 
 [ -d "$SRC_D" -a -r "$SRC_D" ] || fatal "$SRC_D is not a valid directory"
 [ -d "$BUILD_D" -a -r "$BUILD_D" ] || fatal "$BUILD_D is not a valid directory"
+mkdir -p $TEST_D || fatal "cannot create $TEST_D directory"
+rm $TEST_D/*
+
+function load_main
+{
+   INCLUDE=""
+   for include in $(cat "$dir/$MAIN_C" | sed -n 's/#include\ \+"\(.*\)"/\1/p')
+   do
+      F=$(find $SRC_D -name $include)
+      if [ -z "$F" ]
+      then
+         F=$(find $BUILD_D -name $include)
+         [ ! -z "$F" ] || fatal "can't find $include in $SRC_D or $BUILD_D"
+      fi
+      INCLUDE="$INCLUDE -I${F%/*}"
+   done
+   LDF=""
+   LDP=""
+   for ld in $(cat "$dir/$MAIN_C" | sed -n 's/.*ld\ *:\ *\(.*\)$/\1/p')
+   do
+      F=$(find $BUILD_D -name $ld)
+      [ ! -z "$F" ] || fatal "can't find $ld in $BUILD_D"
+      LDP="$LDP -L${F%/*}"
+      lib=${F##*/lib}
+      lib=${lib%.so*}
+      LDF="$LDF -l$lib"
+   done
+}
 
 function check_dir
 {
-   for file in $INIT_C $SHUTDOWN_C
+   for file in $MAIN_C
    do
       f="$dir/$file"
       if [ ! -f "$f" -o ! -r "$f" ]
@@ -127,48 +150,23 @@ function check_dir
    return 0
 }
 
-function load_cfg
+function enter_dir
 {
-   unset LDS
-   unset INCLUDES
-   LDF=""
-   LDP=""
-   INCLUDE=""
-   cfg="$dir/$CONFIG_SH"
-   [ ! -f "$cfg" -o ! -r "$cfg" ] && return     # FIXME maybe fatal
-   say "    ${BROWN}load${RESET} $CONFIG_SH"
-   source ./$cfg
-   for include in $INCLUDES
-   do
-      F=$(find $SRC_D -name $include)
-      if [ -z "$F" ]
-      then
-         F=$(find $BUILD_D -name $include)
-         [ ! -z "$F" ] || fatal "can't find $include in $SRC_D or $BUILD_D"
-      fi
-      INCLUDE="$INCLUDE -I${F%/*}"
-   done
-   for ld in $LDS
-   do
-      F=$(find $BUILD_D -name $ld)
-      [ ! -z "$F" ] || fatal "can't find $ld in $BUILD_D"
-      LDP="$LDP -L${F%/*}"
-      lib=${F##*/lib}
-      lib=${lib%.so*}
-      LDF="$LDF -l$lib"
-   done
+   say "  enter ${PURPLE}$dir${RESET}"
+   check_dir || return 1
+   load_main
+   return 0
 }
 
 function run_test
 {
-   cat $dir/$INIT_C $test_c $dir/$SHUTDOWN_C > $TEST_C
-   CMD="$CC $TEST_C $CFLAGS $INCLUDE $LDP $LDF -o $TEST_O"
-   [ $DEBUG -eq 1 ] && echo "$CMD"
+   TEST=$(basename $test_c .c)
+   TEST_C="$TEST.c"
+   TEST_O="$TEST_D/$TEST.o"
    sayn "    ${BROWN}run ${PURPLE}${test_c##*/}${RESET} "
-   $CMD || fatal " compilation of $test_c failed, see $TEST_C"
+   $CC $dir/$MAIN_C -o $TEST_O -DTESTC=$TEST_C -DCALL=$TEST -DFUNC="void $TEST(void)" $CFLAGS $INCLUDE $LDP $LDF || fatal " compilation of $test_c failed"
    TEST_N=$((TEST_N + 1))
-   $TEST_O && say "${GREEN}PASS${RESET}" && PASS_N=$((PASS_N + 1)) && return
-   echo "$test_c" > $FAILED_F
+   $TEST_O && rm $TEST_O && say "${GREEN}PASS${RESET}" && PASS_N=$((PASS_N + 1)) && return
    say "${RED}FAIL${RESET}"
    say_anyway "        $test_c"
    [ $ABORT -ne 1 ] && return
@@ -180,13 +178,10 @@ function report
 {
    [ $QUIET -eq 1 ] && exit 0
    say "\n$PASS_N/$TEST_N tests passed"
-   FAIL_N=$(cat $FAILED_F | wc -l)
-   [ $FAIL_N -gt 0 ] && say "see $FAILED_F"
+   FAIL_N=$(ls -1 $TEST_D | wc -l)
+   [ $FAIL_N -gt 0 ] && say "see $TEST_D"
    exit 0
 }
-
-rm $FAILED_F 2> /dev/null
-touch $FAILED_F
 
 for test_c in $TESTS
 do
@@ -196,9 +191,7 @@ do
       continue
    fi
    dir=${test_c%/*}
-   say "  enter ${PURPLE}$dir${RESET}"
-   check_dir || continue
-   load_cfg
+   enter_dir || continue
    run_test
    say "  leave"
 done
@@ -208,9 +201,7 @@ done
 say "search for tests into $SRC_D"
 for dir in $(find $SRC_D -type d -name tests)
 do
-   say "  enter ${PURPLE}$dir${RESET}"
-   check_dir || continue
-   load_cfg
+   enter_dir || continue
    for test_c in $(find $dir -name test_*.c | sort)
    do
       run_test
