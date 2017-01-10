@@ -16,7 +16,6 @@ BROWN="\033[0;33m"
 PURPLE="\033[0;35m"
 
 # arguments
-DEBUG=0
 ABORT=0
 QUIET=0
 TESTS=""
@@ -84,10 +83,6 @@ while [ $# -ge 1 ]; do
          BUILD_D=$1
          shift
          ;;
-      -d|--debug)
-         shift
-         DEBUG=1
-         ;;
       -a|--abort)
          shift
          ABORT=1
@@ -100,7 +95,6 @@ while [ $# -ge 1 ]; do
          echo "Usage: $SCRIPT_FILE [options]"
          echo
          echo "Options:"
-         echo "    -d, --debug            Enable debug output"
          echo "    -b, --abort            Abort on test failure"
          echo "    -q, --quiet            Only output failed tests"
          echo "    -s, --src directory    Directory to search for tests into"
