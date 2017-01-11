@@ -9,15 +9,17 @@
 SCRIPT_DIR=${0%/*}
 SCRIPT_FILE=${0##*/}
 
-RESET="\033[0m"
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-BROWN="\033[0;33m"
-PURPLE="\033[0;35m"
+# colors
+RESET=""
+RED=""
+GREEN=""
+BROWN=""
+PURPLE=""
 
 # arguments
 ABORT=0
 QUIET=0
+COLOR=0
 TESTS=""
 SRC_D="src"
 BUILD_D="build"
@@ -82,6 +84,10 @@ while [ $# -ge 1 ]; do
          shift
          ABORT=1
          ;;
+      -c|--color)
+         shift
+         COLOR=1
+         ;;
       -q|--quiet)
          shift
          QUIET=1
@@ -92,6 +98,7 @@ while [ $# -ge 1 ]; do
          echo "Options:"
          echo "    -b, --abort            Abort on test failure"
          echo "    -q, --quiet            Only output failed tests"
+         echo "    -c, --color            Pretty pretty"
          echo "    -s, --src directory    Directory to search for tests into"
          echo "    -b, --build directory  Directory to search for built files into"
          echo "    -h, --help             This message."
@@ -103,6 +110,15 @@ while [ $# -ge 1 ]; do
          ;;
    esac
 done
+
+if [ $COLOR -eq 1 ]
+then
+   RESET="\033[0m"
+   RED="\033[0;31m"
+   GREEN="\033[0;32m"
+   BROWN="\033[0;33m"
+   PURPLE="\033[0;35m"
+fi
 
 [ -d "$SRC_D" -a -r "$SRC_D" ] || fatal "$SRC_D is not a valid directory"
 [ -d "$BUILD_D" -a -r "$BUILD_D" ] || fatal "$BUILD_D is not a valid directory"
