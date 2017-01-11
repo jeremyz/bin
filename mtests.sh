@@ -4,7 +4,6 @@
 
 # TODO
 #  - support test specific subdir test_xxx.d/*.[ch]
-#  - integrate with autofoos (SRC_D BUILD_D CC CFLAGS ...)
 
 SCRIPT_DIR=${0%/*}
 SCRIPT_FILE=${0##*/}
@@ -93,7 +92,7 @@ while [ $# -ge 1 ]; do
          QUIET=1
          ;;
       -h|--help)
-         echo "Usage: $SCRIPT_FILE [options]"
+         echo "Usage: $SCRIPT_FILE [options] [tests]"
          echo
          echo "Options:"
          echo "    -b, --abort            Abort on test failure"
@@ -122,8 +121,8 @@ fi
 
 [ -d "$SRC_D" -a -r "$SRC_D" ] || fatal "$SRC_D is not a valid directory"
 [ -d "$BUILD_D" -a -r "$BUILD_D" ] || fatal "$BUILD_D is not a valid directory"
+rm -fr $TEST_D 2 > /dev/null
 mkdir -p $TEST_D || fatal "cannot create $TEST_D directory"
-rm $TEST_D/*
 
 function load_main
 {
@@ -178,15 +177,17 @@ function run_test
 {
    TEST=$(basename $test_c .c)
    TEST_C="$TEST.c"
-   TEST_O="$TEST_D/$TEST.o"
+   TEST_O="$TEST_D/$TEST"
    sayn "    ${BROWN}run ${PURPLE}${test_c##*/}${RESET} "
-   $CC $dir/$MAIN_C -o $TEST_O -DTESTC=$TEST_C -DCALL=$TEST -DFUNC="void $TEST(void)" $CFLAGS $INCLUDE $LDP $LDF || fatal " compilation of $test_c failed"
+   $CC $dir/$MAIN_C -o $TEST_O \
+      -DTESTC=$TEST_C -DCALL=$TEST -DFUNC="void $TEST(void)" \
+      $CFLAGS $INCLUDE $LDP $LDF || fatal " compilation of $test_c failed"
    TEST_N=$((TEST_N + 1))
    $TEST_O && rm $TEST_O && say "${GREEN}PASS${RESET}" && PASS_N=$((PASS_N + 1)) && return
    say "${RED}FAIL${RESET}"
    say_anyway "        $test_c"
    [ $ABORT -ne 1 ] && return
-   say "        see $TEST_C"
+   say "        see $BROWN$TEST_O$RESET"
    exit 1
 }
 
@@ -195,7 +196,7 @@ function report
    [ $QUIET -eq 1 ] && exit 0
    say "\n$PASS_N/$TEST_N tests passed"
    FAIL_N=$(ls -1 $TEST_D | wc -l)
-   [ $FAIL_N -gt 0 ] && say "see $TEST_D"
+   [ $FAIL_N -gt 0 ] && say "see $BROWN$TEST_O$RESET"
    exit 0
 }
 
