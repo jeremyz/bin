@@ -191,6 +191,16 @@ function run_test
    exit 1
 }
 
+function run_dir
+{
+   enter_dir || return
+   for test_c in $(find $dir -name test_*.c | sort)
+   do
+      run_test
+   done
+   say "  leave"
+}
+
 function report
 {
    [ $QUIET -eq 1 ] && exit 0
@@ -200,31 +210,27 @@ function report
    exit 0
 }
 
+if [ -z "$TESTS" ]
+then
+   say "search for tests into $BROWN$SRC_D$RESET"
+   TESTS=$(find $SRC_D -type d -name tests)
+fi
+
 for test_c in $TESTS
 do
-   if [ ! -f $test_c ]
+   if [ -d $test_c ]
    then
-      say "$test_c does not exists"
-      continue
-   fi
-   dir=${test_c%/*}
-   enter_dir || continue
-   run_test
-   say "  leave"
-done
-
-[ ! -z "$TESTS" ] && report
-
-say "search for tests into $SRC_D"
-for dir in $(find $SRC_D -type d -name tests)
-do
-   enter_dir || continue
-   for test_c in $(find $dir -name test_*.c | sort)
-   do
+      dir=$test_c
+      run_dir
+   elif [ -f $test_c ]
+   then
+      dir=${test_c%/*}
+      enter_dir || continue
       run_test
-   done
-   say "  leave"
+      say "  leave"
+   else
+      say "$BROWN$test_c$RESET can't be read"
+   fi
 done
-say "done"
 
 report
