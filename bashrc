@@ -112,7 +112,7 @@ export TEXMFCONFIG=${TEXBASE}/texmf-config
 # export MFINPUTS=${TEXBASE}/texmf/fonts
 
 # prepend ~/bin to path if not already there
-export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
+export PATH="./bin:${HOME_}/bin:${PATH#${HOME_}/bin:}"
 
 export PKG_PATH=`which pkg-config 2>/dev/null`
 export PKG_CONFIG_PATH=/opt/$USER/lib/pkgconfig:$PKG_CONFIG_PATH
