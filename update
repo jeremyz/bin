@@ -1,0 +1,65 @@
+#! /bin/bash
+RESET="\033[0m"
+RED="\033[0;31m"
+CYAN="\033[0;36m"
+
+if [ $# -lt 1 ]; then
+    echo "missing passwd" && exit 1
+fi
+sudo -K
+echo "$1" | sudo -S true &>/dev/null
+if [ $? -ne 0 ]; then
+    echo "wrong sudo passwd" && exit 1
+fi
+PASSWD=$1
+shift
+
+function run() {
+    echo -e "$CYAN $1 $RESET" && $1
+}
+
+function sudo_run() {
+    echo -e "$RED sudo$CYAN $1 $RESET" && sudo $1
+}
+
+function update_gem() {
+    # ls -1 .gem/ruby/2.2.0/specifications/ | sed 's/-\([0-9]\+\.\)\+gemspec//' | while read gem; do gem install $gem; done
+    sudo_run "rm -fr /usr/lib/ruby/gems/*"
+    run "/usr/bin/gem update --no-document"
+    run "/usr/bin/gem clean"
+}
+
+function update_pkgs() {
+    sudo_run "pacman -Syu" || return
+    sudo_run "pacman -Scc --noconfirm"
+    sudo_run "rm /var/cache/pacman/pkg/*"
+    run "aurget -Syu"
+}
+
+function check_etc() {
+    sudo_run "find /etc -name *.pacnew"
+    [ -e /etc/.git ] || return
+    run "cd /etc"
+    sudo_run "git status"
+}
+
+function synk() {
+    [ -f ~/etc/liferea/liferea.db-* ] && rm ~/etc/liferea/liferea.db-*
+    [ -f ~/.googleearth/myplaces.kml ] && cp ~/.googleearth/myplaces.kml ~/etc/googleearth
+    [ -f ~/.unison/asynk.prf ] && echo -e "$RED ** unison asynk $RESET" && unison asynk.prf
+}
+
+function git_pull() {
+    pushd $1 >/dev/null || return
+    run "git pull --rebase" || echo -e "$RED FAILED in : $(pwd) $RESET"
+    pushd
+}
+
+synk
+git_pull ~/usr/git/bin
+git_pull ~/usr/git/vim
+update_pkgs
+update_gem
+check_etc
+
+sudo -K
