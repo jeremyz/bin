@@ -1,7 +1,5 @@
 #! /bin/sh
 
-DEST_DIR=$HOME/bin
-
 DONOTDO="install bashrc solarized xkb-jeyzu.patch"
 
 function link ()
@@ -18,6 +16,10 @@ function link ()
         ls -l "$dst"
     fi
 }
+
+DIR=${0%/*}
+DEST_DIR=$HOME/bin
+pushd $DIR || exit 1
 
 rm *~ 2>/dev/null
 for f in *; do
