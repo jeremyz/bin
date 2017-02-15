@@ -44,8 +44,6 @@ function check_etc() {
 }
 
 function synk() {
-    [ -f ~/etc/liferea/liferea.db-* ] && rm ~/etc/liferea/liferea.db-*
-    [ -f ~/.googleearth/myplaces.kml ] && cp ~/.googleearth/myplaces.kml ~/etc/googleearth
     [ -f ~/.unison/asynk.prf ] && echo -e "$RED ** unison asynk $RESET" && unison asynk.prf
 }
 
