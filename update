@@ -56,6 +56,7 @@ function git_pull() {
 synk
 git_pull ~/usr/git/bin
 git_pull ~/usr/git/vim
+git_pull ~/usr/git/share
 update_pkgs
 update_gem
 check_etc
