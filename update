@@ -49,8 +49,9 @@ function synk() {
 
 function git_pull() {
     pushd $1 >/dev/null || return
+    echo -e "$CYAN$1$RESET"
     run "git pull --rebase" || echo -e "$RED FAILED in : $(pwd) $RESET"
-    pushd
+    popd >/dev/null
 }
 
 synk
