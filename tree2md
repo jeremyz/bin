@@ -1,0 +1,2 @@
+#! /bin/bash
+tree -f --noreport -I '*~' --charset ascii $@ | sed -e 's/| \+/  /g; s/[|`]-\+/ */g; s:\(* \)\(\(.*/\)\([^/]\+\)\):\1[\4](\2):g'
