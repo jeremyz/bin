@@ -33,6 +33,12 @@ find . -name *.java | while read file; do
         echo -e "$file : $RED$PACKAGE$RESET -> $GREEN$CORRECT$RESET";
         touch $ERRORS
     fi
+    for IMPORT in $(cat $file | sed -n 's/import\s\+.*\.\(.*\);/\1/p'); do
+        cat $file | grep $IMPORT | grep -qv import
+        if [ $? -ne 0 ]; then
+            echo -e "$file : import $RED$IMPORT$RESET might be useless";
+        fi
+    done
 done
 
 if [ -r "$ERRORS" ]; then
