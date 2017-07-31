@@ -1,0 +1,20 @@
+#! /bin/bash
+
+NETCTL=$(which netctl)
+if [ -z "$NETCTL" ]
+then
+    echo "netctl not found"
+    exit 1
+fi
+if [ $UID -ne 0 ]
+then
+    echo "must be run as root"
+    exit 1
+fi
+$NETCTL stop-all
+PROFILES=$($NETCTL list)
+select profile in $PROFILES
+do
+    [ -z "$profile" ] && exit 0
+    echo "starting profile $profile" && $NETCTL start $profile; break
+done
