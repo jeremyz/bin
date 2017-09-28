@@ -13,9 +13,10 @@ RED="\033[0;31m"
 BROWN="\033[0;33m"
 GREEN="\033[0;32m"
 
-cd $TOPDIR
-find . -name *.java | while read file; do
-    CORRECT=$(echo $file | sed 's/\.\///; s/\/\+/\./g; s/\.\w\+.java//')
+find $TOPDIR -name *.java | while read file;
+do
+    relpath=${file#${TOPDIR}}
+    CORRECT=$(echo $relpath | sed 's/\.\///; s/\/\+/\./g; s/\.\w\+.java//')
     N=$(cat $file | grep package | wc -l)
     if [ $N -gt 1 ]; then
         echo -e "$file : $BROWN more then 1 package directive$RESET";
@@ -33,7 +34,8 @@ find . -name *.java | while read file; do
         echo -e "$file : $RED$PACKAGE$RESET -> $GREEN$CORRECT$RESET";
         touch $ERRORS
     fi
-    for IMPORT in $(cat $file | sed -n 's/import\s\+.*\.\(.*\);/\1/p'); do
+    for IMPORT in $(cat $file | sed -n 's/import\s\+.*\.\(.*\);/\1/p');
+    do
         cat $file | grep $IMPORT | grep -qv import
         if [ $? -ne 0 ]; then
             echo -e "$file : import $RED$IMPORT$RESET might be useless";
