@@ -13,17 +13,17 @@ RED="\033[0;31m"
 BROWN="\033[0;33m"
 GREEN="\033[0;32m"
 
-find $TOPDIR -name *.java | while read file;
+find $TOPDIR -name \*.java | while read file;
 do
     relpath=${file#${TOPDIR}}
     CORRECT=$(echo $relpath | sed 's/\.\///; s/\/\+/\./g; s/\.\w\+.java//')
-    N=$(cat $file | grep package | wc -l)
+    N=$(cat $file | sed -n '/^\s*package /p ' | wc -l)
     if [ $N -gt 1 ]; then
         echo -e "$file : $BROWN more then 1 package directive$RESET";
         touch $ERRORS
         continue
     fi
-    PACKAGE=$(cat $file | grep package)
+    PACKAGE=$(cat $file | sed -n '/^\s*package /p ')
     if [ -z "$PACKAGE" ]; then
         echo -e "$file : $BROWN missing package directive$RESET";
         touch $ERRORS
