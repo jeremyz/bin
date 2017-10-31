@@ -1,0 +1,5 @@
+#! /bin/bash
+for remote in $(git remote -v | cut -f 1 | sort | uniq)
+do
+    git push $remote
+done
