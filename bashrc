@@ -1,23 +1,21 @@
 #! /bin/bash
 
 # PROMPT
-parse_git_branch() {
+function parse_git_branch()
+{
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
 }
-
-PS1='`hostname`:`pwd`# '
-if [ `whoami` = "root" ]; then # effective uid
+if [ `whoami` = "root" ]
+then
     export PS1='\[\033[01;47;31m\]\h\[\033[40;31m\] \u \[\033[37m\]\W \$ \[\033[00m\]'
 else
-    # export PS1='\[\033[01;47;31m\]\h\[\033[40;34m\] \u \[\033[37m\]\W $(parse_git_branch) \$ \[\033[00m\]'
-    # export PS1='\033[01;33m\u\033[01;35m@\033[00;31m\h\033[00m:\033[0;33m \w $(parse_git_branch) \033[0m\$ '
     export PS1='\[\033[01;33m\]\u\[\033[01;35m\]@\[\033[00;31m\]\h\[\033[00m\]:\[\033[0;33m\] \W \[\033[01;35m\]$(parse_git_branch)\[\033[0;33m\] \[\033[0m\]\$ '
 fi
-PS2='> '
 unset PROMPT_COMMAND
 
 # TERM
-if [ -r /usr/share/terminfo/x/xterm-256color ]; then
+if [ -r /usr/share/terminfo/x/xterm-256color ]
+then
     export TERM='xterm-256color'
 else
     export TERM='xterm-color'
@@ -25,25 +23,10 @@ fi
 eval $(dircolors ~/.dir_colors)
 
 # BELL
-if [ ! -z $DISPLAY ]; then
-    xset b 0
-fi
-# if [ ! -z `which setterm 2>/dev/null` ]; then
-#     setterm -blength 0
-# fi
+[ ! -z $DISPLAY ] && xset b 0
 
 # VIMMODE
 set -o vi
-
-# bind "set completion-display-width 1"
-#bind "set completion-ignore-case off"
-#bind "set completion-prefix-display-length 2"
-#bind "set menu-complete-display-prefix on"
-#bind "set show-all-if-ambiguous on"
-#bind "Control-t: menu-complete"
-
-# ALIASES
-#alias vimb="vim -u $HOME/.vimrc-bepo"
 
 # COLORLS
 OSNAME=`uname`
@@ -62,9 +45,13 @@ case $OSNAME in
         export PKG_PATH="ftp://mirror.switch.ch/mirror/OpenBSD/4.0/packages/i386/"
         ;;
 esac
-HOME_=$(readlink -f ${HOME%/})
 
-set_if_not_in( ) {
+# ENV
+# prepend ~/bin to path if not already there
+HOME_=$(readlink -f ${HOME%/})
+export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
+function set_if_not_in()
+{
     env_var=$1
     arg=$2
     IFS=":";
@@ -72,92 +59,42 @@ set_if_not_in( ) {
     IFS=" ";
     export ${env_var}=$arg:${!env_var}
 }
-
-LIBS=/var/lib
-LOCALGIT=${HOME_}/usr/git
-LOCALLIB=${HOME_}/lib
-
-# GIT
-# export GIT_PAGER=cat
-# export GIT_BASE=${LOCALGIT}
-
-# PYTHON
-# export PYTHONPATH=${LOCALLIB}/python:/opt/efl/lib/python2.7/site-packages/
-
-# PERL
-# export PERL5LIB=${LIBS}/perl/lib
-# set_if_not_in "PATH" "${LIBS}/perl/bin"
-
 # RUBY
-# export RB_USER_INSTALL=1    # see /usr/local/lib/ruby/1.8/i386-freebsd7/rbconfig.rb
-export RUBYOPT=rubygems
 export GEM_HOME="${HOME_}/.gem/ruby/2.4.0"
-export RUBYLIB=${LOCALLIB}/ruby
 set_if_not_in 'PATH' ${GEM_HOME}/bin
 
-# JAVA
-# export CLASSPATH=${LOCALLIB}/java
-
-# PIDGIN
-export NSS_SSL_CBC_RANDOM_IV=0
-
-SHARE=${HOME_}/share
-
-# LATEX
-TEXBASE=${SHARE}/tex
-export TEXMFHOME=${TEXBASE}/texmf
-export TEXMFVAR=${TEXBASE}/texmf-var
-export TEXMFCONFIG=${TEXBASE}/texmf-config
-# export TEXINPUTS=${TEXBASE}/texmf/ext:
-# export MFINPUTS=${TEXBASE}/texmf/fonts
-
-# prepend ~/bin to path if not already there
-export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
-
-export PKG_PATH=`which pkg-config 2>/dev/null`
-export PKG_CONFIG_PATH=/opt/$USER/lib/pkgconfig:$PKG_CONFIG_PATH
-export LOCATEDB=$HOME/etc/locate.`hostname`.db
-
-my_export()
+function export_if_exists()
 {
     _TMP=`which $2 2>/dev/null`
-    if [ -z ${_TMP} ]; then
-        _TMP=$3
-    fi
+    [ -z ${_TMP} ] && _TMP=$3
     eval "export $1=$_TMP"
 }
-
-# PAGER
-my_export 'PAGER' 'less' '/bin/more'
-my_export 'EDITOR' 'vim' '/usr/bin/vi'
+export_if_exists 'PAGER' 'less' '/bin/more'
+export_if_exists 'EDITOR' 'nvim' '/usr/bin/vi'
 
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
-#alias lss="ls -l"
 alias vim="nvim -u ~/.vimrc"
-alias sct="systemctl"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
 # MISC
-export SDL_AUDIODRIVER="pulse"
-export PA_RUNTIME_PATH=/tmp/pulse-jeyzu
 export OOO_FORCE_DESKTOP=gnome
 export OGGOPTS="-b 160 -q 4"
-if [ ! -z `which ncmpc 2>/dev/null` ]; then
+if [ ! -z `which ncmpc 2>/dev/null` ]
+then
     export MPD_HOST=bigdaddy;
 fi
 
-#
+# SSH
 SSH_ENV=${HOME}/.ssh/environment
-#
 function start_agent {
     /usr/bin/ssh-agent | sed 's/^echo/#echo/' > ${SSH_ENV}
     chmod 600 ${SSH_ENV}
     . ${SSH_ENV} > /dev/null
-    /usr/bin/ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
+    # /usr/bin/ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
 }
-#
-if [ -e "${SSH_ENV}" ]; then
+if [ -e "${SSH_ENV}" ]
+then
     . ${SSH_ENV} > /dev/null
     ps ux | grep ssh-agent$ | grep ${SSH_AGENT_PID} >/dev/null || {
         # kill old agents
@@ -172,4 +109,3 @@ if [ -e "${SSH_ENV}" ]; then
 else
     start_agent
 fi
-
