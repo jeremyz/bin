@@ -28,6 +28,8 @@ eval $(dircolors ~/.dir_colors)
 # VIMMODE
 set -o vi
 
+shopt -s autocd
+
 # COLORLS
 OSNAME=`uname`
 case $OSNAME in
