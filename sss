@@ -1,2 +1,2 @@
 #! /bin/bash
-ssh-add -l | grep -q 'no idente' && ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
+ssh-add -l | grep -q 'no identities' && ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
