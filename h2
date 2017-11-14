@@ -1,2 +1,2 @@
 #! /bin/bash
-LD_PRELOAD=/opt/lib/libhydrogen-core-0.9.7.so /opt/bin/hydrogen
+LD_PRELOAD=/opt/lib/libhydrogen-core-1.0.0.so /opt/bin/hydrogen
