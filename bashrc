@@ -72,7 +72,7 @@ function export_if_exists()
     eval "export $1=$_TMP"
 }
 export_if_exists 'PAGER' 'less' '/bin/more'
-export_if_exists 'EDITOR' 'nvim' '/usr/bin/vi'
+export_if_exists 'EDITOR' 'vim' '/usr/bin/vi'
 
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
