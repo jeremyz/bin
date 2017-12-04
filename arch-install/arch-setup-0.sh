@@ -68,7 +68,7 @@ cp hostname locale.conf vconsole.conf /mnt/etc/
 sed -i 's/#fr_CH/fr_CH/; s/#en_GB/en_GB/; s/#en_US/en_US/;' /mnt/etc/locale.gen
 sed -i 's/^#\[multilib\]/[multilib]/; T; n; s/^#Include/Include/' /mnt/etc/pacman.conf
 
-cp arch-setup-1.sh /mnt/ | exit 1
+cp arch-setup-1.sh /mnt/ || exit 1
 
 say " *** now launch ./arch-setup-1.sh !"
 arch-chroot /mnt
