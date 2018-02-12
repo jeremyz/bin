@@ -61,9 +61,6 @@ function set_if_not_in()
     IFS=" ";
     export ${env_var}=$arg:${!env_var}
 }
-# RUBY
-export GEM_HOME="${HOME_}/.gem/ruby/2.4.0"
-set_if_not_in 'PATH' ${GEM_HOME}/bin
 
 function export_if_exists()
 {
@@ -71,8 +68,15 @@ function export_if_exists()
     [ -z ${_TMP} ] && _TMP=$3
     eval "export $1=$_TMP"
 }
+
 export_if_exists 'PAGER' 'less' '/bin/more'
 export_if_exists 'EDITOR' 'vim' '/usr/bin/vi'
+
+
+# RUBY
+export GEM_HOME="${HOME_}/.gem/ruby/2.5.0"
+set_if_not_in 'PATH' ${GEM_HOME}/bin
+
 
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
