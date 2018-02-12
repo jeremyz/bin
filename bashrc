@@ -91,6 +91,50 @@ then
     export MPD_HOST=bigdaddy;
 fi
 
+
+# FUCTIONS
+function lip () {    # local ips
+    ip -c addr | sed -n '/^[1-9]:/p;/inet /p'
+}
+
+function xip () {    # external ip
+    dig +short myip.opendns.com @resolver1.opendns.com
+}
+
+function rman () {   # centered man
+    env COLUMNS=$(($COLUMNS/3*2)) man "${@}" | pr -o $((COLUMNS/3/2)) | less
+}
+
+function xcon () {   # external established connections
+    ss -t -o state established '( dport = :443 || dport = :80  )' \
+        | grep -Po '([0-9a-z:.]*)(?=:http[s])' | sort -u  \
+        | netcat whois.cymru.com 43 | grep -v "AS Name" | sort -t'|' -k3
+}
+
+function xtract() {
+    if [ -f "$1" ] ; then
+        case "$1" in
+            *.tar.bz2)   tar xvjf "$1"                    ;;
+            *.tar.gz)    tar xvzf "$1"                    ;;
+            *.bz2)       bunzip2 "$1"                     ;;
+            *.rar)       unrar x "$1"                     ;;
+            *.gz)        gunzip "$1"                      ;;
+            *.tar)       tar xvf "$1"                     ;;
+            *.tbz2)      tar xvjf "$1"                    ;;
+            *.tgz)       tar xvzf "$1"                    ;;
+            *.zip)       unzip "$1"                       ;;
+            *.ZIP)       unzip "$1"                       ;;
+            *.pax)       cat "$1" | pax -r                ;;
+            *.pax.Z)     uncompress "$1" —stdout | pax -r ;;
+            *.Z)         uncompress "$1"                  ;;
+            *.7z)        7z x "$1"                        ;;
+            *)           echo "don't know how to extract '$1'..." ;;
+        esac
+    else
+        echo "extract: error: $1 is not valid"
+    fi
+}
+
 # SSH
 SSH_ENV=${HOME}/.ssh/environment
 function start_agent {
