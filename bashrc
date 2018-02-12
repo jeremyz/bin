@@ -72,6 +72,7 @@ function export_if_exists()
 export_if_exists 'PAGER' 'less' '/bin/more'
 export_if_exists 'EDITOR' 'vim' '/usr/bin/vi'
 
+[ -r /etc/profile.d/undistract-me.sh ] && source /etc/profile.d/undistract-me.sh
 
 # RUBY
 export GEM_HOME="${HOME_}/.gem/ruby/2.5.0"
