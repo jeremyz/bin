@@ -23,7 +23,7 @@ function sudo_run() {
 }
 
 function update_gem() {
-    # ls -1 .gem/ruby/2.2.0/specifications/ | sed 's/-\([0-9]\+\.\)\+gemspec//' | while read gem; do gem install $gem; done
+    # cd .gem/ruby/X.Y.0/specifications/ && ls -1 *.gemspec | sed 's/-\([0-9]\+\.\)\+gemspec//' | while read gem; do gem install $gem; done
     sudo_run "rm -fr /usr/lib/ruby/gems/*"
     run "/usr/bin/gem update --no-document"
     run "/usr/bin/gem clean"
