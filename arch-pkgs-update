@@ -3,7 +3,9 @@
 [ $# -lt 1 ] && echo "usage $0 pkg_list (generated with pacman -Q)" && exit 1
 
 tmp=/tmp/__pkgs
+bad=/tmp/__pkgs-bad
 [ -e $tmp ] && rm $tmp
+[ -e $bad ] && rm $bad
 
 echo " * read packages list"
 pkgs=`cat $1 | gawk '{ print $1 }'`
@@ -13,9 +15,19 @@ for pkg in $pkgs; do
 done
 if [ -e $tmp ]; then
     echo " * install packages"
-    pkgs=$(cat $tmp)
-    pacman -S $pkgs || exit 1
+    pacman -S `cat $tmp`
+    if [ $? -ne 0 ];
+    then
+        echo " * clean package list"
+        pacman -S `cat $tmp` 2>&1 | cut -d ':' -f 3 > $bad
+        cat $bad | while read pkg; do sed -i "/$pkg/d"; done
+        echo " * install packages"
+        pacman -S `cat $tmp`
+    fi
+    pacman -Scc
+    [ -r $tmp ] && echo "installed packages in $tmp"
+    [ -r $bad ] && echo "failed packages in $bad"
     echo " * done"
 else
-    echo " * nothing todo"
+    echo " * all good"
 fi
