@@ -57,7 +57,8 @@ mkswap /mnt/swapfile || exit 1
 swapon /mnt/swapfile || exit 1
 
 say "BASE SYSTEM"
-echo "Server = http://k42.ch/mirror/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
+pacman -Sy archlinux-keyring
+echo "Server = http://mirror.puzzle.ch/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
 pacstrap /mnt base
 
 say "ETC"
