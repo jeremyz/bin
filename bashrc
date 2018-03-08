@@ -82,6 +82,7 @@ set_if_not_in 'PATH' ${GEM_HOME}/bin
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
 alias vim="nvim -u ~/.vimrc"
+alias vimdiff="nvim -d -u ~/.vimrc"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
 # MISC
