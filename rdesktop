@@ -11,6 +11,7 @@ else
     f="$HOME/.smb/$1.auth"
 fi
 
+echo " loading $f"
 if [ -r "$f" ];then
     username=$(cat $f | sed -ne 's/username=\(.*\)/\1/p; s/\n//g')
     password=$(cat $f | sed -ne 's/password=\(.*\)/\1/p; s/\n//g')
