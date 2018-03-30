@@ -11,10 +11,22 @@ then
     echo "must be run as root"
     exit 1
 fi
-$NETCTL stop-all
-PROFILES=$($NETCTL list)
+PROFILES=$($NETCTL list | sed 's/\*//')
 select profile in $PROFILES
 do
     [ -z "$profile" ] && exit 0
-    echo "starting profile $profile" && $NETCTL start $profile; break
+    $NETCTL stop-all
+    echo "starting profile $profile" && sleep 1 && $NETCTL start $profile || exit 1
+    break
 done
+N=0
+dev=$(cat /etc/netctl/$profile | sed -n 's/Interface\=\(.*\)/\1/p')
+ADDR=$(ip -c addr show dev $dev | grep inet)
+while [ -z "$ADDR" ]
+do
+    N=$((N + 1))
+    [ $N -eq 10 ] && echo " failure" && exit 1
+    echo -n "." && sleep 1
+    ADDR=$(ip -c addr show dev $dev | grep inet)
+done
+echo $ADDR
