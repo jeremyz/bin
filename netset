@@ -21,12 +21,13 @@ do
 done
 N=0
 dev=$(cat /etc/netctl/$profile | sed -n 's/Interface\=\(.*\)/\1/p')
-ADDR=$(ip -c addr show dev $dev | grep inet)
+ADDR=""
 while [ -z "$ADDR" ]
 do
     N=$((N + 1))
     [ $N -eq 10 ] && echo " failure" && exit 1
     echo -n "." && sleep 1
-    ADDR=$(ip -c addr show dev $dev | grep inet)
+    ADDR=$(ip -c addr show dev $dev | sed -n '/inet /p')
 done
+echo
 echo $ADDR
