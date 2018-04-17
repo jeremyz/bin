@@ -3,6 +3,8 @@ RESET="\033[0m"
 RED="\033[0;31m"
 CYAN="\033[0;36m"
 
+ssh-add -l | grep -q 'no identities' && ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
+
 if [ $# -lt 1 ]; then
     echo "missing passwd" && exit 1
 fi
