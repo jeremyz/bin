@@ -49,9 +49,6 @@ case $OSNAME in
 esac
 
 # ENV
-# prepend ~/bin to path if not already there
-HOME_=$(readlink -f ${HOME%/})
-export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 function set_if_not_in()
 {
     env_var=$1
@@ -69,15 +66,16 @@ function export_if_exists()
     eval "export $1=$_TMP"
 }
 
-export_if_exists 'PAGER' 'less' '/bin/more'
-export_if_exists 'EDITOR' 'vim' '/usr/bin/vi'
-
 [ -r /etc/profile.d/undistract-me.sh ] && source /etc/profile.d/undistract-me.sh
 
+# prepend ~/bin to path if not already there
+HOME_=$(readlink -f ${HOME%/})
+export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
+export_if_exists 'PAGER' 'less' '/bin/more'
+export EDITOR=vim
 # RUBY
 export GEM_HOME="${HOME_}/.gem/ruby/2.5.0"
 set_if_not_in 'PATH' ${GEM_HOME}/bin
-
 
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
@@ -85,16 +83,8 @@ alias vim="nvim -u ~/.vimrc"
 alias vimdiff="nvim -d -u ~/.vimrc"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
-# MISC
-export OOO_FORCE_DESKTOP=gnome
-export OGGOPTS="-b 160 -q 4"
-if [ ! -z `which ncmpc 2>/dev/null` ]
-then
-    export MPD_HOST=bigdaddy;
-fi
 
-
-# FUCTIONS
+# FUNCTIONS
 function lip () {    # local ips
     ip -c addr | sed -n '/^[1-9]:/p;/inet /p'
 }
