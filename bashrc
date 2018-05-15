@@ -83,12 +83,6 @@ alias vim="nvim -u ~/.vimrc"
 alias vimdiff="nvim -d -u ~/.vimrc"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
-# SERVICES
-for srvc in redshift
-do
-    systemctl --user start $srvc.service
-done
-
 # FUNCTIONS
 function lip () {    # local ips
     ip -c addr | sed -n '/^[1-9]:/p;/inet /p'
