@@ -11,7 +11,7 @@ then
     echo "must be run as root"
     exit 1
 fi
-PROFILES=$($NETCTL list | sed 's/\*//')
+PROFILES=$($NETCTL list | sed 's/\*//' | sort)
 select profile in $PROFILES
 do
     [ -z "$profile" ] && exit 0
