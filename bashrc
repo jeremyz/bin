@@ -85,7 +85,7 @@ alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 
 # FUNCTIONS
 function lip () {    # local ips
-    ip -c addr | sed -n '/^[1-9]:/p;/inet /p'
+    ip -4 -c addr | sed -n '/^[1-9]:/p;/inet/p'
 }
 
 function xip () {    # external ip
