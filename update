@@ -50,6 +50,13 @@ function check_etc() {
     sudo_run "git status"
 }
 
+function info() {
+    echo
+    uname -a
+    dmesg --level=err,warn -T
+    echo
+}
+
 function synk() {
     [ -f ~/.unison/asynk.prf ] && echo -e "$RED ** unison asynk $RESET" && unison asynk.prf
 }
@@ -68,5 +75,6 @@ git_pull ~/usr/git/share
 update_pkgs
 update_gem
 check_etc
+info
 
 sudo -K
