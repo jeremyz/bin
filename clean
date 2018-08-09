@@ -1,4 +1,4 @@
 #! /bin/sh
 DIR=${1:-$HOME}
 echo "clean $DIR" && find $DIR \( -name '*~' -o -name '*swp' -o -name '__MACOSX' -o -name .DS_Store \) -delete
-[ -d $HOME/.ccache ] && echo "clean ~/.cache" && find $HOME/.ccache -atime +15 -delete
+[ -d $HOME/.ccache ] && echo "clean ~/.cache" && find $HOME/.ccache -type f -atime +15 -delete
