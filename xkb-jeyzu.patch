@@ -38,10 +38,10 @@ diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
    tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
    tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
 +  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
-   yahoo           Yahoo! Internet Keyboard
+   yahoo           Yahoo! Internet
    macbook78       MacBook/MacBook Pro
-   macbook79       MacBook/MacBook Pro (Intl)
-@@ -532,6 +533,7 @@
+   macbook79       MacBook/MacBook Pro (intl.)
+@@ -545,6 +546,7 @@
    OADG109A        jp: Japanese (OADG 109A)
    mac             jp: Japanese (Macintosh)
    dvorak          jp: Japanese (Dvorak)
