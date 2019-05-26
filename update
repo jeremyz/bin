@@ -40,6 +40,7 @@ function update_pkgs() {
     sudo_run "pacman -Scc --noconfirm"
     sudo_run "pacman -Syu" || return
     sudo_run "rm /var/cache/pacman/pkg/*"
+    run "find .cache/aurman/ -type d -delete"
     run "aurman -Sc --noconfirm"
     run "aurman -Syu"
 }
