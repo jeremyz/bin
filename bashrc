@@ -82,6 +82,8 @@ set_if_not_in 'PATH' ${GEM_HOME}/bin
 alias vim="nvim -u ~/.vimrc"
 alias vimdiff="nvim -d -u ~/.vimrc"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
+alias kk='khal calendar now 32d'
+alias ki='khal interactive'
 
 # FUNCTIONS
 function lip () {    # local ips
