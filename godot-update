@@ -1,0 +1,84 @@
+#! /bin/sh
+
+RED="\033[0;31m"
+RESET="\033[0m"
+DST=$HOME/bin/godot
+
+FORCE=0
+CLEAN=0
+ANDROID=0
+
+for I in  $@
+do
+    case $I in
+        f)
+        FORCE=1
+        ;;
+        a)
+        ANDROID=1
+        ;;
+        c)
+        CLEAN=1
+        ;;
+    esac
+done
+
+
+function build()
+{
+
+    J=$((`nproc`))
+
+    export CXX=/usr/lib/ccache/bin/clang++
+    export CC=/usr/lib/ccache/bin/clang
+
+    rm bin/*
+    [ $CLEAN -eq 1 ] && scons platform=x11 --clean
+
+    # https://docs.godotengine.org/en/3.1/development/compiling/compiling_for_x11.html
+    target=release_debug
+    echo -e "build : ${RED}x11$RESET target=$RED$target$RESET"
+    time scons -j$J platform=x11 target=$target tools=yes colored=yes pulseaudio=no bits=64 warnings=no
+    # scons -j$J platform=x11 target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
+    # scons -j$J platform=x11 target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
+    cp bin/godot*tools* $DST
+
+    if [ $ANDROID -eq 1 ]
+    then
+        [ $CLEAN -eq 1 ] && scons platform=android --clean
+        # https://docs.godotengine.org/en/3.1/development/compiling/compiling_for_android.html
+        ndk_platform=android-21
+        for arch in arm64v8 armv7; #x86_6
+        do
+            for target in release_debug;
+            do
+                echo -e "build : ${RED}android$RESET android_arch=$RED$arch$RESET target=$RED$target$RESET"
+                time scons -j$J platform=android target=$target android_arch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true
+            done
+        done
+        pushd platform/android/java && ./gradlew build && popd
+        cp platform/android/java/app/build/outputs/apk/debug/android_debug.apk $DST/android_debug.apk
+        cp platform/android/java/app/build/outputs/apk/release/android_release.apk $DST/android_release.apk
+    fi
+}
+
+pushd ./godot
+
+    [ $CLEAN -eq 1 ] && find -name \*.o -delete
+
+    HEAD_PREV=$(git log HEAD~1.. --pretty=format:'%H' | head -n1)
+    echo -e "current HEAD : $RED$HEAD_PREV$RESET"
+    git pull
+    HEAD_NOW=$(git log HEAD~1.. --pretty=format:'%H' | head -n1)
+    echo -e "updated HEAD : $RED$HEAD_NOW$RESET"
+
+    if [ $FORCE = 1 -o "$HEAD_PREV" != "$HEAD_NOW" ]
+    then
+        build
+        git log $HEAD_PREV..
+        ls -l bin/
+    fi
+
+popd
+
+# godot-git ~/usr/git/castle_itter/project.godot
