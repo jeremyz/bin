@@ -47,16 +47,17 @@ function build()
     then
         [ $CLEAN -eq 1 ] && scons platform=android --clean
         # https://docs.godotengine.org/en/3.1/development/compiling/compiling_for_android.html
-        ndk_platform=android-21
+        ndk_platform=android-29
         for arch in arm64v8 armv7; #x86_6
         do
             for target in release_debug;
             do
-                echo -e "build : ${RED}android$RESET android_arch=$RED$arch$RESET target=$RED$target$RESET"
+                echo -e "build : ${RED}android$RESET android_arch=$RED$arch$RESET target=$RED$target$RESET ndk_platform=$RED$ndk_platform$RESET"
                 time scons -j$J platform=android target=$target android_arch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true
             done
         done
-        pushd platform/android/java && ./gradlew build && popd
+        echo "${RED}gradlew build$RESET"
+        pushd platform/android/java && ./gradlew build --build-cache -Dandroid_ndk=$ndk_platform && popd
         cp platform/android/java/app/build/outputs/apk/debug/android_debug.apk $DST/android_debug.apk
         cp platform/android/java/app/build/outputs/apk/release/android_release.apk $DST/android_release.apk
     fi
