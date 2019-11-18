@@ -2,7 +2,9 @@
 
 RED="\033[0;31m"
 RESET="\033[0m"
-DST=$HOME/bin/godot
+
+DST=$HOME/bin
+DST_EXPORT=$DST/godot-export
 
 FORCE=0
 CLEAN=0
@@ -32,7 +34,7 @@ function build()
     export CXX=/usr/lib/ccache/bin/clang++
     export CC=/usr/lib/ccache/bin/clang
 
-    rm bin/*
+    rm ./bin/*
     [ $CLEAN -eq 1 ] && scons platform=x11 --clean
 
     # https://docs.godotengine.org/en/3.1/development/compiling/compiling_for_x11.html
@@ -41,12 +43,13 @@ function build()
     time scons -j$J platform=x11 target=$target tools=yes colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=x11 target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=x11 target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
-    cp bin/godot*tools* $DST/
+    cp ./bin/godot*tools* $DST/godot
 
     if [ $ANDROID -eq 1 ]
     then
         export ANDROID_HOME=/opt/android-sdk
         export ANDROID_NDK_ROOT=/opt/android-ndk
+        [ ! -d $DST_EXPORT ] && mkdir $DST_EXPORT
 
         [ $CLEAN -eq 1 ] && scons platform=android --clean
         # https://docs.godotengine.org/en/3.1/development/compiling/compiling_for_android.html
@@ -59,10 +62,11 @@ function build()
                 time scons -j$J platform=android target=$target android_arch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true
             done
         done
+
         echo "${RED}gradlew build$RESET"
         pushd platform/android/java && ./gradlew build --build-cache -Dandroid_ndk=$ndk_platform && popd
-        cp platform/android/java/app/build/outputs/apk/debug/android_debug.apk $DST/android_debug.apk
-        cp platform/android/java/app/build/outputs/apk/release/android_release.apk $DST/android_release.apk
+        cp platform/android/java/app/build/outputs/apk/debug/android_debug.apk $DST_EXPORT/android_debug.apk
+        cp platform/android/java/app/build/outputs/apk/release/android_release.apk $DST_EXPORT/android_release.apk
     fi
 }
 
