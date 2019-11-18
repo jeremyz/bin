@@ -41,10 +41,13 @@ function build()
     time scons -j$J platform=x11 target=$target tools=yes colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=x11 target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=x11 target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
-    cp bin/godot*tools* $DST
+    cp bin/godot*tools* $DST/
 
     if [ $ANDROID -eq 1 ]
     then
+        export ANDROID_HOME=/opt/android-sdk
+        export ANDROID_NDK_ROOT=/opt/android-ndk
+
         [ $CLEAN -eq 1 ] && scons platform=android --clean
         # https://docs.godotengine.org/en/3.1/development/compiling/compiling_for_android.html
         ndk_platform=android-29
