@@ -1,0 +1,29 @@
+#! /bin/sh
+
+[ $# -lt 1 ] && echo "missing hostname" && exit 1
+
+OPTS="/kbd:0x0000100C"
+host="$1"
+
+if [ $# -gt 1 ]; then
+    f="$HOME/.smb/$2.auth"
+else
+    f="$HOME/.smb/$1.auth"
+fi
+
+echo " loading $f"
+if [ -r "$f" ];then
+    username=$(cat $f | sed -ne 's/username=\(.*\)/\1/p; s/\n//g')
+    password=$(cat $f | sed -ne 's/password=\(.*\)/\1/p; s/\n//g')
+    domain=$(cat $f | sed -ne 's/domain=\(.*\)/\1/p; s/\n//g')
+else
+    echo "$f is not readable" && exit 1
+fi
+
+[ -z "$d" ] && domain="$1"
+[ -z "$password" ] || password="$password"
+
+OPTS="$OPTS /u:$username /p:$password /v:$host"
+
+echo /usr/bin/xfreerdp $OPTS
+/usr/bin/xfreerdp $OPTS
