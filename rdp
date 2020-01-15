@@ -2,7 +2,7 @@
 
 [ $# -lt 1 ] && echo "missing hostname" && exit 1
 
-OPTS="/kbd:0x0000100C"
+OPTS="/w:1800 /h:1000 /kbd:0x0000100C"
 host="$1"
 
 if [ $# -gt 1 ]; then
