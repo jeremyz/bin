@@ -11,14 +11,23 @@ then
     echo "must be run as root"
     exit 1
 fi
-PROFILES=$($NETCTL list | sed 's/\*//' | sort)
-select profile in $PROFILES
-do
-    [ -z "$profile" ] && exit 0
-    $NETCTL stop-all
-    echo "starting profile $profile" && sleep 1 && $NETCTL start $profile || exit 1
-    break
-done
+if [ $# -gt 0 ]
+then
+    profile=$1
+else
+    PROFILES=$($NETCTL list | sed 's/\*//' | sort)
+    select profile in $PROFILES
+    do
+        [ -z "$profile" ] && exit 0
+        break
+    done
+fi
+if [ ! -r /etc/netctl/$profile ]
+then
+    echo "unknown network profile : $profile" && exit 1
+fi
+$NETCTL stop-all
+echo "starting profile $profile" && sleep 1 && $NETCTL start $profile || exit 1
 N=0
 dev=$(cat /etc/netctl/$profile | sed -n 's/Interface\=\(.*\)/\1/p')
 ADDR=""
