@@ -72,7 +72,7 @@ function export_if_exists()
 HOME_=$(readlink -f ${HOME%/})
 export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 export_if_exists 'PAGER' 'less' '/bin/more'
-export EDITOR=vim
+export EDITOR="nvim -u ~/.vimrc"
 # RUBY
 export GEM_HOME="${HOME_}/.gem/ruby/2.6.0"
 set_if_not_in 'PATH' ${GEM_HOME}/bin
