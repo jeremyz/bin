@@ -75,7 +75,9 @@ pushd ./godot
 
     if [ $CLEAN -eq 1 ]
     then
-        find -name \*.o -o -name \*.gen.cpp -o -name \*.gen.h -delete
+        find -name \*.o -delete
+        find -name \*.gen.h -delete
+        find -name \*.gen.cpp -delete
     fi
 
     HEAD_PREV=$(git log HEAD~1.. --pretty=format:'%H' | head -n1)
@@ -94,3 +96,4 @@ popd
 
 ls -l godot/bin/
 
+# scons -j4 platform=linuxbsd target=release_debug tools=yes colored=yes pulseaudio=no bits=64 warnings=no
