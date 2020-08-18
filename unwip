@@ -2,10 +2,11 @@
 
 cmd=${0##*/}
 
-if "$cmd" == "wip"
-    git add . && git commit -m WIP && git push --force
+if [ "$cmd" == "wip" ]
 then
-elif "$cmd" == "unwip"
+    git add . && git commit -m WIP && git push --force
+elif [ "$cmd" == "unwip" ]
+then
     while [ $(git log --format="%s" HEAD~1..) == "WIP" ]
     do
         git reset --hard HEAD~1
@@ -14,4 +15,3 @@ elif "$cmd" == "unwip"
 else
     echo "unknown cmd '$cmd'" && exit 1
 fi
-
