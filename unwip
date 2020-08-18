@@ -1,0 +1,17 @@
+#! /bin/sh
+
+cmd=${0##*/}
+
+if "$cmd" == "wip"
+    git add . && git commit -m WIP && git push --force
+then
+elif "$cmd" == "unwip"
+    while [ $(git log --format="%s" HEAD~1..) == "WIP" ]
+    do
+        git reset --hard HEAD~1
+    done
+    git pull && git reset --soft HEAD~1 && git reset && git status
+else
+    echo "unknown cmd '$cmd'" && exit 1
+fi
+
