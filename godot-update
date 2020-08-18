@@ -42,7 +42,7 @@ function build()
     # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
     target=release_debug
     echo -e "build : ${RED}$platform$RESET target=$RED$target$RESET"
-    time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 warnings=no
+    time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
     # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
     cp ./bin/godot*tools* $DST/godot
@@ -57,7 +57,7 @@ function build()
         # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_android.html
         echo -e "${RED}gradlew clean$RESET"
         pushd platform/android/java && ./gradlew cleanGodotTemplates && popd
-        ndk_platform=android-29
+        ndk_platform=android-30
         for target in release debug;
         do
             for arch in arm64v8 armv7; #x86_6
@@ -96,4 +96,4 @@ popd
 
 ls -l godot/bin/
 
-# scons -j4 platform=linuxbsd target=release_debug tools=yes colored=yes pulseaudio=no bits=64 warnings=no
+# scons -j4 platform=linuxbsd target=release_debug tools=yes colored=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
