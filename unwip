@@ -7,7 +7,7 @@ then
     git add . && git commit -m WIP && git push --force
 elif [ "$cmd" == "unwip" ]
 then
-    while [ $(git log --format="%s" HEAD~1..) == "WIP" ]
+    while [ "$(git log --format="%s" HEAD~1..)" == "WIP" ]
     do
         git reset --hard HEAD~1
     done
