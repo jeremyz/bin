@@ -11,7 +11,12 @@ then
     do
         git reset --hard HEAD~1
     done
-    git pull && git reset --soft HEAD~1 && git reset && git status
+    git pull || exit 1
+    while [ "$(git log --format="%s" HEAD~1..)" == "WIP" ]
+    do
+        git reset --soft HEAD~1
+    done
+    git reset && git status
 else
     echo "unknown cmd '$cmd'" && exit 1
 fi
