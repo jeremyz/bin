@@ -1,0 +1,90 @@
+#! /bin/bash
+
+# https://developer.apple.com/download/more/
+
+if [ $# -lt 1 ]
+then
+    echo "missing mandatory argument(s) : SDK version"
+    exit 1
+fi
+
+DIR=$(pwd)
+
+function build_darling()
+{
+    echo "***** build_darling *****"
+    if [ ! -d darling-dmg ]
+    then
+        git clone https://github.com/darlinghq/darling-dmg.git
+    fi
+    pushd darling-dmg && git pull
+    [ ! -d build ] && mkdir build
+    cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j 4
+    popd
+}
+
+function build()
+{
+    VERSION=$1
+
+    XCODE_DMG=Xcode_$VERSION.dmg
+    XCODE_XPI=Xcode_$VERSION.xip
+    SDK=$DIR/iPhoneOS$VERSION.sdk.tar.xz
+    TOOLCHAIN=$DIR/toolchain-$VERSION
+    SDK_DIR=iPhoneSDK/iPhoneOS9.1.sdk
+
+    [ -f $SDK ] && rm $SDK
+    [ -d $TOOLCHAIN ] && rm -fr $TOOLCHAIN
+    rm -fr xcode iPhoneSDK 2>/dev/null
+
+    mkdir xcode || exit 1
+    mkdir -p $SDK_DIR || exit 1
+
+    if [ -f $XCODE_DMG ]
+    then
+        echo "***** extract from $XCODE_DMG *****"
+        ./darling-dmg/build/darling-dmg $XCODE_DMG xcode
+        cp -r xcode/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/* $SDK_DIR
+        cp -r xcode/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/* $SDK_DIR/usr/include/c++
+        fusermount -u xcode
+    fi
+    if [ -f $XCODE_XPI ]
+    then
+        echo "***** extract from $XCODE_XPI *****"
+        xar -xf $XCODE_XPI || exit 1
+        rm Metadata
+        pbzx -n Content | cpio -i
+        rm Content
+        cp -r Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/* $SDK_DIR
+        cp -r Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/* $SDK_DIR/usr/include/c++
+        rm -fr Xcode.app
+    fi
+
+    pushd iPhoneSDK
+    echo "***** compress $SDK *****"
+    tar -cf - * | xz -9 -c - > $SDK
+    popd
+    rm -fr xcode iPhoneSDK 2>/dev/null
+
+    # build toolchain
+    echo "***** build $TOOLCHAIN *****"
+    if [ ! -d cctools-port ]
+    then
+        git clone https://github.com/tpoechtrager/cctools-port.git
+    fi
+    cd cctools-port && git pull
+    cd usage_examples/ios_toolchain
+    ./build.sh $SDK arm64
+    cp -R target/bin $TOOLCHAIN
+    cd $DIR
+    pushd toolchain-$VERSION && mkdir usr && cd usr && ln -s .. bin
+    popd
+}
+
+build_darling
+for VERSION in $@
+do
+    echo "##### build $VERSION #####"
+    build $VERSION
+done
+

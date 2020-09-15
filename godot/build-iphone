@@ -1,0 +1,40 @@
+#! /bin/sh
+
+if [ $# -lt 1 ]
+then
+    echo "missing mandatory argument(s) : SDK version"
+    exit 1
+fi
+
+export OSXCROSS_IOS=anything
+
+DIR=$(pwd)
+
+J=$((`nproc`))
+
+function build()
+{
+    TOOLCHAIN=$DIR/iphone/toolchain-$VERSION
+    [ -d iPhoneOS9.1.sdk ] && rm -fr iPhoneOS9.1.sdk
+    tar -xJf iphone/iPhoneOS$VERSION.sdk.tar.xz || exit
+
+    find godot -name \*.o -delete
+    find godot -name \*.gen.h -delete
+    find godot -name \*.gen.cpp -delete
+
+    pushd godot
+    scons -j $J platform=iphone arch=arm target=release_debug IPHONESDK=$DIR/iPhoneOS9.1.sdk IPHONEPATH=$TOOLCHAIN ios_triple=arm-apple-darwin11- || return 1
+    scons -j $J platform=iphone arch=arm64 target=release_debug IPHONESDK=$DIR/iPhoneOS9.1.sdk IPHONEPATH=$TOOLCHAIN ios_triple=arm-apple-darwin11- || return 1
+    for module in libgodot libgodot_camera_module libgodot_arkit_module
+    do
+        $TOOLCHAIN/arm-apple-darwin11-lipo -create bin/$module.iphone.opt.debug.arm.a bin/$module.iphone.opt.debug.arm64.a -output bin/$module.iphone.debug.fat.a
+    done
+    popd
+    mkdir iphone-$VERSION && mv godot/bin/libgodot* iphone-$VERSION/
+}
+
+for VERSION in $@
+do
+    echo "##### build $VERSION #####"
+    build $VERSION || popd
+done
