@@ -30,6 +30,9 @@ set -o vi
 
 shopt -s autocd
 
+# DPI
+export QT_FONT_DPI=100
+
 # COLORLS
 OSNAME=`uname`
 case $OSNAME in
