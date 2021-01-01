@@ -1,0 +1,4 @@
+#! /bin/sh
+P=$(ps -u $USER -o pid,%mem,%cpu,comm | sort -b -k2 -r  | sed -n '2!p' | dmenu -i -l 15 | awk '{print $1}')
+kill -15 $P 2>/dev/null
+notify-send "$P killed"
