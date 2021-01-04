@@ -88,6 +88,7 @@ alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 alias kk='khal calendar'
 alias ki='khal interactive'
 alias zz='clear && khal calendar && task -old'
+alias ddu='zcat ~/.cache/ncdu-data.gz | ncdu -f-'
 
 # FUNCTIONS
 function lip () {    # local ips
