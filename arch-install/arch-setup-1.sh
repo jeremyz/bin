@@ -21,4 +21,23 @@ echo "GRUB"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub_uefi --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
+
+cat > /etc/systemd/network/10-wired.network << EOF
+[Match]
+Name=enp0s*
+
+[Network]
+DHCP=yes
+EOF
+
+systemctl enable systemd-networkd
+systemctl start systemd-networkd
+
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
+systemctl enable systemd-resolved
+systemctl start systemd-resolved
+
+resolvectl status
+
 echo " !!! set your root password !!!"
