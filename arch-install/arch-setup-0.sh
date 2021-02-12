@@ -36,19 +36,19 @@ sgdisk -n 3:209979392 -c 3:homefs -t 3:8300 $DEV || exit 1
 sgdisk -p $DEV || exit 1
 
 say "MKFS"
-mkfs.fat -F32 /dev/sda1 || exit 1
-mkfs.ext4 -L root /dev/sda2 || exit 1
-mkfs.ext4 -L home /dev/sda3 || exit 1
-#mkswap /dev/sda4
+mkfs.fat -F32 /dev/${DEV}1 || exit 1
+mkfs.ext4 -L root /dev/${DEV}2 || exit 1
+mkfs.ext4 -L home /dev/${DEV}3 || exit 1
+#mkswap /dev/${DEV}4
 #swapon
-parted /dev/sda set 1 bios_grub on
+parted $DEV set 1 bios_grub on
 
 say "MOUNT"
-mount /dev/sda2 /mnt
+mount /dev/${DEV}2 /mnt
 mkdir /mnt/boot
-mount /dev/sda1 /mnt/boot
+mount /dev/${DEV}1 /mnt/boot
 mkdir /mnt/home
-mount /dev/sda3 /mnt/home
+mount /dev/${DEV}3 /mnt/home
 
 say "SWAPFS"
 dd if=/dev/zero of=/mnt/swapfile bs=1M count=512 || exit 1
