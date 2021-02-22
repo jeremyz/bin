@@ -1,7 +1,7 @@
 #  patch -p 1 -N -r -  < %
-diff -Naur /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
---- /usr/share/X11/xkb/geometry/typematrix	2016-06-04 08:59:10.000000000 +0200
-+++ xkb/geometry/typematrix	2016-06-15 08:58:08.874416583 +0200
+diff -Naur --no-dereference /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
+--- /usr/share/X11/xkb/geometry/typematrix	2021-02-17 16:20:22.000000000 +0100
++++ xkb/geometry/typematrix	2021-02-22 09:06:24.852744988 +0100
 @@ -731,3 +731,15 @@
          };
      };
@@ -18,11 +18,11 @@ diff -Naur /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
 +    include "typematrix(tm2030USB_alpha)"
 +    include "typematrix(tm2030USB_ctrl)"
 +}; // geometry tm2030USB-jeyzu
-diff -Naur /usr/share/X11/xkb/rules/base xkb/rules/base
---- /usr/share/X11/xkb/rules/base.orig	2016-06-04 08:59:10.000000000 +0200
-+++ /usr/share/X11/xkb/rules/base	2016-06-15 08:58:08.891083251 +0200
-@@ -28,7 +28,7 @@
- ! $pcgeometries = latitude
+diff -Naur --no-dereference /usr/share/X11/xkb/rules/base xkb/rules/base
+--- /usr/share/X11/xkb/rules/base	2021-02-17 16:20:22.000000000 +0100
++++ xkb/rules/base	2021-02-22 09:09:54.526066924 +0100
+@@ -26,7 +26,7 @@
+ ! $nokiamodels = nokiasu8w nokiarx44 nokiarx51
  
  // TypeMatrix geometries
 -! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
@@ -30,10 +30,10 @@ diff -Naur /usr/share/X11/xkb/rules/base xkb/rules/base
  
  // Layouts that provide further specializations for the OLPC
  ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
-diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
---- /usr/share/X11/xkb/rules/base.lst.orig	2016-06-04 08:59:10.000000000 +0200
-+++ /usr/share/X11/xkb/rules/base.lst	2016-06-15 08:58:08.897749918 +0200
-@@ -147,6 +147,7 @@
+diff -Naur --no-dereference /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
+--- /usr/share/X11/xkb/rules/base.lst	2021-02-17 16:20:22.000000000 +0100
++++ xkb/rules/base.lst	2021-02-22 09:12:05.662726484 +0100
+@@ -149,6 +149,7 @@
    tm2030USB       TypeMatrix EZ-Reach 2030 USB
    tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
    tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
@@ -41,7 +41,7 @@ diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
    yahoo           Yahoo! Internet
    macbook78       MacBook/MacBook Pro
    macbook79       MacBook/MacBook Pro (intl.)
-@@ -545,6 +546,7 @@
+@@ -560,6 +561,7 @@
    OADG109A        jp: Japanese (OADG 109A)
    mac             jp: Japanese (Macintosh)
    dvorak          jp: Japanese (Dvorak)
@@ -49,11 +49,11 @@ diff -Naur /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
    phonetic        kg: Kyrgyz (phonetic)
    ruskaz          kz: Russian (Kazakhstan, with Kazakh)
    kazrus          kz: Kazakh (with Russian)
-diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
---- /usr/share/X11/xkb/rules/evdev.orig	2016-06-04 08:59:10.000000000 +0200
-+++ /usr/share/X11/xkb/rules/evdev	2016-06-15 08:58:08.901083251 +0200
-@@ -28,7 +28,7 @@
- ! $pcgeometries = latitude
+diff -Naur --no-dereference /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
+--- /usr/share/X11/xkb/rules/evdev	2021-02-17 16:20:22.000000000 +0100
++++ xkb/rules/evdev	2021-02-22 09:13:20.416055754 +0100
+@@ -26,7 +26,7 @@
+ ! $nokiamodels = nokiasu8w nokiarx44 nokiarx51
  
  // TypeMatrix geometries
 -! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
@@ -61,9 +61,28 @@ diff -Naur /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
  
  // Layouts that provide further specializations for the OLPC
  ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
-diff -Naur /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
---- /usr/share/X11/xkb/symbols/jp.orig	2016-06-04 08:59:10.000000000 +0200
-+++ /usr/share/X11/xkb/symbols/jp	2016-06-15 08:58:08.904416585 +0200
+diff -Naur --no-dereference /usr/share/X11/xkb/rules/evdev.lst xkb/rules/evdev.lst
+--- /usr/share/X11/xkb/rules/evdev.lst	2021-02-17 16:20:22.000000000 +0100
++++ xkb/rules/evdev.lst	2021-02-22 09:15:14.566049581 +0100
+@@ -149,6 +149,7 @@
+   tm2030USB       TypeMatrix EZ-Reach 2030 USB
+   tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
+   tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
++  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
+   yahoo           Yahoo! Internet
+   macbook78       MacBook/MacBook Pro
+   macbook79       MacBook/MacBook Pro (intl.)
+@@ -560,6 +561,7 @@
+   OADG109A        jp: Japanese (OADG 109A)
+   mac             jp: Japanese (Macintosh)
+   dvorak          jp: Japanese (Dvorak)
++  jeyzu           jp: Japanese (Bepo)
+   phonetic        kg: Kyrgyz (phonetic)
+   ruskaz          kz: Russian (Kazakhstan, with Kazakh)
+   kazrus          kz: Kazakh (with Russian)
+diff -Naur --no-dereference /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
+--- /usr/share/X11/xkb/symbols/jp	2021-02-17 16:20:22.000000000 +0100
++++ xkb/symbols/jp	2021-02-22 09:16:06.342713437 +0100
 @@ -321,3 +321,15 @@
  	xkb_symbols "sun_type7" {
  	include "sun_vndr/jp(sun_type7)"
