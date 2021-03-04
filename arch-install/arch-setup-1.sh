@@ -40,4 +40,7 @@ systemctl start systemd-resolved
 
 resolvectl status
 
+systemctl enable systemd-timesyncd
+systemctl start systemd-timesyncd
+
 echo " !!! set your root password !!!"
