@@ -77,7 +77,7 @@ export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 export_if_exists 'PAGER' 'less' '/bin/more'
 export EDITOR="nvim -u ~/.vimrc"
 # RUBY
-export GEM_HOME="${HOME_}/.gem/ruby/2.7.0"
+export GEM_HOME="${HOME_}/.gem/ruby/3.0.0"
 set_if_not_in 'PATH' ${GEM_HOME}/bin
 
 # catch and eval dmalloc output
