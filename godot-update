@@ -3,8 +3,7 @@
 RED="\033[0;31m"
 RESET="\033[0m"
 
-DST=$HOME/bin
-DST_EXPORT=$DST/godot-export
+TEMPLATE_DIR=$HOME/.local/share/godot/templates/3.x
 
 FORCE=0
 CLEAN=0
@@ -45,13 +44,12 @@ function build()
     time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
     # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
-    cp ./bin/godot*tools* $DST/godot
 
     if [ $ANDROID -eq 1 ]
     then
         export ANDROID_HOME=/opt/android-sdk
         export ANDROID_NDK_ROOT=/opt/android-ndk
-        [ ! -d $DST_EXPORT ] && mkdir $DST_EXPORT
+        [ ! -d $TEMPLATE_DIR ] && mkdir $TEMPLATE_DIR
 
         [ $CLEAN -eq 1 ] && scons platform=android --clean
         # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_android.html
@@ -68,6 +66,8 @@ function build()
         done
         echo -e "${RED}gradlew build$RESET"
         pushd platform/android/java && ./gradlew generateGodotTemplates && popd
+
+        cp bin/android* $TEMPLATE_DIR/
     fi
 }
 
