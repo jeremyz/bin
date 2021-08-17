@@ -134,26 +134,14 @@ function xtract() {
 }
 
 # SSH
-SSH_ENV=${HOME}/.ssh/environment
-function start_agent {
-    /usr/bin/ssh-agent | sed 's/^echo/#echo/' > ${SSH_ENV}
-    chmod 600 ${SSH_ENV}
-    . ${SSH_ENV} > /dev/null
-    # /usr/bin/ssh-add $(ls ~/.ssh/*.pub | sed 's/\.pub.*//g' | tr '\n' ' ')
-}
-if [ -e "${SSH_ENV}" ]
+ssh-add -l &>/dev/null
+if [ $? -ne 0 ]
 then
-    . ${SSH_ENV} > /dev/null
-    ps ux | grep ssh-agent$ | grep ${SSH_AGENT_PID} >/dev/null || {
-        # kill old agents
-        PIDS=`pidof ssh-agent`
-        if [ ! -z "${PIDS}" ]; then
-            for PID in ${PIDS}; do
-                kill ${PID} 2>/dev/null
-            done
-        fi
-        start_agent;
-    }
-else
-    start_agent
+    [ -r ~/.ssh/agent ] && eval "$(<~/.ssh/agent)" >/dev/null
+    ssh-add -l &>/dev/null
+    if [ $? -ne 0 ]
+    then
+        (umask 066; ssh-agent > ~/.ssh/agent)
+        eval "$(<~/.ssh/agent)" >/dev/null
+    fi
 fi
