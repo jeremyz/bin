@@ -1,9 +1,6 @@
 #! /bin/bash
 
-echo "you must first edit :"
-echo "   /dev/sda[0-9]"
-echo "   SGDISK"
-exit 1
+DEV=/dev/sda
 
 function say()
 {
@@ -27,7 +24,6 @@ echo "UEFI VARS : $VARS"
 # to retreive size info $ sgdisk -p $DEV
 # N sectors * 512 / 1024 / 1024 / 1024 -> Gb
 say "SGDISK"
-DEV=/dev/sda
 sgdisk -og $DEV || exit 1
 sgdisk -n 1:2048:264191 -c 1:efi -t 1:ef02 $DEV || exit 1
 sgdisk -n 2:264192:209979391 -c 2:rootfs -t 2:8300 $DEV || exit 1
@@ -36,11 +32,9 @@ sgdisk -n 3:209979392 -c 3:homefs -t 3:8300 $DEV || exit 1
 sgdisk -p $DEV || exit 1
 
 say "MKFS"
-mkfs.fat -F32 /dev/${DEV}1 || exit 1
-mkfs.ext4 -L root /dev/${DEV}2 || exit 1
-mkfs.ext4 -L home /dev/${DEV}3 || exit 1
-#mkswap /dev/${DEV}4
-#swapon
+mkfs.fat -F32 ${DEV}1 || exit 1
+mkfs.ext4 -L root ${DEV}2 || exit 1
+mkfs.ext4 -L home ${DEV}3 || exit 1
 parted $DEV set 1 bios_grub on
 
 say "MOUNT"
