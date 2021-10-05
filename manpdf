@@ -1,0 +1,29 @@
+#! /bin/bash
+
+DIR=/tmp/manpdf
+STYLE=$DIR/style.css
+FNAME=$DIR/$1
+
+[ -d $DIR ] || mkdir $DIR
+
+if [ ! -r $STYLE ]
+then
+    echo "<style type=\"text/css\">
+body { font-family: Whitney Medium; background: #181a1b; }
+p    { font-size: 20px; color: white; }
+h2   { font-size: 25px; display:inline; color: yellow; }
+h1   { font-size: 30px; color: white; }
+b    { color: #5ce7ad; }
+i    { color: #ff4b4b; }
+a    { font-size: 20px; color: #3391ff }
+pre  { color: white; font-size: 15px; }
+</style>" > $STYLE
+fi
+
+if [ ! -r $FNAME.pdf ]
+then
+    gunzip --to-stdout $(man --where $1) | groff -mandoc -Thtml > $FNAME.html
+    sed -i "/<\/style>/r $STYLE" $FNAME.html
+    wkhtmltopdf $FNAME.html $FNAME.pdf
+fi
+evince $FNAME.pdf
