@@ -38,11 +38,11 @@ mkfs.ext4 -L home ${DEV}3 || exit 1
 parted $DEV set 1 bios_grub on
 
 say "MOUNT"
-mount /dev/${DEV}2 /mnt
+mount ${DEV}2 /mnt
 mkdir /mnt/boot
-mount /dev/${DEV}1 /mnt/boot
+mount ${DEV}1 /mnt/boot
 mkdir /mnt/home
-mount /dev/${DEV}3 /mnt/home
+mount ${DEV}3 /mnt/home
 
 say "SWAPFS"
 dd if=/dev/zero of=/mnt/swapfile bs=1M count=512 || exit 1
