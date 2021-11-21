@@ -41,32 +41,35 @@ idx = prev_db.collect { |m| m['filename'] }
 current_db = []
 
 def search fn
+  fn = fn.downcase.tr('àáâäçèéêëìíîïòóôöùúûü','aaaaceeeeiiiioooouuuu')
   b,e = fn.split '.'
   ar = b.split '-'
-  name = ar[0].gsub('_', ' ').downcase
+  name = ar[0].gsub('_', ' ')
   if ar.size == 2
     year = ar[1]
   elsif ar.size == 3
-    sequel = ar[1]
+    sequel = ar[1].gsub('_', ' ')
     year = ar[2]
-  else
-    return nil
   end
-  puts "search : #{name} - #{year}"
+  puts "search : #{name} - #{year} - #{sequel}"
   begin
-    res = JSON.load URI.open(SEARCH_M+name).read
+    res = JSON.load URI.open(SEARCH_M+name.tr('&','')).read
   rescue
     return nil
   end
   return nil if res['total_results'] == 0
   sel = res['results'].select { |r| (r['release_date']||'nope')[0..3] == year }
   return nil if sel.size == 0
-  if sel.size > 1
+  if sel.size == 1
+    puts "  found '#{sel[0]['title']}'"
+  else
     puts "  found #{sel.map {|s| s['title'] + ' ' + s['release_date']||'?' }}"
-    sel = sel.select { |r| r['title'].downcase == name }
-    if sel.size != 1
-      return nil
-    end
+    s = sel.select { |r| r['title'].downcase == name }
+    sel = s if s.size > 0
+    s = sel.select { |r| r['title'].downcase.gsub(/[^ a-z]/, '') =~ /#{name.gsub(/[^ a-z]/, '')}/ } if sel.size != 1
+    sel = s if s.size > 0
+    sel = sel.select { |r| r['title'].downcase =~ /#{sequel}/ } if sel.size != 1
+    return nil if sel.size != 1
     puts "  choose '#{sel[0]['title']}'"
   end
   sel[0]
@@ -98,7 +101,7 @@ end
 Dir.glob(File.join(mpath, '*')) do |fn|
   next if File.directory? fn
   next if fn =~ /\.srt/ or fn =~ /\.rb/ or fn =~ /\.sub/ or fn =~ /\.jpg/
-  fn = fn.split('/')[1]
+  fn = fn.split('/')[-1]
   id = fix[fn]
   if not id.nil?
     m = prev_db.find{ |i| i['id'] == id and i['filename'] == fn }
@@ -112,6 +115,7 @@ Dir.glob(File.join(mpath, '*')) do |fn|
   end
   m = search fn
   if m.nil?
+    puts '  failed'
     failed << fn
   else
     current_db << fetch(m['id'], fn, m)
