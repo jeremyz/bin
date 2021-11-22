@@ -14,7 +14,7 @@ dbpath = ARGV.shift if n > 1
 puts "  movies : #{mpath}\n      db : #{dbpath}"
 
 API_KEY = 'c4202eaa738af60ae7a784c349a0cc63'
-SEARCH_M="https://api.themoviedb.org/3/search/movie?api_key=#{API_KEY}&language=en-US&page=1&include_adult=true&query="
+SEARCH_M="https://api.themoviedb.org/3/search/movie?api_key=#{API_KEY}&language=en-US&page=1&include_adult=true&"
 FETCH_M="https://api.themoviedb.org/3/movie/ID?api_key=#{API_KEY}"
 FETCH_C="https://api.themoviedb.org/3/movie/ID/credits?api_key=#{API_KEY}"
 URL_M='https://www.themoviedb.org/movie/'
@@ -34,26 +34,20 @@ Dir.mkdir(dbpath) if not Dir.exist?(dbpath)
 Dir.mkdir(DBA) if not Dir.exist?(DBA)
 Dir.mkdir(DBM) if not Dir.exist?(DBM)
 
-failed = []
-fix = File.exist?(FIX) ? JSON.load(File.read(FIX)) : {}
-prev_db = File.exist?(DB) ? JSON.load(File.read(DB)) : []
-idx = prev_db.collect { |m| m['filename'] }
-current_db = []
+@failed = []
+@fix = File.exist?(FIX) ? JSON.load(File.read(FIX)) : {}
+@prev_db = File.exist?(DB) ? JSON.load(File.read(DB)) : []
+@idx = @prev_db.collect { |m| m['filename'] }
+@current_db = []
 
 def search fn
-  fn = fn.downcase.tr('àáâäçèéêëìíîïòóôöùúûü','aaaaceeeeiiiioooouuuu')
-  b,e = fn.split '.'
-  ar = b.split '-'
-  name = ar[0].gsub('_', ' ')
-  if ar.size == 2
-    year = ar[1]
-  elsif ar.size == 3
-    sequel = ar[1].gsub('_', ' ')
-    year = ar[2]
-  end
+  b, e = fn.split '.'
+  name, *more = b.split '-'
+  year = more[-1]
+  sequel = more[0] if more.size == 2
   puts "search : #{name} - #{year} - #{sequel}"
   begin
-    res = JSON.load URI.open(SEARCH_M+name.tr('&','')).read
+    res = JSON.load URI.open(SEARCH_M + URI.encode_www_form('query' => name)).read
   rescue
     return nil
   end
@@ -98,27 +92,33 @@ def fetch id, fn, m
   m
 end
 
-Dir.glob(File.join(mpath, '*')) do |fn|
-  next if File.directory? fn
-  next if fn =~ /\.srt/ or fn =~ /\.rb/ or fn =~ /\.sub/ or fn =~ /\.jpg/
-  fn = fn.split('/')[-1]
-  id = fix[fn]
+def known? fn
+  id = @fix[fn]
   if not id.nil?
-    m = prev_db.find{ |i| i['id'] == id and i['filename'] == fn }
+    m = @prev_db.find{ |i| i['id'] == id and i['filename'] == fn }
     m = JSON.load URI.open(FETCH_M.sub(/ID/, id.to_s)).read if m.nil?
-    current_db << fetch(id, fn, m)
-    next
+    @current_db << fetch(id, fn, m)
+    return nil
   end
-  if idx.include? fn
-    current_db << prev_db.find{ |i| i['filename'] == fn }
-    next
+  if @idx.include? fn
+    @current_db << @prev_db.find{ |i| i['filename'] == fn }
+    return nil
   end
-  m = search fn
+  fn
+end
+
+Dir.glob(File.join(mpath, '*')) do |path|
+  next if File.directory? path
+  next if path =~ /\.srt$/ or path =~ /\.rb$/ or path =~ /\.sub$/ or path =~ /\.jpg$/
+  fn = path.split('/')[-1]
+  next if known?(fn).nil?
+  fs = fn.gsub('_', ' ').downcase.tr('àáâäçèéêëìíîïòóôöùúûü','aaaaceeeeiiiioooouuuu')
+  m = search fs
   if m.nil?
     puts '  failed'
-    failed << fn
+    @failed << fn
   else
-    current_db << fetch(m['id'], fn, m)
+    @current_db << fetch(m['id'], fn, m)
   end
 end
 
@@ -154,8 +154,8 @@ div.overview{ margin: 15px; float:left; }
 li          { padding:4px; }
 EOF
 
-current_db.sort! {|a,b| a['title'].downcase <=> b['title'].downcase }
-File.open(DB, 'w') { |f| f << current_db.to_json }
+@current_db.sort! {|a,b| a['title'].downcase <=> b['title'].downcase }
+File.open(DB, 'w') { |f| f << @current_db.to_json }
 File.open(HTML_I, 'w') do |f|
   f << '<html><head><title>Movies Index</title><meta charset="utf-8"></head><style>'
   f << 'body { background-color:#bdc3c7; }'
@@ -163,7 +163,7 @@ File.open(HTML_I, 'w') do |f|
   f << "</style><body>\n<div id=fixed-div><a href=movies.html>Movies</a><br/><br/><a href=actors.html>Actors</a></div>\n<div id=toc>"
   f << "<div id=letters><ul>" + ('A'..'Z').inject('') {|r,i| r+ "<li><a href='##{i}' class=alpha>#{i}</a></li>"} + '</ul></div>'
   letter=nil
-  current_db.each do |m|
+  @current_db.each do |m|
     l = m['title'][0].upcase
     if l != letter
       letter = l
@@ -180,7 +180,7 @@ File.open(HTML_M, 'w') do |f|
    f << 'body  { background-color:#89c4f4; }'
   f << CSS
   f << "</style><body>\n<div id=fixed-div><a href=index.html>Index</a><br/><br/><a href=actors.html>Actors</a></div>"
-  current_db.each do |m|
+  @current_db.each do |m|
     img = m['img']
     img = (img.nil? ? BLANK : ('m/' + img))
     f << "<div class=entry id=#{m['id']}>"
@@ -229,5 +229,5 @@ File.open(HTML_A, 'w') do |f|
 end
 
 puts "FAILED :"
-File.open(FAIL, 'w') { |f| f << failed.to_json }
-failed.each { |fn| puts "  -> #{fn}" }
+File.open(FAIL, 'w') { |f| f << @failed.to_json }
+@failed.each { |fn| puts "  -> #{fn}" }
