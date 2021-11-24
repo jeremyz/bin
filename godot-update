@@ -8,6 +8,7 @@ TEMPLATE_DIR=$HOME/.local/share/godot/templates/3.x
 FORCE=0
 CLEAN=0
 ANDROID=0
+OPTIMIZED=0
 
 for I in  $@
 do
@@ -21,6 +22,8 @@ do
         c)
         CLEAN=1
         ;;
+        o)
+        OPTIMIZED=1
     esac
 done
 
@@ -38,10 +41,11 @@ function build()
     platform=x11
     [ $CLEAN -eq 1 ] && scons platform=$platform --clean
 
+    [ $OPTIMIZED -eq 1 ] && opt_flags="use_static_ccp=yes use_lto=yes debug_symbols=no"
     # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
     target=release_debug
     echo -e "build : ${RED}$platform$RESET target=$RED$target$RESET"
-    time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 use_llvm=yes use_lld=yes warnings=no #custom_modules=../modules
+    time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 $opt_flags warnings=no #custom_modules=../modules
     # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
     # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
 
@@ -94,6 +98,7 @@ pushd ./godot
 
 popd
 
-ls -l godot/bin/
+strip godot/bin/*
+ls -lh godot/bin/
 
 # scons -j4 platform=linuxbsd target=release_debug tools=yes colored=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
