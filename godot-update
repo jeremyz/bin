@@ -42,12 +42,11 @@ function build()
     [ $CLEAN -eq 1 ] && scons platform=$platform --clean
 
     [ $OPTIMIZED -eq 1 ] && opt_flags="use_static_ccp=yes use_lto=yes debug_symbols=no"
+
     # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
     target=release_debug
     echo -e "build : ${RED}$platform$RESET target=$RED$target$RESET"
-    time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 $opt_flags warnings=no #custom_modules=../modules
-    # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=64 warnings=no
-    # scons -j$J platform=$platform target=$target tools=no colored=yes pulseaudio=no bits=32 warnings=no
+    time scons -j$J platform=$platform target=$target tools=yes pulseaudio=no bits=64 $opt_flags warnings=no #custom_modules=../modules
 
     if [ $ANDROID -eq 1 ]
     then
@@ -101,4 +100,4 @@ popd
 strip godot/bin/*
 ls -lh godot/bin/
 
-# scons -j4 platform=linuxbsd target=release_debug tools=yes colored=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
+# scons -j4 platform=linuxbsd target=release_debug tools=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
