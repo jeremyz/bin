@@ -1,7 +1,28 @@
-#! /bin/sh
+#! /bin/bash
+#
+RESET="\033[0m"
+RED="\033[0;31m"
+BROWN="\033[0;33m"
 
-echo "* repack" && git repack -adf && \
-    echo "* prune" && git prune && \
-    echo "* prune-packed" && git prune-packed && \
-    echo "* gc" && git gc --aggressive && \
-    echo "* done"
+MINDT=$((72*3600))
+CMD="git gc --aggressive"
+WHERE=${1:-.}
+echo -e "exec '$BROWN$CMD$RESET' on repost below '$RED$WHERE$RESET' - [Ctrl-c to abort]" && read none
+
+for path in $(find $WHERE -maxdepth 5 -type d -name .git); do
+   path=${path%.git}
+   echo -e " # $BROWN check : $RED$path$RESET"
+   pushd $path >/dev/null || exit 1
+   A=$(stat --format="%Y" .git/objects)
+   B=$(stat --format="%Y" .git/packed-refs)
+   D=$((A - B))
+   if [ $D -gt $MINDT ]
+   then
+       h=$((D/3600))
+       m=$(((D - h*3600)/60))
+       s=$((D - h*3600 - m*60))
+       echo "dt is $h:$m:$s"
+       $CMD
+   fi
+   popd >/dev/null
+done
