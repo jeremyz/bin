@@ -10,7 +10,7 @@ CLEAN=0
 ANDROID=0
 OPTIMIZED=0
 
-for I in  $@
+for I in  "$@"
 do
     case $I in
         f)
@@ -31,7 +31,7 @@ done
 function build()
 {
 
-    J=$((`nproc`))
+    J=$(nproc)
 
     export CXX=/usr/lib/ccache/bin/clang++
     export CC=/usr/lib/ccache/bin/clang
@@ -97,7 +97,7 @@ pushd ./godot
 
 popd
 
-strip godot/bin/*
+strip godot/bin/godo.*
 ls -lh godot/bin/
 
 # scons -j4 platform=linuxbsd target=release_debug tools=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
