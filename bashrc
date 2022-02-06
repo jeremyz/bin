@@ -83,6 +83,7 @@ set_if_not_in 'PATH' ${GEM_HOME}/bin
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
 alias vim=nvim
+alias gvim='nvim --listen godothost .'
 alias vimdiff="nvim -d"
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 alias kk='khal calendar'
