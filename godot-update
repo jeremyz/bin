@@ -100,5 +100,6 @@ popd
 strip godot/bin/godo.*
 ls -lh godot/bin/
 
+# https://godot-build-options-generator.github.io
 # scons -j4 platform=linuxbsd target=release_debug tools=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
 # scons -j4 platform=android target=debug android_arch=arm64v8 ndk_platform=android-22 tools=no disable_3d=true
