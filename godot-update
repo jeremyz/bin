@@ -57,7 +57,7 @@ function build()
         [ $CLEAN -eq 1 ] && scons platform=android --clean
         # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_android.html
         echo -e "${RED}gradlew clean$RESET"
-        pushd platform/android/java && ./gradlew cleanGodotTemplates && popd
+        pushd platform/android/java && ./gradlew --no-daemon cleanGodotTemplates && popd
         ndk_platform=android-22
         for target in release debug;
         do
@@ -68,7 +68,7 @@ function build()
             done
         done
         echo -e "${RED}gradlew build$RESET"
-        pushd platform/android/java && ./gradlew generateGodotTemplates && popd
+        pushd platform/android/java && ./gradlew --no-daemon generateGodotTemplates && popd
 
         cp bin/android* $TEMPLATE_DIR/
     fi
