@@ -5,6 +5,7 @@ RESET="\033[0m"
 
 TEMPLATE_DIR=$HOME/.local/share/godot/templates/3.x
 
+DIR=godot
 FORCE=0
 CLEAN=0
 ANDROID=0
@@ -24,9 +25,11 @@ do
         ;;
         o)
         OPTIMIZED=1
+				;;
+				*)
+				DIR=$I
     esac
 done
-
 
 function build()
 {
@@ -50,6 +53,7 @@ function build()
 
     if [ $ANDROID -eq 1 ]
     then
+        cp ../custom.py .
         export ANDROID_HOME=/opt/android-sdk
         export ANDROID_NDK_ROOT=/opt/android-ndk
         [ ! -d $TEMPLATE_DIR ] && mkdir $TEMPLATE_DIR
@@ -71,10 +75,11 @@ function build()
         pushd platform/android/java && ./gradlew --no-daemon generateGodotTemplates && popd
 
         cp bin/android* $TEMPLATE_DIR/
+        rm custom.py
     fi
 }
 
-pushd ./godot
+pushd $DIR
 
     if [ $CLEAN -eq 1 ]
     then
@@ -97,8 +102,8 @@ pushd ./godot
 
 popd
 
-strip godot/bin/godo.*
-ls -lh godot/bin/
+strip $DIR/bin/godo.*
+ls -lh $DIR/bin/
 
 # https://godot-build-options-generator.github.io
 # scons -j4 platform=linuxbsd target=release_debug tools=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
