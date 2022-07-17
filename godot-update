@@ -39,6 +39,7 @@ function build()
     export CXX=/usr/lib/ccache/bin/clang++
     export CC=/usr/lib/ccache/bin/clang
 
+    [ -f custom.py ] && rm custom.py
     rm ./bin/*
     platform=linuxbsd
     platform=x11
@@ -94,16 +95,15 @@ pushd $DIR
     HEAD_NOW=$(git log HEAD~1.. --pretty=format:'%H' | head -n1)
     echo -e "updated HEAD : $RED$HEAD_NOW$RESET"
 
-    if [ $FORCE = 1 -o "$HEAD_PREV" != "$HEAD_NOW" ]
+    if [ $FORCE = 1 ] || [ "$HEAD_PREV" != "$HEAD_NOW" ]
     then
         build
         git log $HEAD_PREV..
     fi
 
+    strip ./bin/godot.*
+    ls -lh ./bin/
 popd
-
-strip $DIR/bin/godo.*
-ls -lh $DIR/bin/
 
 # https://godot-build-options-generator.github.io
 # scons -j4 platform=linuxbsd target=release_debug tools=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
