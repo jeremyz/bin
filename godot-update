@@ -25,9 +25,9 @@ do
         ;;
         o)
         OPTIMIZED=1
-				;;
-				*)
-				DIR=$I
+        ;;
+        *)
+        DIR=$I
     esac
 done
 
