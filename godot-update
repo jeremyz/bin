@@ -46,7 +46,7 @@ function build()
     [ $CLEAN -eq 1 ] && scons platform=$platform --clean
 
     [ $OPTIMIZED -eq 1 ] && opt_flags="use_static_ccp=yes use_lto=yes debug_symbols=no"
-    common_flags="use_llvm=yes use_lld=yes debug_symbols=no use_lto=no use_static_cpp=no" # arch does not provide libatomic.a through gcc-libs
+    common_flags="use_llvm=yes linker=lld debug_symbols=no use_lto=no use_static_cpp=no" # arch does not provide libatomic.a through gcc-libs
 
     # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
     target=release_debug
