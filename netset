@@ -34,7 +34,7 @@ ADDR=""
 while [ -z "$ADDR" ]
 do
     N=$((N + 1))
-    [ $N -eq 10 ] && echo " failure" && exit 1
+    [ $N -eq 15 ] && echo " failure" && exit 1
     echo -n "." && sleep 1
     ADDR=$(ip -4 -c addr show dev $dev | sed -n '/inet/p')
 done
