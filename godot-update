@@ -10,6 +10,7 @@ FORCE=0
 CLEAN=0
 ANDROID=0
 OPTIMIZED=0
+VERSION=3
 
 for I in  "$@"
 do
@@ -26,10 +27,22 @@ do
         o)
         OPTIMIZED=1
         ;;
-        *)
-        DIR=$I
+        4)
+        VERSION=$I
     esac
 done
+
+if [ $VERSION == 4 ]
+then
+  DIR=godot-master
+  platform=linuxbsd
+  target=editor
+  targets="template_release template_debug"
+else
+  platform=x11
+  target=release_debug
+  targets="release debug"
+fi
 
 function build()
 {
@@ -41,15 +54,12 @@ function build()
 
     [ -f custom.py ] && rm custom.py
     rm ./bin/*
-    platform=linuxbsd
-    platform=x11
     [ $CLEAN -eq 1 ] && scons platform=$platform --clean
 
     [ $OPTIMIZED -eq 1 ] && opt_flags="use_static_ccp=yes lto=full debug_symbols=no"
     common_flags="use_llvm=yes linker=lld debug_symbols=no lto=none use_static_cpp=no" # arch does not provide libatomic.a through gcc-libs
 
     # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
-    target=release_debug
     echo -e "build : ${RED}$platform$RESET target=$RED$target$RESET"
     time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 $common_flags warnings=no #custom_modules=../modules
 
@@ -65,7 +75,7 @@ function build()
         echo -e "${RED}gradlew clean$RESET"
         pushd platform/android/java && ./gradlew --no-daemon cleanGodotTemplates && popd
         ndk_platform=android-22
-        for target in release debug;
+        for target in $targets;
         do
             for arch in arm64v8 armv7; #x86_6
             do
