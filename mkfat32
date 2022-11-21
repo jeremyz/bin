@@ -1,0 +1,23 @@
+#! /bin/sh
+
+if [ ${UID} -ne 0 ]
+then
+  echo "must be root" && exit 1
+fi
+
+if [ $# -eq 0 ]
+then
+  echo "missing dev" && exit 1
+fi
+DEV=$1
+
+echo "dev is : ${DEV}"
+echo "hit ENTER to continue"
+read none
+
+echo "zero ${DEV}" && dd if=/dev/zero of=${DEV} bs=4096 status=progress
+echo "syncing ..." && sync
+echo "mklabel msdos" && parted ${DEV} --script -- mklabel msdos
+echo "mkpart fat32" && parted ${DEV} --script -- mkpart primary fat32 1MiB 100%
+echo "mkfsvfat -F32" && mkfs.vfat -F32 ${DEV}1
+echo "" && parted ${DEV} --script print
