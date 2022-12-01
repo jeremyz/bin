@@ -85,6 +85,7 @@ set_if_not_in 'PATH' ${GEM_HOME}/bin
 alias vim=nvim
 alias gvim='nvim --listen godothost .'
 alias vimdiff="nvim -d"
+alias sf='systemctl --user restart pipewire*'
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
 alias kk='khal calendar'
 alias ki='khal interactive'
