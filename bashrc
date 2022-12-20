@@ -87,6 +87,7 @@ alias gvim='nvim --listen godothost .'
 alias vimdiff="nvim -d"
 alias sf='systemctl --user restart pipewire*'
 alias fuck='eval $(thefuck $(fc -ln -1)); history -r'
+alias tt='taskwarrior-tui'
 alias kk='khal calendar'
 alias ki='khal interactive'
 alias zz='clear && khal calendar && task -old'
