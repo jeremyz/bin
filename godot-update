@@ -3,14 +3,14 @@
 RED="\033[0;31m"
 RESET="\033[0m"
 
-TEMPLATE_DIR=$HOME/.local/share/godot/templates/3.x
+TEMPLATE_DIR=$HOME/.local/share/godot/export_templates
 
 DIR=godot
 FORCE=0
 CLEAN=0
-ANDROID=0
+ANDROID=1
 OPTIMIZED=0
-VERSION=3
+VERSION=4
 
 for I in  "$@"
 do
@@ -19,7 +19,7 @@ do
         FORCE=1
         ;;
         a)
-        ANDROID=1
+        ANDROID=0
         ;;
         c)
         CLEAN=1
@@ -27,10 +27,12 @@ do
         o)
         OPTIMIZED=1
         ;;
-        4)
+        3)
         VERSION=$I
+        TEMPLATE_DIR=$HOME/.local/share/godot/templates
     esac
 done
+TEMPLATE_DIR=$TEMPLATE_DIR/$VERSION.x
 
 if [ $VERSION == 4 ]
 then
@@ -79,8 +81,14 @@ function build()
         do
             for arch in arm64v8 armv7; #x86_6
             do
-                echo -e "build : ${RED}android$RESET android_arch=$RED$arch$RESET target=$RED$target$RESET ndk_platform=$RED$ndk_platform$RESET"
-                time scons -j$J platform=android target=$target android_arch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true $common_flags
+                if [ $VERSION == 3 ]
+                then
+                  aarch="android_arch"
+                else
+                  aarch="arch"
+                fi
+                echo -e "build : ${RED}android$RESET $aarch=$RED$arch$RESET target=$RED$target$RESET ndk_platform=$RED$ndk_platform$RESET"
+                time scons -j$J platform=android target=$target $aarch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true $common_flags
             done
         done
         echo -e "${RED}gradlew build$RESET"
