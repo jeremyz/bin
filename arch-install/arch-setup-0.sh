@@ -25,9 +25,9 @@ echo "UEFI VARS : $VARS"
 # N sectors * 512 / 1024 / 1024 / 1024 -> Gb
 say "SGDISK"
 sgdisk -og $DEV || exit 1
-sgdisk -n 1:2048:264191 -c 1:efi -t 1:ef02 $DEV || exit 1
-sgdisk -n 2:264192:209979391 -c 2:rootfs -t 2:8300 $DEV || exit 1
-sgdisk -n 3:209979392 -c 3:homefs -t 3:8300 $DEV || exit 1
+sgdisk -n 1::+256M -c 1:efi -t 1:ef02 $DEV || exit 1
+sgdisk -n 2::+100G -c 2:rootfs -t 2:8300 $DEV || exit 1
+sgdisk -n 3:: -c 3:homefs -t 3:8300 $DEV || exit 1
 #sgdisk -n 3:209979392:976773168 -c 3:homefs -t 3:8300 $DEV || exit 1
 sgdisk -p $DEV || exit 1
 
