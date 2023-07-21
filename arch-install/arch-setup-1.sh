@@ -17,14 +17,14 @@ echo "MKINITCPIO"
 mkinitcpio -p linux
 
 echo "GRUB"
-#grub-install --target=i386-pc --recheck /dev/sda
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub_uefi --recheck
 grub-mkconfig -o /boot/grub/grub.cfg
 
 
+ETH=$(ip add | grep '^2' | cut -d ':' -f2 | sed 's/ //g')
 cat > /etc/systemd/network/10-wired.network << EOF
 [Match]
-Name=enp0s*
+Name=$ETH
 
 [Network]
 DHCP=yes

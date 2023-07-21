@@ -1,6 +1,7 @@
 #! /bin/bash
 
 DEV=/dev/sda
+SWPF=/mnt/swapfile
 
 function say()
 {
@@ -23,7 +24,7 @@ echo "UEFI VARS : $VARS"
 # http://www.rodsbooks.com/gdisk/sgdisk-walkthrough.html
 # to retreive size info $ sgdisk -p $DEV
 # N sectors * 512 / 1024 / 1024 / 1024 -> Gb
-say "SGDISK"
+say "SGDISK : $DEV"
 sgdisk -og $DEV || exit 1
 sgdisk -n 1::+256M -c 1:efi -t 1:ef02 $DEV || exit 1
 sgdisk -n 2::+100G -c 2:rootfs -t 2:8300 $DEV || exit 1
@@ -31,24 +32,24 @@ sgdisk -n 3:: -c 3:homefs -t 3:8300 $DEV || exit 1
 #sgdisk -n 3:209979392:976773168 -c 3:homefs -t 3:8300 $DEV || exit 1
 sgdisk -p $DEV || exit 1
 
-say "MKFS"
+say "MKFS : $DEV"
 mkfs.fat -F32 ${DEV}1 || exit 1
 mkfs.ext4 -L root ${DEV}2 || exit 1
 mkfs.ext4 -L home ${DEV}3 || exit 1
 parted $DEV set 1 bios_grub on
 
-say "MOUNT"
+say "MOUNT : $DEV"
 mount ${DEV}2 /mnt
 mkdir /mnt/boot
 mount ${DEV}1 /mnt/boot
 mkdir /mnt/home
 mount ${DEV}3 /mnt/home
 
-say "SWAPFS"
-dd if=/dev/zero of=/mnt/swapfile bs=1M count=512 || exit 1
-chmod 600 /mnt/swapfile || exit 1
-mkswap /mnt/swapfile || exit 1
-swapon /mnt/swapfile || exit 1
+say "SWAPFS : $SWPF"
+dd if=/dev/zero of=$SWPF bs=1M count=1024 || exit 1
+chmod 600 $SWPF || exit 1
+mkswap $SWPF || exit 1
+swapon $SWPF || exit 1
 
 say "BASE SYSTEM"
 pacman -Sy archlinux-keyring
