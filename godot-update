@@ -8,7 +8,7 @@ TEMPLATE_DIR=$HOME/.local/share/godot/export_templates
 DIR=godot
 FORCE=0
 CLEAN=0
-ANDROID=1
+ANDROID=0
 OPTIMIZED=0
 VERSION=4
 
@@ -19,7 +19,7 @@ do
         FORCE=1
         ;;
         a)
-        ANDROID=0
+        ANDROID=1
         ;;
         c)
         CLEAN=1
