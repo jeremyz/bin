@@ -1,3 +1,4 @@
 #! /bin/bash
-#
+
 GDK_SCALE=2 /usr/bin/steam
+echo "remember about : PROTON_USE_WINED3D=1 %command%"
