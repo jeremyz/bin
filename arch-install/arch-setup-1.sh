@@ -28,6 +28,9 @@ Name=$ETH
 
 [Network]
 DHCP=yes
+
+[DHCP]
+UseDomains=yes
 EOF
 
 systemctl enable systemd-networkd
