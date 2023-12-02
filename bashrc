@@ -34,6 +34,7 @@ export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 export EDITOR=nvim
 export GEM_HOME="${HOME_}/.gem/ruby/3.0.0"
 export QT_SCALE_FACTOR=2
+export PATH=$PATH:$GEM_HOME/bin
 
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
