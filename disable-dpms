@@ -1,0 +1,9 @@
+#! /bin/bash
+
+export DISPLAY=${DISPLA:-0.0}
+
+xset -dpms        # disable DPMS
+xset s off        # disable the screen saver
+xset s noblank    # disable screen blanking
+xset s noexpose   # lesser sceensaver disabling
+xset s 0 0        # disable screensaver and blanking
