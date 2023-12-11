@@ -49,8 +49,6 @@ fi
 function build()
 {
 
-    J=$(nproc)
-
     export CXX=/usr/lib/ccache/bin/clang++
     export CC=/usr/lib/ccache/bin/clang
 
@@ -63,7 +61,7 @@ function build()
 
     # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
     echo -e "build : ${RED}$platform$RESET target=$RED$target$RESET"
-    time scons -j$J platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 $common_flags warnings=no #custom_modules=../modules
+    time scons platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 $common_flags warnings=no #custom_modules=../modules
 
     if [ $ANDROID -eq 1 ]
     then
@@ -88,7 +86,7 @@ function build()
                   aarch="arch"
                 fi
                 echo -e "build : ${RED}android$RESET $aarch=$RED$arch$RESET target=$RED$target$RESET ndk_platform=$RED$ndk_platform$RESET"
-                time scons -j$J platform=android target=$target $aarch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true $common_flags
+                time scons platform=android target=$target $aarch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true $common_flags
             done
         done
         echo -e "${RED}gradlew build$RESET"
