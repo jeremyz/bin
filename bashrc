@@ -35,6 +35,7 @@ export PATH=${HOME_}/bin:${PATH#${HOME_}/bin:}
 export EDITOR=nvim
 export GEM_HOME="${HOME_}/.gem/ruby/3.0.0"
 export PATH=$PATH:$GEM_HOME/bin
+export MPD_HOST=fakenews
 
 # catch and eval dmalloc output
 #function dmalloc { eval `command dmalloc -b $*`; }
