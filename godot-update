@@ -3,14 +3,33 @@
 RED="\033[0;31m"
 RESET="\033[0m"
 
-TEMPLATE_DIR=$HOME/.local/share/godot/export_templates
+SRC_DIR=godot-master
 
-DIR=godot
 FORCE=0
 CLEAN=0
 ANDROID=0
-OPTIMIZED=0
+
 VERSION=4
+TEMPLATE_DIR=$HOME/.local/share/godot/export_templates
+TEMPLATE_DIR=$TEMPLATE_DIR/$VERSION.x
+
+platform=linuxbsd
+target=editor
+targets="template_release template_debug"
+common_flags="use_llvm=yes linker=lld debug_symbols=no lto=none use_static_cpp=no" # arch does not provide libatomic.a through gcc-libs
+linux_tools="tools=yes colored=yes pulseaudio=no bits=64 warnings=no" #custom_modules=../modules
+
+# sudo archlinux-java set java-8-openjdk/jre
+# sudo sdkmanager "ndk;23.2.8568313"
+# sudo sdkmanager "cmake;3.18.1"
+# sudo sdkmanager "build-tools;33.0.2"
+# sudo sdkmanager "platforms;android-33"
+# sudo archlinux-java set java-17-openjdk
+
+#export CXX=/usr/lib/ccache/bin/clang++
+#export CC=/usr/lib/ccache/bin/clang
+#export ANDROID_HOME=/opt/android-sdk
+#export ANDROID_NDK_ROOT=/opt/android-ndk
 
 for I in  "$@"
 do
@@ -24,57 +43,27 @@ do
         c)
         CLEAN=1
         ;;
-        o)
-        OPTIMIZED=1
-        ;;
-        3)
-        VERSION=$I
-        TEMPLATE_DIR=$HOME/.local/share/godot/templates
     esac
 done
-TEMPLATE_DIR=$TEMPLATE_DIR/$VERSION.x
-
-if [ $VERSION == 4 ]
-then
-  DIR=godot-master
-  platform=linuxbsd
-  target=editor
-  targets="template_release template_debug"
-else
-  platform=x11
-  target=release_debug
-  targets="release debug"
-fi
 
 function build()
 {
 
-    export CXX=/usr/lib/ccache/bin/clang++
-    export CC=/usr/lib/ccache/bin/clang
-
-    [ -f custom.py ] && rm custom.py
+    #[ -f custom.py ] && rm custom.py
     rm ./bin/*
-    [ $CLEAN -eq 1 ] && scons platform=$platform --clean
+    [ $CLEAN -eq 1 ] && scons --clean
 
-    [ $OPTIMIZED -eq 1 ] && opt_flags="use_static_ccp=yes lto=full debug_symbols=no"
-    common_flags="use_llvm=yes linker=lld debug_symbols=no lto=none use_static_cpp=no" # arch does not provide libatomic.a through gcc-libs
-
-    # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_x11.html
+    # https://docs.huihoo.com/godotengine/godot-docs/godot/reference/compiling_for_x11.html
     echo -e "build : ${RED}$platform$RESET target=$RED$target$RESET"
-    time scons platform=$platform target=$target tools=yes colored=yes pulseaudio=no bits=64 $common_flags warnings=no #custom_modules=../modules
+    time scons platform=$platform target=$target $linux_flags $common_flags #warnings=no #custom_modules=../modules
 
     if [ $ANDROID -eq 1 ]
     then
-        cp ../custom.py .
-        export ANDROID_HOME=/opt/android-sdk
-        export ANDROID_NDK_ROOT=/opt/android-ndk
+        #[ -f ../custom.py ] && cp ../custom.py .
         [ ! -d $TEMPLATE_DIR ] && mkdir $TEMPLATE_DIR
 
-        [ $CLEAN -eq 1 ] && scons platform=android --clean
-        # https://docs.godotengine.org/en/3.2/development/compiling/compiling_for_android.html
-        echo -e "${RED}gradlew clean$RESET"
-        pushd platform/android/java && ./gradlew --no-daemon cleanGodotTemplates && popd
-        ndk_platform=android-22
+        # https://docs.huihoo.com/godotengine/godot-docs/godot/reference/compiling_for_android.html
+        [ $CLEAN -eq 1 ] && pushd platform/android/java && echo -e "${RED}gradlew clean$RESET" && ./gradlew --no-daemon cleanGodotTemplates && popd
         for target in $targets;
         do
             for arch in arm64v8 armv7; #x86_6
@@ -85,19 +74,21 @@ function build()
                 else
                   aarch="arch"
                 fi
-                echo -e "build : ${RED}android$RESET $aarch=$RED$arch$RESET target=$RED$target$RESET ndk_platform=$RED$ndk_platform$RESET"
-                time scons platform=android target=$target $aarch=$arch ndk_platform=$ndk_platform tools=no disable_3d=true $common_flags
+                echo -e "build : ${RED}android$RESET $aarch=$RED$arch$RESET target=$RED$target$RESET"
+                time scons platform=android target=$target $aarch=$arch tools=no disable_3d=true $common_flags
             done
         done
-        echo -e "${RED}gradlew build$RESET"
-        pushd platform/android/java && ./gradlew --no-daemon generateGodotTemplates && popd
+        pushd platform/android/java
+        echo -e "${RED}gradlew build$RESET" && ./gradlew --no-daemon build
+        echo -e "${RED}gradlew generateGodotTemplates$RESET" && ./gradlew --no-daemon generateGodotTemplates
+        popd
 
         cp bin/android* $TEMPLATE_DIR/
         rm custom.py
     fi
 }
 
-pushd $DIR
+pushd $SRC_DIR
 
     if [ $CLEAN -eq 1 ]
     then
@@ -124,4 +115,4 @@ popd
 
 # https://godot-build-options-generator.github.io
 # scons -j4 platform=linuxbsd target=release_debug tools=yes pulseaudio=no bits=64 warnings=no #custom_modules=../modules
-# scons -j4 platform=android target=debug android_arch=arm64v8 ndk_platform=android-22 tools=no disable_3d=true
+# scons -j4 platform=android target=debug android_arch=arm64v8 tools=no disable_3d=true
