@@ -1,5 +1,14 @@
 #! /bin/sh
 
+# archlinux setup
+# yay -S android-sdk jre8-openjdk-headless jdk17-openjdk
+#  archlinux-java set java-8-openjdk/jre
+#  sdkmanager "ndk;23.2.8568313"
+#  sdkmanager "cmake;3.18.1"
+#  sdkmanager "build-tools;33.0.2"
+#  sdkmanager "platforms;android-33"
+#  archlinux-java set java-17-openjdk
+
 RED="\033[0;31m"
 RESET="\033[0m"
 
@@ -18,13 +27,6 @@ target=editor
 targets="template_release template_debug"
 common_flags="use_llvm=yes linker=lld debug_symbols=no lto=none use_static_cpp=no" # arch does not provide libatomic.a through gcc-libs
 linux_tools="tools=yes colored=yes pulseaudio=no bits=64 warnings=no" #custom_modules=../modules
-
-# sudo archlinux-java set java-8-openjdk/jre
-# sudo sdkmanager "ndk;23.2.8568313"
-# sudo sdkmanager "cmake;3.18.1"
-# sudo sdkmanager "build-tools;33.0.2"
-# sudo sdkmanager "platforms;android-33"
-# sudo archlinux-java set java-17-openjdk
 
 #export CXX=/usr/lib/ccache/bin/clang++
 #export CC=/usr/lib/ccache/bin/clang
