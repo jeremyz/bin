@@ -1,12 +1,13 @@
 #! /bin/sh
 
-# archlinux setup
-# yay -S android-sdk jre8-openjdk-headless jdk17-openjdk
+# archlinux setup :
+# yay -S jre8-openjdk-headless jdk17-openjdk
+# yay -S android-sdk android-sdk-platform-tools
 #  archlinux-java set java-8-openjdk/jre
 #  sdkmanager "ndk;23.2.8568313"
 #  sdkmanager "cmake;3.18.1"
-#  sdkmanager "build-tools;33.0.2"
-#  sdkmanager "platforms;android-33"
+#  sdkmanager "build-tools;34.0.0"
+#  sdkmanager "platforms;android-34"
 #  archlinux-java set java-17-openjdk
 
 RED="\033[0;31m"
