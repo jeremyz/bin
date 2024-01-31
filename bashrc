@@ -15,7 +15,7 @@ then
 else
     export TERM='xterm-color'
 fi
-[ -r ~/.dir_colorss ] && eval $(dircolors ~/.dir_colors)
+[ -r ~/.dir_colors ] && eval $(dircolors ~/.dir_colors)
 alias ls="ls --color=auto -F -b -T 0"
 alias ll="ls -l --color=auto -F -b -T 0"
 
