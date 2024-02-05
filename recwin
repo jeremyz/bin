@@ -1,0 +1,6 @@
+#! /bin/bash
+
+echo "CLICK ON THE WINDOW"
+WINID=$(xwininfo  | sed -n "s/.*Window id: \(.*\) .*$/\1/p")
+
+recordmydesktop --windowid=$WINID
