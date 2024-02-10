@@ -49,6 +49,7 @@ alias kk='khal calendar'
 alias ki='khal interactive'
 alias zz='clear && khal calendar && task -old'
 alias ddu='zcat ~/.cache/ncdu-data.gz | ncdu -f-'
+alias cc='cd $(find ~/usr ~/_wip -type d | fzy)'
 
 # FUNCTIONS
 function lip () {    # local ips
