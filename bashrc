@@ -26,6 +26,7 @@ export QT_SCALE_FACTOR=1
 # ENV
 HOME_=$(readlink -f "${HOME%/}")
 export PATH=${HOME_}/bin:${PATH#"${HOME_}/bin:"}
+export TERM='xterm-256color'
 export EDITOR=nvim
 export GEM_HOME="${HOME_}/.gem/ruby/3.0.0"
 export PATH=$PATH:$GEM_HOME/bin
