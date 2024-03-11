@@ -1,7 +1,7 @@
 #  patch -p 1 -N -r -  < %
 diff -Naur --no-dereference /usr/share/X11/xkb/geometry/typematrix xkb/geometry/typematrix
---- /usr/share/X11/xkb/geometry/typematrix	2021-02-17 16:20:22.000000000 +0100
-+++ xkb/geometry/typematrix	2021-02-22 09:06:24.852744988 +0100
+--- /usr/share/X11/xkb/geometry/typematrix	2024-02-05 15:14:49.000000000 +0100
++++ xkb/geometry/typematrix	2024-03-11 08:29:16.443856935 +0100
 @@ -731,3 +731,15 @@
          };
      };
@@ -12,78 +12,70 @@ diff -Naur --no-dereference /usr/share/X11/xkb/geometry/typematrix xkb/geometry/
 +    include "typematrix(tm2030_MiscDiod_102)"
 +    include "typematrix(tm2030_MiscDiod_off)"
 +
-+    description = "TypeMatrix EZ-Reach 2030 USB";
++    description = "TypeMatrix EZ-Reach 2030 USB JeYzU";
 +
 +    include "typematrix(tm2030USB_func)"
 +    include "typematrix(tm2030USB_alpha)"
 +    include "typematrix(tm2030USB_ctrl)"
 +}; // geometry tm2030USB-jeyzu
 diff -Naur --no-dereference /usr/share/X11/xkb/rules/base xkb/rules/base
---- /usr/share/X11/xkb/rules/base	2021-02-17 16:20:22.000000000 +0100
-+++ xkb/rules/base	2021-02-22 09:09:54.526066924 +0100
+--- /usr/share/X11/xkb/rules/base	2024-02-05 15:14:49.000000000 +0100
++++ xkb/rules/base	2024-03-11 08:31:40.570657598 +0100
 @@ -26,7 +26,7 @@
  ! $nokiamodels = nokiasu8w nokiarx44 nokiarx51
  
  // TypeMatrix geometries
 -! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
-+! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-jeyzu tm2030USB-102 tm2030USB-106
++! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106 tm2030USB-jeyzu
  
- // Layouts that provide further specializations for the OLPC
- ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
+ // Country files that provide specializations for the OLPC:
+ ! $olpclayouts = af am ara br ca es et fr in it kh kz mn ng np pk ru th tr us
 diff -Naur --no-dereference /usr/share/X11/xkb/rules/base.lst xkb/rules/base.lst
---- /usr/share/X11/xkb/rules/base.lst	2021-02-17 16:20:22.000000000 +0100
-+++ xkb/rules/base.lst	2021-02-22 09:12:05.662726484 +0100
-@@ -149,6 +149,7 @@
+--- /usr/share/X11/xkb/rules/base.lst	2024-02-05 15:14:49.000000000 +0100
++++ xkb/rules/base.lst	2024-03-11 08:38:39.861668692 +0100
+@@ -182,6 +182,7 @@
    tm2030USB       TypeMatrix EZ-Reach 2030 USB
    tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
    tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
-+  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
-   yahoo           Yahoo! Internet
-   macbook78       MacBook/MacBook Pro
-   macbook79       MacBook/MacBook Pro (intl.)
-@@ -560,6 +561,7 @@
++  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (JeYzU)
+   unitekkb1925    Unitek KB-1925
+   vsonku306       ViewSonic KU-306 Internet
+   winbook         Winbook Model XP5
+@@ -613,6 +614,7 @@
    OADG109A        jp: Japanese (OADG 109A)
    mac             jp: Japanese (Macintosh)
    dvorak          jp: Japanese (Dvorak)
-+  jeyzu           jp: Japanese (Bepo)
-   phonetic        kg: Kyrgyz (phonetic)
-   ruskaz          kz: Russian (Kazakhstan, with Kazakh)
++  jeyzu           jp: Japanese (JeYzU)
    kazrus          kz: Kazakh (with Russian)
+   ext             kz: Kazakh (extended)
+   latin           kz: Kazakh (Latin)
 diff -Naur --no-dereference /usr/share/X11/xkb/rules/evdev xkb/rules/evdev
---- /usr/share/X11/xkb/rules/evdev	2021-02-17 16:20:22.000000000 +0100
-+++ xkb/rules/evdev	2021-02-22 09:13:20.416055754 +0100
+--- /usr/share/X11/xkb/rules/evdev	2024-02-05 15:14:49.000000000 +0100
++++ xkb/rules/evdev	2024-03-11 08:37:38.836042658 +0100
 @@ -26,7 +26,7 @@
  ! $nokiamodels = nokiasu8w nokiarx44 nokiarx51
  
  // TypeMatrix geometries
 -! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
-+! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-jeyzu tm2030USB-102 tm2030USB-106
++! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106 tm2030USB-jeyzu
  
- // Layouts that provide further specializations for the OLPC
- ! $olpclayouts = af am ara br ca es et fr it kh kz in mn np ru th tr us 
+ // Country files that provide specializations for the OLPC:
+ ! $olpclayouts = af am ara br ca es et fr in it kh kz mn ng np pk ru th tr us
 diff -Naur --no-dereference /usr/share/X11/xkb/rules/evdev.lst xkb/rules/evdev.lst
---- /usr/share/X11/xkb/rules/evdev.lst	2021-02-17 16:20:22.000000000 +0100
-+++ xkb/rules/evdev.lst	2021-02-22 09:15:14.566049581 +0100
-@@ -149,6 +149,7 @@
+--- /usr/share/X11/xkb/rules/evdev.lst	2024-02-05 15:14:49.000000000 +0100
++++ xkb/rules/evdev.lst	2024-03-11 08:38:11.947235775 +0100
+@@ -182,6 +182,7 @@
    tm2030USB       TypeMatrix EZ-Reach 2030 USB
    tm2030USB-102   TypeMatrix EZ-Reach 2030 USB (102/105:EU mode)
    tm2030USB-106   TypeMatrix EZ-Reach 2030 USB (106:JP mode)
-+  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (jeyzu)
-   yahoo           Yahoo! Internet
-   macbook78       MacBook/MacBook Pro
-   macbook79       MacBook/MacBook Pro (intl.)
-@@ -560,6 +561,7 @@
-   OADG109A        jp: Japanese (OADG 109A)
-   mac             jp: Japanese (Macintosh)
-   dvorak          jp: Japanese (Dvorak)
-+  jeyzu           jp: Japanese (Bepo)
-   phonetic        kg: Kyrgyz (phonetic)
-   ruskaz          kz: Russian (Kazakhstan, with Kazakh)
-   kazrus          kz: Kazakh (with Russian)
++  tm2030USB-jeyzu TypeMatrix EZ-Reach 2030 USB (JeYzU)
+   unitekkb1925    Unitek KB-1925
+   vsonku306       ViewSonic KU-306 Internet
+   winbook         Winbook Model XP5
 diff -Naur --no-dereference /usr/share/X11/xkb/symbols/jp xkb/symbols/jp
---- /usr/share/X11/xkb/symbols/jp	2021-02-17 16:20:22.000000000 +0100
-+++ xkb/symbols/jp	2021-02-22 09:16:06.342713437 +0100
-@@ -321,3 +321,15 @@
+--- /usr/share/X11/xkb/symbols/jp	2024-02-05 15:14:49.000000000 +0100
++++ xkb/symbols/jp	2024-03-11 08:39:53.151565627 +0100
+@@ -280,3 +280,15 @@
  	xkb_symbols "sun_type7" {
  	include "sun_vndr/jp(sun_type7)"
  };
