@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /usr/bin/env bash
 
 # archlinux setup :
 # yay -S jre8-openjdk-headless jdk17-openjdk
@@ -36,22 +36,21 @@ linux_tools="tools=yes colored=yes pulseaudio=no bits=64 warnings=no" #custom_mo
 
 for I in  "$@"
 do
-    case $I in
-        f)
-        FORCE=1
-        ;;
-        a)
-        ANDROID=1
-        ;;
-        c)
-        CLEAN=1
-        ;;
-    esac
+  case $I in
+    f)
+      FORCE=1
+      ;;
+    a)
+      ANDROID=1
+      ;;
+    c)
+      CLEAN=1
+      ;;
+  esac
 done
 
 function build()
 {
-
     #[ -f custom.py ] && rm custom.py
     rm ./bin/*
     [ $CLEAN -eq 1 ] && scons --clean
@@ -62,24 +61,24 @@ function build()
 
     if [ $ANDROID -eq 1 ]
     then
-        #[ -f ../custom.py ] && cp ../custom.py .
-        [ ! -d $TEMPLATE_DIR ] && mkdir $TEMPLATE_DIR
+      #[ -f ../custom.py ] && cp ../custom.py .
+      [ ! -d $TEMPLATE_DIR ] && mkdir $TEMPLATE_DIR
 
         # https://docs.huihoo.com/godotengine/godot-docs/godot/reference/compiling_for_android.html
         [ $CLEAN -eq 1 ] && pushd platform/android/java && echo -e "${RED}gradlew clean$RESET" && ./gradlew --no-daemon cleanGodotTemplates && popd
         for target in $targets;
         do
-            for arch in arm64v8 armv7; #x86_6
-            do
-                if [ $VERSION == 3 ]
-                then
-                  aarch="android_arch"
-                else
-                  aarch="arch"
-                fi
-                echo -e "build : ${RED}android$RESET $aarch=$RED$arch$RESET target=$RED$target$RESET"
-                time scons platform=android target=$target $aarch=$arch tools=no disable_3d=true $common_flags
-            done
+          for arch in arm64v8;# armv7;# x86_6
+          do
+            if [ $VERSION == 3 ]
+            then
+              aarch="android_arch"
+            else
+              aarch="arch"
+            fi
+            echo -e "build : ${RED}android$RESET $aarch=$RED$arch$RESET target=$RED$target$RESET"
+            time scons platform=android target=$target $aarch=$arch tools=no disable_3d=true $common_flags
+          done
         done
         pushd platform/android/java
         echo -e "${RED}gradlew build$RESET" && ./gradlew --no-daemon build
@@ -89,7 +88,7 @@ function build()
         cp bin/android* $TEMPLATE_DIR/
         rm custom.py
     fi
-}
+  }
 
 pushd $SRC_DIR
 
