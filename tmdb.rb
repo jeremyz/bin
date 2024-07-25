@@ -3,231 +3,327 @@
 require 'json'
 require 'open-uri'
 
+# tmdb [movie_path] [db_path]
 n = ARGV.size
-mpath=File.dirname(__FILE__)
-mpath = ARGV.shift if n > 0
-dbpath=File.join(mpath, 'db')
-dbpath = ARGV.shift if n > 1
-
-# TODO indicate if srt file is here
+mpath = n.positive? ? ARGV.shift : File.dirname(__FILE__)
+dbpath = n > 1 ? ARGV.shift : File.join(mpath, 'db')
 
 puts "  movies : #{mpath}\n      db : #{dbpath}"
 
-API_KEY = 'c4202eaa738af60ae7a784c349a0cc63'
-SEARCH_M="https://api.themoviedb.org/3/search/movie?api_key=#{API_KEY}&language=en-US&page=1&include_adult=true&"
-FETCH_M="https://api.themoviedb.org/3/movie/ID?api_key=#{API_KEY}"
-FETCH_C="https://api.themoviedb.org/3/movie/ID/credits?api_key=#{API_KEY}"
-URL_M='https://www.themoviedb.org/movie/'
-URL_A='https://www.themoviedb.org/person/'
-URL_I='https://www.themoviedb.org/t/p/original/'
-DB=File.join(dbpath, 'db.json')
-FIX=File.join(dbpath, 'fix.json')
-FAIL=File.join(dbpath, 'failed.json')
-DBA=File.join(dbpath, 'a')
-DBM=File.join(dbpath, 'm')
-HTML_I=File.join(dbpath, 'index.html')
-HTML_M=File.join(dbpath, 'movies.html')
-HTML_A=File.join(dbpath, 'actors.html')
-BLANK='blank.png'
+API_KEY = JSON.parse(File.read(File.expand_path('~/.tmdb.json')))['apikey']
+API_URL = 'https://api.themoviedb.org/3'.freeze
+SEARCH_M = "#{API_URL}/search/movie?api_key=#{API_KEY}&language=en-US&page=1&include_adult=true&".freeze
+SEARCH_T = SEARCH_M.sub(%r{/movie}, '/tv').freeze
+FETCH_M = "#{API_URL}/movie/ID?api_key=#{API_KEY}".freeze
+FETCH_T = FETCH_M.sub(%r{/movie}, '/tv').freeze
+FETCH_CM = "#{API_URL}/movie/ID/credits?api_key=#{API_KEY}".freeze
+FETCH_CT = FETCH_CM.sub(%r{/movie}, '/tv').freeze
+URL_M = 'https://www.themoviedb.org/movie/'.freeze
+URL_T = URL_M.sub(%r{/movie}, '/tv').freeze
+URL_A = 'https://www.themoviedb.org/person/'.freeze
+URL_I = 'https://www.themoviedb.org/t/p/original/'.freeze
+ACTORS_N = 6
+ASZ = 150
+MSZ = 350
+BLANK = 'blank.png'.freeze
+DB = File.join(dbpath, 'db.json')
+FIX = File.join(dbpath, 'fix.json')
+FAIL = File.join(dbpath, 'failed.json')
+DBA = File.join(dbpath, 'a')
+DBM = File.join(dbpath, 'm')
+HTML_I = File.join(dbpath, 'index.html')
+HTML_M = File.join(dbpath, 'movies.html')
+HTML_A = File.join(dbpath, 'actors.html')
+HTML_F = File.join(dbpath, 'failed.html')
+HTML_N = File.join(dbpath, 'new.html')
 
-Dir.mkdir(dbpath) if not Dir.exist?(dbpath)
-Dir.mkdir(DBA) if not Dir.exist?(DBA)
-Dir.mkdir(DBM) if not Dir.exist?(DBM)
+Dir.mkdir(dbpath) unless Dir.exist?(dbpath)
+Dir.mkdir(DBA) unless Dir.exist?(DBA)
+Dir.mkdir(DBM) unless Dir.exist?(DBM)
 
-@failed = []
-@fix = File.exist?(FIX) ? JSON.load(File.read(FIX)) : {}
-@prev_db = File.exist?(DB) ? JSON.load(File.read(DB)) : []
-@idx = @prev_db.collect { |m| m['filename'] }
-@current_db = []
-
-def search fn
-  b, e = fn.split '.'
-  name, *more = b.split '-'
-  year = more[-1]
-  sequel = more[0] if more.size == 2
-  puts "search : #{name} - #{year} - #{sequel}"
-  begin
-    res = JSON.load URI.open(SEARCH_M + URI.encode_www_form('query' => name)).read
-  rescue
-    return nil
-  end
-  return nil if res['total_results'] == 0
-  sel = res['results'].select { |r| (r['release_date']||'nope')[0..3] == year }
-  return nil if sel.size == 0
-  if sel.size == 1
-    puts "  found '#{sel[0]['title']}'"
-  else
-    puts "  found #{sel.map {|s| s['title'] + ' ' + s['release_date']||'?' }}"
-    s = sel.select { |r| r['title'].downcase == name }
-    sel = s if s.size > 0
-    s = sel.select { |r| r['title'].downcase.gsub(/[^ a-z]/, '') =~ /#{name.gsub(/[^ a-z]/, '')}/ } if sel.size != 1
-    sel = s if s.size > 0
-    sel = sel.select { |r| r['title'].downcase =~ /#{sequel}/ } if sel.size != 1
-    return nil if sel.size != 1
-    puts "  choose '#{sel[0]['title']}'"
-  end
-  sel[0]
+def write_db(next_db)
+  puts "write #{DB}"
+  File.open(DB, 'w') { |f| f << next_db.to_json }
 end
 
-def download id, p, base
-  return nil if p.nil?
-  fn = id.to_s + File.extname(p)
-  dst = File.join(base, fn)
-  if not File.exist? dst
-    puts " download #{URL_I + p} -> #{dst}"
-    File.open(dst, 'wb') { |f| f.write URI.open(URL_I + p).read }
-  end
-  fn
+def num
+  ('1'..'9').inject('') { |r, i| "#{r}<div class=link><a class=dic href='##{i}'>#{i}</a></div>" }
 end
 
-def fetch id, fn, m
-  m['filename'] = fn
-  m['img'] = download(id, m['poster_path'], DBM)
-  m['cast'] = []
-  JSON.load(URI.open(FETCH_C.sub(/ID/, id.to_s)).read)['cast'].each_with_index do |a, i|
-    break if i > 6
-    a['img'] = download(a['id'], a['profile_path'], DBA)
-    m['cast'] << a
-  end
-  m
+def alpha
+  ('A'..'Z').inject('') { |r, i| "#{r}<div class=link><a class=dic href='##{i}'>#{i}</a></div>" }
 end
 
-def known? fn
-  id = @fix[fn]
-  if not id.nil?
-    m = @prev_db.find{ |i| i['id'] == id and i['filename'] == fn }
-    m = JSON.load URI.open(FETCH_M.sub(/ID/, id.to_s)).read if m.nil?
-    @current_db << fetch(id, fn, m)
-    return nil
-  end
-  if @idx.include? fn
-    @current_db << @prev_db.find{ |i| i['filename'] == fn }
-    return nil
-  end
-  fn
+def menu(*links)
+  t = '<div id=menu>'
+  links.each { |link| t << "<a class=linkm href='#{link.downcase}.html'>#{link}</a>" }
+  t << '</div>'
 end
 
-Dir.glob(File.join(mpath, '*')) do |path|
-  next if File.directory? path
-  next if path =~ /\.srt$/ or path =~ /\.rb$/ or path =~ /\.sub$/ or path =~ /\.jpg$/
-  fn = path.split('/')[-1]
-  next if known?(fn).nil?
-  fs = fn.gsub('_', ' ').downcase.tr('àáâäçèéêëìíîïòóôöùúûü','aaaaceeeeiiiioooouuuu')
-  m = search fs
-  if m.nil?
-    puts '  failed'
-    @failed << fn
-  else
-    @current_db << fetch(m['id'], fn, m)
-  end
+def prelude(title)
+  f = "<html><head><title>#{title}</title><meta charset='utf-8' />\n"
+  f << '<link rel="stylesheet" href="db.css" />'
+  f << '<script src="lazy.js"></script>'
+  f << "</head><body>\n"
 end
 
-CSS=-<<EOF
-html, body  { height:98%; overflow:auto; }
-div#toc     { margin:auto; padding:30 50px; width:800px; }
-div#anchors { margin:auto; padding:30 50px; }
-a           { color:black; text-decoration: none; width:100%; height:100%; }
-a:hover     { color:#96281b;}
-td          { padding:0px; }
- .alpha     { padding:10px; font-weight:bold; font-size:18px; color:#96281b; }
- a.alpha:hover { font-size:35px; }
- .active    { font-size:35px; }
-ul          { list-style-type: none; }
-table.mid   { margin:auto; padding:0 50px; }
-td.release  { padding-left:20px; }
-td.link     { width:250px; }
-td.link:hover  { background-color:#95a5a6; }
-div.link    { padding:10px; }
-div.entry   { margin:20px; background-color:#bdc3c7; overflow:auto; }
-div.poster  { padding:20px; margin:auto; float:left; }
-div.left    { float:right; width:1500px; }
-div.meta    { padding:20px; width:1450px; float:left; }
-div.title   { font-weight:bold; font-size:30px; color:#96281b; float:left; }
-div.original{ font-size:30px; padding-left:10px; float:left; }
-div.year    { font-size:30px; padding-left:10px; float:left; }
-div.fn      { font-size:20px; float:right; }
-div.cast    { float:left; background-color:#dadfe1;}
-div.actor   { margin: 0 15px; float:left; }
-div.overview{ margin: 15px; float:left; }
-#fixed-div  { background-color:#6bb9f0; position:absolute; bottom: 4em; right: 4em; padding:20px;}
-#letters    { position:absolute; top: 1em; right: 10em; width:50px; }
-li          { padding:4px; }
-EOF
-
-@current_db.sort! {|a,b| a['title'].downcase <=> b['title'].downcase }
-File.open(DB, 'w') { |f| f << @current_db.to_json }
-File.open(HTML_I, 'w') do |f|
-  f << '<html><head><title>Movies Index</title><meta charset="utf-8"></head><style>'
-  f << 'body { background-color:#bdc3c7; }'
-  f << CSS
-  f << "</style><body>\n<div id=fixed-div><a href=movies.html>Movies</a><br/><br/><a href=actors.html>Actors</a></div>\n<div id=toc>"
-  f << "<div id=letters><ul>" + ('A'..'Z').inject('') {|r,i| r+ "<li><a href='##{i}' class=alpha>#{i}</a></li>"} + '</ul></div>'
-  letter=nil
-  @current_db.each do |m|
-    l = m['title'][0].upcase
-    if l != letter
-      letter = l
-      f << '</table>' if not letter.nil?
-      f << "<div name=#{letter} id=#{letter} class=\"alpha active\">#{letter}</div><table class=mid>"
+def write_index(next_db)
+  puts "write #{HTML_I}"
+  File.open(HTML_I, 'w') do |f|
+    f << prelude('Movies Index')
+    f << menu('Movies', 'Actors', 'New', 'Failed')
+    f << '<div id=toc>'
+    f << "<div id=adic class=dic>#{alpha}</div>\n"
+    f << "<div id=ndic class=dic>#{num}</div>\n"
+    letter = nil
+    next_db.each do |m|
+      l = m['title'][0].upcase
+      if l != letter
+        f << '</table></div>' unless letter.nil?
+        letter = l
+        f << "<div class=letter>\n  <div name=#{letter} id=#{letter} class=alpha>#{letter}</div>\n<table class=index>"
+      end
+      f << "<tr class=entry><td class=movie><a class=link href='movies.html##{m['id']}'>#{m['title']}#{' - TV' if m['is_tv']}</a></td>\n"
+      f << "  <td class=release>#{m['release_date'][0..3]}</td></tr>\n"
     end
-    f << "<tr><td class=link><a href=movies.html##{m['id']}><div class=link>#{m['title']}</div></a></td><td class=release>#{m['release_date'][0..3]}</td></tr>"
+    f << '</table></div></body></html>'
   end
-  f << '</table></div></body></html>'
 end
-actors = {}
-File.open(HTML_M, 'w') do |f|
-  f << '<html><head><title>My Movies</title><meta charset="utf-8"></head><style>'
-   f << 'body  { background-color:#89c4f4; }'
-  f << CSS
-  f << "</style><body>\n<div id=fixed-div><a href=index.html>Index</a><br/><br/><a href=actors.html>Actors</a></div>"
-  @current_db.each do |m|
-    img = m['img']
-    img = (img.nil? ? BLANK : ('m/' + img))
-    f << "<div class=entry id=#{m['id']}>"
-    f << "<div class=poster><a href='#{URL_M}#{m['id']}'><img src=#{img} height=380px/></a></div><div class=left>"
-    f << "<div class=meta><div class=title>#{m['title']}</div>"
-    f << "<div class=original>(#{m['original_title']})</div>" if m['title'] != m['original_title']
-    f << "<div class=year>- #{m['release_date'][0..3]}</div>"
-    f << "<div class=fn>[#{m['filename']}]</div></div><div class=cast>\n"
+
+def write_actors(actors)
+  puts "write #{HTML_A}"
+  File.open(HTML_A, 'w') do |f|
+    f << prelude('Actors')
+    f << menu('Index', 'Movies', 'New', 'Failed')
+    f << '<div id=toc>'
+    f << "<div id=adic class=dic>#{alpha}</div>\n"
+    f << "<div id=ndic class=dic>#{num}</div>\n"
+    letter = nil
+    actors.keys.sort! { |a, b| a.downcase <=> b.downcase }.each do |aname|
+      l = aname[0].upcase
+      if l != letter
+        f << '</table></div>' unless letter.nil?
+        letter = l
+        f << "<div class=letter>\n  <div name=#{letter} id=#{letter} class=alpha>#{letter}</div>\n<table class=index>"
+      end
+      d = actors[aname]
+      d['movies'].sort! { |a, b| b[2] <=> a[2] }
+      m = d['movies'].shift
+      f << "<tr class=entry><td class=actor><a class=link href='#{URL_A}#{d['id']}'>#{aname}</a></td>\n"
+      f << "<td class=movie><a class=link href='movies.html##{m[0]}'>#{m[1]}</a></td>"
+      f << "<td class=release>#{m[2][0..3]}</td></tr>"
+      d['movies'].each do |mov|
+        f << "<tr class=entry><td>&nbsp;</td><td class=link><a class=link href='movies.html##{m[0]}'>#{mov[1]}</a></td>"
+        f << "<td class=release>#{mov[2][0..3]}</td></tr>"
+      end
+    end
+    f << '</table></div></body></html>'
+  end
+end
+
+def __write_movies(fout, movies, actors = nil)
+  movies.each do |m|
+    url = m['is_tv'] ? URL_T : URL_M
+    img = (m['img'].nil? ? BLANK : "m/#{m['img']}")
+    fout << "<div class=movie id=#{m['id']}><div class=poster>"
+    fout << "<a href='#{url}#{m['id']}'><img class=lazy data-src=#{img} height=#{MSZ}px /></a></div>"
+    fout << '<div class=cont0><div class=info>'
+    fout << "<div class=title>#{m['title']}</div>"
+    fout << "<div class=original>(#{m['original_title']})</div>" if m['title'] != m['original_title']
+    if m['is_tv']
+      fout << "<div class=year>#{m['release_date'][0..3]}-#{m['last_air_date'][0..3]}</div>"
+      fout << "<div class=season>#{m['eps']}/#{m['number_of_episodes']} episodes -#{m['number_of_seasons']} seasons</div>"
+    else
+      fout << "<div class=year>#{m['release_date'][0..3]}</div>"
+    end
+    # fout << "<div class=fn>[#{m['fname']}]</div>"
+    fout << "</div><div class=cast>\n"
     m['cast'].each do |a|
       img = a['img']
-      img = (img.nil? ? BLANK : ('a/' + img))
-      f << "<div class=actor><h3>#{a['original_name']}<h3><a href='#{URL_A}#{a['id']}'><img src=#{img} width=150px/></a></div>\n"
-      actors[a['name']] ||= {'id'=>a['id'], 'movies'=>[]}
-      actors[a['name']]['movies'] << [m['id'], m['title'], m['release_date']]
+      img = (img.nil? ? BLANK : "a/#{img}")
+      fout << "<div class=actor><h2>#{a['name']}</h2>"
+      fout << "<a href='#{URL_A}#{a['id']}'><img class=lazy data-src=#{img} width=#{ASZ}px /></a></div>\n"
+      unless actors.nil?
+        actors[a['name']] ||= { 'id' => a['id'], 'movies' => [] }
+        actors[a['name']]['movies'] << [m['id'], m['title'], m['release_date']]
+      end
     end
-    f << "</div><div class=overview>#{m['overview']}</div>\n"
-    f << "</div></div>\n"
+    fout << "</div><div class=overview>#{m['overview']}</div>\n"
+    fout << "</div></div>\n"
   end
-  f << '</body></html>'
 end
 
-File.open(HTML_A, 'w') do |f|
-  f << '<html><head><title>Actors Index</title><meta charset="utf-8"></head><style>'
-  f << 'body { background-color:#bdc3c7; }'
-  f << CSS
-  f << "</style><body>\n<div id=fixed-div><a href=index.html>Index</a><br/><br/><a href=movies.html>Movies</a></div>\n<div id=toc>"
-  f << "<div id=letters><ul>" + ('A'..'Z').inject('') {|r,i| r+ "<li><a href='##{i}' class=alpha>#{i}</a></li>"} + '</ul></div>'
-  letter=nil
-  actors.keys.sort! {|a,b| a.downcase <=> b.downcase }.each do |aname|
-    l = aname[0].upcase
-    if l != letter
-      letter = l
-      f << '</table>' if not letter.nil?
-      f << "<div name=#{letter} id=#{letter} class=\"alpha active\">#{letter}</div><table class=mid>"
-    end
-    d = actors[aname]
-    d['movies'].sort! { |a,b| b[2] <=> a[2] }
-    m = d['movies'].shift
-    f << "<tr><td class=link><a href='#{URL_A}#{d['id']}'><div class=link>#{aname}</div></a></td>"
-    f << "<td class=link><a href='#{URL_M}#{m[0]}'><div class=link>#{m[1]}</div></a></td><td class=release>#{m[2][0..3]}</td></tr>"
-    d['movies'].each do |m|
-      f << "<tr><td>&nbsp;</td><td class=link><a href='#{URL_M}#{m[0]}'><div class=link>#{m[1]}</div></a></td><td class=release>#{m[2][0..3]}</td></tr>"
-    end
+def write_movies(movies)
+  puts "write #{HTML_M}"
+  actors = {}
+  File.open(HTML_M, 'w') do |f|
+    f << prelude('Movies')
+    f << menu('Index', 'Actors', 'New', 'Failed') << "\n"
+    __write_movies(f, movies, actors)
+    f << '</body></html>'
   end
-  f << '</table></div></body></html>'
+  actors
 end
 
-puts "FAILED :"
-File.open(FAIL, 'w') { |f| f << @failed.to_json }
-@failed.each { |fn| puts "  -> #{fn}" }
+def write_failed(failed)
+  puts "write #{HTML_F}"
+  File.open(HTML_F, 'w') do |f|
+    f << prelude('Failed')
+    f << menu('Index', 'Actors', 'New', 'Failed') << "\n"
+    failed.each do |fn|
+      f << "<div class=movie>#{fn}</div>\n"
+    end
+    f << '</body></html>'
+  end
+end
+
+def write_new(movies)
+  puts "write #{HTML_N}"
+  File.open(HTML_N, 'w') do |f|
+    f << prelude('New')
+    f << menu('Index', 'Movies', 'Actors', 'Failed') << "\n"
+    __write_movies(f, movies)
+    f << '</body></html>'
+  end
+end
+
+def download(id, path, base)
+  return nil if path.nil?
+
+  fn = id.to_s + File.extname(path)
+  dst = File.join(base, fn)
+  unless File.exist? dst
+    puts "     get : #{dst}"
+    File.open(dst, 'wb') { |f| f.write URI(URL_I + path).open.read }
+  end
+  system("magick #{dst} -resize x#{MSZ} #{dst}") if base == DBM
+  system("magick #{dst} -resize #{ASZ}x #{dst}") if base == DBA
+  fn
+end
+
+def get_all(data)
+  id = data['id']
+  data['img'] = download(id, data['poster_path'], DBM)
+  data['cast'] = []
+  url = data['is_tv'] ? FETCH_CT : FETCH_CM
+  JSON.parse(URI(url.sub(/ID/, id.to_s)).open.read)['cast']
+      .sort { |a, b| a['order'] <=> b['order'] }.each_with_index do |a, i|
+    break if i == ACTORS_N
+
+    a['img'] = download(a['id'], a['profile_path'], DBA)
+    data['cast'] << a
+  end
+  data
+end
+
+def filter_results(res, data)
+  sel = res.select { |r| (r['release_date'] || 'nope')[0..3] == data[:year] }
+  return nil if sel.empty?
+
+  if sel.size > 1
+    puts "     #{sel.map { |s| "#{s['title']} #{s['release_date'] || '?'}" }.join("\n     ")}"
+    s = sel.select { |r| r['stitle'] =~ /#{data[:sequel]}/ } unless data[:sequel].nil?
+    sel = s unless s.nil? || s&.empty?
+    s = sel.select { |r| r['stitle'] == data[:name] }
+    sel = s unless s.empty?
+    return nil if sel.size != 1
+
+  end
+
+  puts "    => : '#{sel[0]['title']}' #{sel[0]['id']}"
+  sel[0]['id']
+end
+
+def normalise_results(res)
+  res.each do |r|
+    r['release_date'] = r['first_air_date'] unless r.key? 'release_date'
+    r['title'] = r['name'] unless r.key? 'title'
+    r['original_title'] = r['original_name'] unless r.key? 'original_title'
+    r['stitle'] = r['title'].downcase.gsub(/[^ a-z0-9]/, '')
+  end
+  res
+end
+
+def fetch(data)
+  url = data['is_tv'] ? FETCH_T : FETCH_M
+  [] << JSON.parse(URI(url.sub(/ID/, data['id'].to_s)).open.read)
+end
+
+def search(data)
+  url = data['is_tv'] ? SEARCH_T : SEARCH_M
+  res = JSON.parse(URI.parse(url + URI.encode_www_form('query' => data[:name])).read)['results']
+  normalise_results(res)
+  filter_results(res, data)
+end
+
+def process_fname(data)
+  puts "#{data['fname']} :"
+  fname = data['fname'].downcase.tr('àáâäçèéêëìíîïòóôöùúûü', 'aaaaceeeeiiiioooouuuu').gsub('_', ' ')
+  fname = fname[..-5] unless data['is_tv']
+  name, *more = fname.split '-'
+  year = more[-1]
+  sequel = more[0] if more.size == 2
+  data.merge(name: name, year: year, sequel: sequel)
+end
+
+def process(data)
+  data = process_fname(data)
+  data['id'] = search(data) if data['id'].nil?
+  return nil if data['id'].nil?
+
+  data.merge!(normalise_results(fetch(data))[0])
+  get_all(data)
+end
+
+def in_prev_db?(fname, prev_db)
+  prev_db.find { |i| i['fname'] == fname } if @db_idx.include?(fname)
+end
+
+failed = []
+fix_db = File.exist?(FIX) ? JSON.parse(File.read(FIX)) : {}
+prev_db = File.exist?(DB) ? JSON.parse(File.read(DB)) : []
+@db_idx = prev_db.collect { |m| m['fname'] }
+next_db = []
+
+def skip?(fname)
+  fname =~ /\.srt$/ || fname =~ /\.sub$/ || fname =~ /\.jpg$/ || fname =~ /^db/
+end
+
+def eps(path)
+  n = 0
+  Dir.glob(File.join(path, '*')) do |fn|
+    n += 1 unless skip?(fn)
+  end
+  n
+end
+
+# FIXME: list seasons -> x/N
+Dir.glob(File.join(mpath, '*')) do |path|
+  fname = path.split('/')[-1]
+  next if skip?(fname)
+
+  data = in_prev_db?(fname, prev_db)
+  if data.nil?
+    is_tv = File.directory?(path)
+    mtime = File.mtime(path).to_i.to_s
+    eps = is_tv ? eps(path) : 0
+    data = process('id' => fix_db[fname], 'fname' => fname, 'is_tv' => is_tv, 'eps' => eps, 'mtime' => mtime)
+  end
+  failed << fname if data.nil?
+  next_db << data unless data.nil?
+end
+
+next_db.sort! { |a, b| a['title'].downcase <=> b['title'].downcase }
+write_db(next_db)
+write_index(next_db)
+write_actors(write_movies(next_db))
+write_failed(failed)
+write_new(next_db.sort { |a, b| b['mtime'] <=> a['mtime'] }[..20])
+
+puts 'FAILED :'
+File.open(FAIL, 'w') { |f| f << failed.to_json }
+failed.each { |fn| puts "  -> #{fn}" }
+
+# jq '.[] | select(.fname | test("Fargo"))' db.json
+# curl --request GET --url 'https://api.themoviedb.org/3/tv/60622/season/2/credits?api_key=c4202eaa738af60ae7a784c349a0cc63' | jq '.cast'
+# 'https://api.themoviedb.org/3/tv/series_id/season/season_number/credits?languag
